@@ -1,0 +1,153 @@
+dircproxy: Detachable IRC Proxy Server
+-------------------------------------
+
+dircproxy is an IRC proxy server ("bouncer") designed for people
+who use IRC from lots of different workstations or clients, but wish
+to remain connected and see what they missed while they were away.
+You connect to IRC through dircproxy, and it keeps you connected to
+the server, even after you detach your client from it.  While you're
+detached, it logs channel and private messages as well as important
+events, and when you re-attach it'll let you know what you missed.
+
+This can be used to give you roughly the same functionality as
+using ircII and screen together, except you can use whatever IRC
+client you like, including X ones!
+
+
+Features
+========
+
+ o Runs on console, as a daemon or from inetd.
+ o Able to proxy many simultaneous users and IRC connections.
+ o Uses IRC server passwords to authenticate.
+ o Remains connected to server when you detach.  To reattach you just
+   use the IRC server password again, no special commands!
+ o Completely non-blocking throughout.
+ o Can connect to servers that also require a password.
+ o Can have a list of servers on the same network to connect to, it
+   will cycle this list.
+ o Throttles data sent to server to ensure you are never flooded
+   off.
+ o Can check servers to make sure they don't become "stoned".
+ o Reconnects to servers if connection is dropped.
+ o Can automatically join channels for you on first attach.
+ o Rejoins channels if you are kicked off.
+ o Can leave channels when you detach and rejoin when you come back.
+ o Can take measures to ensure you don't appear "idle" on IRC.
+ o Drop's unwanted user modes when you detached, if you forget to
+   de-opper yourself.
+ o Will refuse to connect to servers that set certain modes
+   such as +r.
+ o Can bind to any IP on your host to change your appearance on IRC.
+ o Can change what username is presented on IRC without affecting
+   other users its proxying for.
+ o Can send a message to all channels to indicate when you detach
+   and reattach.
+ o Can change your nickname when you detach.
+ o Sets you /AWAY when you detach, if you forget to do so.
+ o Fully configurable logging support so when you reattach you
+   can see what you missed.
+ o Can limit the size of log files to avoid eating diskspace.
+ o Log text recalled to your client is sent so your client sees
+   it as ordinary IRC text.
+ o Can timestamp text in log files so you know when it was sent,
+   also can adjust the timestamp you see depending on how long ago
+   it was sent.
+ o Can make permanent log files for your own use of everything
+   on channels or all private messages.
+ o Can pass log text to a program of your choice (to send you
+   an SMS for example).
+ o Can adjust log timestamps depending on timezone difference
+   between you and dircproxy.
+ o Can proxy DCC chat and sends through itself.
+ o Can capture DCC sends and store them on the dircproxy machine
+   while you're detached, and even while you're attached.
+ o Captured DCC sends can be made subject to a size limit and have
+   the sender's nickname included in the filename.
+ o Can tunnel DCC sends and chats through ssh tunnels.
+   See the included README.dcc-via-ssh for more information.
+ o Customisable message of the day for users which can include
+   stats about log file sizes.
+ o /DIRCPROXY command interface for users to do extra things with
+   the proxy.  Fully documented through /DIRCPROXY HELP command, and
+   the admin can enable and disable any command on
+   a user-by-user basis.
+ o Host and password based security.
+ o Easy to configure and get
+
+All of dircproxy's features are completely configurable and can be
+enabled, disabled and adjusted through the configuration file.
+
+
+Installation
+============
+
+See the file INSTALL for building and installation instructions.
+
+
+Running dircproxy
+=================
+
+
+Once you have installed and configured dircproxy, you can run it
+from the console.  It will automatically enter the background
+(unless you supply the '-D' parameter) and begin listening for
+incoming connections.
+
+You should not need to modify your IRC client or add any
+special scripts to support dircproxy.  Authentication is done
+using the standard IRC server password, your IRC client should
+support this. If you're not sure, try something like '/server
+localhost:57000:password' from your IRC client's console.
+
+Connect to it with your IRC client, supplying the same password as
+you set in the config file, dircproxy will then connect to the IRC
+server for you and begin proxying your session.
+
+When you detach, dircproxy will remain running and remain connected
+to the IRC server, logging any channel or private messages for you
+until your return.
+
+To re-attach, just connect with your IRC client, again supplying
+the password.  dircproxy will see you have left a session running and
+re-attach you to that instead of creating a new one.  Messages you
+missed while you were away will be sent to you in such a way that
+they will fill your IRC windows as if they'd just arrived.
+
+
+You can also run dircproxy from inetd if you wish, although their
+are very few reasons to do this.  See the file README.inetd for
+more information on this feature.
+
+
+Adjusting the Proxy
+===================
+
+While you are connected to the proxy you may perform a number of
+actions to adjust your proxy session using the '/dircproxy' command.
+For example, to end your proxy session, disconnecting you from the
+server, use '/dircproxy quit'.  For more information on what other
+commands are available, see '/dircproxy help'.
+
+
+More Information
+================
+
+The dircproxy home page is at:
+
+	http://dircproxy.sourceforge.net/
+
+
+Please submit bug reports at:
+
+	http://sourceforge.net/tracker/?atid=105645&group_id=5645
+
+Also join us on the #dircproxy IRC channel on irc.openprojects.net and
+irc.linux.com.
+
+
+dircproxy is distributed according to the GNU General Public License.
+See the file COPYING for details.
+
+Copyright (C) 2001 Scott James Remnant <scott@netsplit.com>.
+All Rights Reserved.
