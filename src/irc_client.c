@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.9 2000/05/24 20:22:20 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.10 2000/05/24 20:50:17 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -548,7 +548,7 @@ int ircclient_welcome(struct ircproxy *p) {
     c = p->channels;
     while (c) {
       if (c->inactive) {
-        ircclient_send_numeric(p, 372, ":-   %s", c->name,
+        ircclient_send_numeric(p, 372, ":-   %s %s", c->name,
                                "(forcefully removed)");
       } else if (c->log.open && c->log.nlines) {
         ircclient_send_numeric(p, 372, ":-   %s. %ld %s. (%ld %s)",
@@ -556,7 +556,7 @@ int ircclient_welcome(struct ircproxy *p) {
                                MIN(c->log.nlines, log_autorecall),
                                "will be sent");
       } else {
-        ircclient_send_numeric(p, 372, ":-   %s", c->name,
+        ircclient_send_numeric(p, 372, ":-   %s %s", c->name,
                                "(not logged)");
       }
       c = c->next;
@@ -589,10 +589,7 @@ int ircclient_welcome(struct ircproxy *p) {
 
     c = p->channels;
     while (c) {
-      if (c->inactive) {
-        ircclient_send_notice(p, "You were on %s, rejoin not yet successful\n",
-                              c->name);
-      } else {
+      if (!c->inactive) {
         ircclient_send_selfcmd(p, "JOIN", ":%s", c->name);
         ircserver_send_command(p, "TOPIC", ":%s", c->name);
         ircserver_send_command(p, "NAMES", ":%s", c->name);
