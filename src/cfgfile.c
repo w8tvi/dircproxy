@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.44 2002/08/17 21:05:55 scott Exp $
+ * @(#) $Id: cfgfile.c,v 1.45 2002/10/17 18:46:25 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -19,8 +19,8 @@
 
 #include <dircproxy.h>
 #include "sprintf.h"
-#include "irc_net.h"
 #include "cfgfile.h"
+#include "irc_log.h"
 
 /* forward declaration */
 static int _cfg_read_bool(char **, int *);
@@ -556,9 +556,9 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
           str += strspn(str, WS);
 
           if (strlen(str) && !strcasecmp(str, "all")) {
-            (class ? class : def)->log_events = 0xffff;
+            (class ? class : def)->log_events = IRC_LOG_ALL;
           } else if (strlen(str) && !strcasecmp(str, "none")) {
-            (class ? class : def)->log_events = 0x0000;
+            (class ? class : def)->log_events = IRC_LOG_NONE;
           } else if (strlen(str)) {
             int add = 1;
 
@@ -571,35 +571,10 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
             }
 
             if (strlen(str)) {
-              int flag = 0;
+              int flag;
 
-              if (!strcasecmp(str, "text")) {
-                flag = IRC_LOG_TEXT;
-              } else if (!strcasecmp(str, "action")) {
-                flag = IRC_LOG_ACTION;
-              } else if (!strcasecmp(str, "ctcp")) {
-                flag = IRC_LOG_CTCP;
-              } else if (!strcasecmp(str, "join")) {
-                flag = IRC_LOG_JOIN;
-              } else if (!strcasecmp(str, "part")) {
-                flag = IRC_LOG_PART;
-              } else if (!strcasecmp(str, "kick")) {
-                flag = IRC_LOG_KICK;
-              } else if (!strcasecmp(str, "quit")) {
-                flag = IRC_LOG_QUIT;
-              } else if (!strcasecmp(str, "nick")) {
-                flag = IRC_LOG_NICK;
-              } else if (!strcasecmp(str, "mode")) {
-                flag = IRC_LOG_MODE;
-              } else if (!strcasecmp(str, "topic")) {
-                flag = IRC_LOG_TOPIC;
-              } else if (!strcasecmp(str, "client")) {
-                flag = IRC_LOG_CLIENT;
-              } else if (!strcasecmp(str, "server")) {
-                flag = IRC_LOG_SERVER;
-              } else if (!strcasecmp(str, "error")) {
-                flag = IRC_LOG_ERROR;
-              } else {
+              flag = irclog_strtoflag(str);
+              if (flag == 0) {
                 error("Unknown event name '%s' in 'log_events' "
                       "at line %ld of %s", str, line, filename);
                 valid = 0;
