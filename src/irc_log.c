@@ -7,7 +7,7 @@
  *  - Handling of log programs
  *  - Recalling from log files
  * --
- * @(#) $Id: irc_log.c,v 1.27 2000/10/31 13:11:19 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.28 2000/11/01 14:59:57 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -524,6 +524,24 @@ int irclog_notice(struct ircproxy *p, const char *to, const char *nick,
   return ret;
 }
 
+/* Write a CTCP to log file(s) */
+int irclog_ctcp(struct ircproxy *p, const char *to, const char *nick,
+                const char *format, ...) {
+  char *from, *text;
+  va_list ap;
+  int ret;
+
+  va_start(ap, format);
+  from = x_sprintf("[%s]", nick);
+  text = x_vsprintf(format, ap);
+  ret = _irclog_text(p, to, from, text);
+  free(text);
+  free(from);
+  va_end(ap);
+
+  return ret;
+}
+
 /* Write some text to a log file */
 static int _irclog_writetext(struct ircproxy *p, struct logfile *log,
                              const char *to, const char *from,
@@ -704,8 +722,8 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
       }
 
       /* Message or Notice lines, these require a bit of parsing */
-      if ((*l == '<') || (*l == '-')) {
-        char *src, *msg;
+      if ((*l == '<') || (*l == '-') || (*l == '[')) {
+        char *src, *msg, lastchar;
 
         /* Source starts one character in */
         src = l + 1;
@@ -716,7 +734,14 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
 
         /* Message starts after a space and the correct closing character */
         msg = strchr(l, ' ');
-        if (!msg || (*(msg - 1) != (*l == '<' ? '>' : '-'))) {
+        if (*l == '<') {
+          lastchar = '>';
+        } else if (*l == '[') {
+          lastchar = ']';
+        } else {
+          lastchar = '-';
+        }
+        if (!msg || (*(msg - 1) != lastchar)) {
           free(ll);
           continue;
         }
@@ -774,12 +799,31 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
           }
 
           /* Send the line */
-          net_send(p->client_sock, ":%s %s %s :[%s] %s\r\n", src,
-                   (*l == '<' ? "PRIVMSG" : "NOTICE"), to, tbuf, msg);
+          if (*l == '[') {
+            char *cmd;
+
+            /* Its a CTCP, so we have to place the command before the
+               timestamp */
+            cmd = msg;
+            msg += strcspn(msg, " ");
+            if (*msg)
+              *(msg++) = 0;
+
+            net_send(p->client_sock, ":%s PRIVMSG %s :\001%s [%s]%s%s\001\r\n",
+                     src, to, cmd, tbuf, (strlen(msg) ? " " : ""), msg);
+          } else {
+            net_send(p->client_sock, ":%s %s %s :[%s] %s\r\n", src,
+                     (*l == '<' ? "PRIVMSG" : "NOTICE"), to, tbuf, msg);
+          }
         } else {
           /* Send the line */
-          net_send(p->client_sock, ":%s %s %s :%s\r\n", src,
-                   (*l == '<' ? "PRIVMSG" : "NOTICE"), to, msg);
+          if (*l == '[') {
+            net_send(p->client_sock, ":%s PRIVMSG %s :\001%s\001\r\n", src,
+                     to, msg);
+          } else {
+            net_send(p->client_sock, ":%s %s %s :%s\r\n", src,
+                     (*l == '<' ? "PRIVMSG" : "NOTICE"), to, msg);
+          }
         }
 
       } else if (strncmp(l, "* ", 2)) {
