@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.61 2000/10/23 12:33:55 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.62 2000/10/30 13:44:55 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -975,17 +975,20 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
 
       /* Okay, they've authed for the first time, make the log directory
          here */
-      if ((p->conn_class->other_log_enabled && !p->conn_class->other_log_dir)
-          || (p->conn_class->chan_log_enabled && !p->conn_class->chan_log_dir))
-      {
+      if (p->conn_class->other_log_enabled || p->conn_class->chan_log_enabled) {
         if (irclog_maketempdir(p))
           ircclient_send_notice(p, "(warning) Unable to create log "
                                    "directory, logging disabled");
       }
+
+      /* Initialise the server/private message log */
+      irclog_init(p, "");
+
+      /* Open a log file if we're always logging */
       if (p->conn_class->other_log_enabled && p->conn_class->other_log_always) {
         if (irclog_open(p, ""))
           ircclient_send_notice(p, "(warning) Unable to log server/private "
-                                "messages");
+                                   "messages");
       }
 
       /* Join initial channels */

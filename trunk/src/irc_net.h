@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.33 2000/10/20 12:44:13 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.34 2000/10/30 13:44:56 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -26,11 +26,17 @@
 
 /* a log file - there are good reasons why this isn't defined in irc_log.h */
 struct logfile {
-  int open, keep;
+  int open, made;
   char *filename;
   FILE *file;
+  FILE *copy;
+  char *program;
 
   unsigned long nlines, maxlines;
+
+  int always;
+  int timestamp;
+  int relativetime;
 };
 
 /* a description of an authorised connction */
@@ -65,22 +71,22 @@ struct ircconnclass {
   char *detach_nickname;
 
   int chan_log_enabled;
-  char *chan_log_dir;
-  char *chan_log_program;
   int chan_log_always;
-  int chan_log_timestamp;
-  int chan_log_relativetime;
   long chan_log_maxsize;
   long chan_log_recall;
+  int chan_log_timestamp;
+  int chan_log_relativetime;
+  char *chan_log_copydir;
+  char *chan_log_program;
 
   int other_log_enabled;
-  char *other_log_dir;
-  char *other_log_program;
   int other_log_always;
-  int other_log_timestamp;
-  int other_log_relativetime;
   long other_log_maxsize;
   long other_log_recall;
+  int other_log_timestamp;
+  int other_log_relativetime;
+  char *other_log_copydir;
+  char *other_log_program;
 
   long time_offset;
 

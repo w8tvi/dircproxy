@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.36 2000/10/23 12:19:45 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.37 2000/10/30 13:44:55 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -278,18 +278,6 @@
  */
 #define DEFAULT_CHAN_LOG_ENABLED 1
 
-/* DEFAULT_CHAN_LOG_DIR
- * Default directory to log channel text to.
- * 0 = Place in temporary directory and delete after use
- */
-#define DEFAULT_CHAN_LOG_DIR 0
-
-/* DEFAULT_CHAN_LOG_PROGRAM
- * Default program to pass log text through.
- * 0 = Don't do this
- */
-#define DEFAULT_CHAN_LOG_PROGRAM 0
-
 /* DEFAULT_CHAN_LOG_ALWAYS
  * Log channel text even while the client is online?
  *  1 = Yes
@@ -327,24 +315,24 @@
  */
 #define DEFAULT_CHAN_LOG_RECALL 128
 
+/* DEFAULT_CHAN_LOG_COPYDIR
+ * Directory to log a copy of all text received in.
+ * 0 = Don't do this
+ */
+#define DEFAULT_CHAN_LOG_COPYDIR 0
+
+/* DEFAULT_CHAN_LOG_PROGRAM
+ * Default program to pass log text through.
+ * 0 = Don't do this
+ */
+#define DEFAULT_CHAN_LOG_PROGRAM 0
+
 /* DEFAULT_OTHER_LOG_ENABLED
  * Whether to log server/private messages
  * 1 = Yes
  * 0 = No
  */
 #define DEFAULT_OTHER_LOG_ENABLED 1
-
-/* DEFAULT_OTHER_LOG_DIR
- * Default directory to log private messages and notices to.
- * 0 = Place in temporary directory and delete after use
- */
-#define DEFAULT_OTHER_LOG_DIR 0
-
-/* DEFAULT_OTHER_LOG_PROGRAM
- * Default program to pass log text through.
- * 0 = Don't do this
- */
-#define DEFAULT_OTHER_LOG_PROGRAM 0
 
 /* DEFAULT_OTHER_LOG_ALWAYS
  * Log private messages and notices even while the client is online?
@@ -382,6 +370,18 @@
  *  0 = Don't recall any
  */
 #define DEFAULT_OTHER_LOG_RECALL -1
+
+/* DEFAULT_OTHER_LOG_COPYDIR
+ * Directory to log a copy of all text received in.
+ * 0 = Don't do this
+ */
+#define DEFAULT_OTHER_LOG_COPYDIR 0
+
+/* DEFAULT_OTHER_LOG_PROGRAM
+ * Default program to pass log text through.
+ * 0 = Don't do this
+ */
+#define DEFAULT_OTHER_LOG_PROGRAM 0
 
 /* DEFAULT_TIME_OFFSET
  * Different in minutes from the IRC client to the dircproxy machine.

@@ -295,59 +295,62 @@
 #     Options affecting logging of channel text.
 
 # chan_log_enabled
-#     Whether logging of channel text to files should take place.
+#     Whether logging of channel text to files should take place.  If this
+#     is 'yes', then you'll be able to recall channel text when you rejoin
+#     and see what you missed.
 #
 #     yes = Channel text is logged to files
 #      no = Channel text is NOT logged to files
 #
 #chan_log_enabled = yes
 
-# chan_log_dir
-#     Directory to keep channel logs in.  If you don't use this, dircproxy
-#     stores them in a temporary directory and deletes them when finished.
-#     If you do define it, it'll add to each log as you use it.  If you
-#     start with "~/" then it will use a directory under your home directory.
-#
-#     Should probably note that unless you *really* want to keep your logs
-#     you don't need this.  If you don't set 'chan_log_always' to 'yes'
-#     then you get old log text recalled to your client.
-#
-#     none = Store in temporary directory and delete when finished
-#
-#chan_log_dir "none"
-
-# chan_log_program
-#     Program to pipe channel text into.  If given, dircproxy will run this
-#     program for each log file entry giving the full source information as
-#     the first argument, the destination as the second and the text as a
-#     single line on standard input.
-#
-#     The program can be anywhere in your $PATH, or you can start it with
-#     "~/" if its in a directory under your home directory.
-#
-#     This is done completely seperately to logging to files, even if
-#     they are disabled.
-#
-#     none = Do not pipe log messages to a program
-#
-#chan_log_program "none"
-
 # chan_log_always
 #     Channel text will always be logged while you are offline, so when you
 #     come back you can see what you missed.  You can also, if you wish, log
 #     channel text while online, so if you're only away a short time you can
-#     get an idea of any context etc.  This is also useful if you're using
-#     dircproxy's logs yourself, and wish to log everything.
+#     get an idea of any context etc.
+#
+#     This only applies if 'chan_log_enabled' is 'yes'.
 #
 #     yes = Log channel text while offline and online
 #      no = Log channel text only while offline
 #
 #chan_log_always yes
 
+# chan_log_maxsize
+#     To preserve your harddisk space, you can limit the size of a channel
+#     log file.  Once the log file reaches this number of lines, every line
+#     added will result in a line removed from the top.  If you know you are
+#     never going to want all that logged information, this might be a good
+#     setting for you.
+#
+#     This only applies if 'chan_log_enabled' is 'yes'.
+#
+#     0 = No limit to log files
+#
+#chan_log_maxsize 0
+
+# chan_log_recall
+#     Number of lines from each channel log file to automatically recall
+#     to your IRC client when you attach.  If this is low, you may not get
+#     much useful information, if this is high, it may take a long time for
+#     all the information to arrive.
+#
+#     This only applies if 'chan_log_enabled' is 'yes'.
+#
+#     -1 = Recall the whole log (not recommended if chan_log_always is yes)
+#      0 = Don't automatically recall anything
+#
+#chan_log_recall 128
+
 # chan_log_timestamp
 #     Channel text can have a timestamp added to the front to let you know
 #     exactly when a message was logged.  These timestamps are displayed when
 #     you recall the log files, or when automatially dumped.
+#
+#     This applies to ordinary channel logs if 'chan_log_enabled' is 'yes'
+#     and also to the permanent copy if 'chan_log_copydir' is set to something
+#     other than 'none'.
 #
 #     yes = Include timestamp
 #      no = Do not include timestamp
@@ -371,27 +374,38 @@
 #
 #chan_log_relativetime yes
 
-# chan_log_maxsize
-#     To preserve your harddisk space, you can limit the size of a channel
-#     log file.  Once the log file reaches this number of lines, every line
-#     added will result in a line removed from the top.  If you know you are
-#     never going to want all that logged information, this might be a good
-#     setting for you.
+# chan_log_copydir
+#     As well as dircproxy's own log files, it can also keep a permanent
+#     copy somewhere for your use.  dircproxy will append all channel text
+#     seen to this file, but will not use it itself.
 #
-#     0 = No limit to log files
+#     If you do define it, it'll add to each log as you use it.  If you
+#     start with "~/" then it will use a directory under your home directory.
 #
-#chan_log_maxsize 0
+#     This is done regardless of the 'chan_log_enabled' and 'chan_log_always'
+#     options, although if those are off then you won't get that text
+#     recalled to your client, despite it being in this file.  The timestamping
+#     options do apply however.
+#
+#     none = Do not make a permanent copy
+#
+#chan_log_copydir "none"
 
-# chan_log_recall
-#     Number of lines from each channel log file to automatically recall
-#     to your IRC client when you attach.  If this is low, you may not get
-#     much useful information, if this is high, it may take a long time for
-#     all the information to arrive.
+# chan_log_program
+#     Program to pipe channel text into.  If given, dircproxy will run this
+#     program for each log file entry giving the full source information as
+#     the first argument, the destination as the second and the text as a
+#     single line on standard input.
 #
-#     -1 = Recall the whole log (not recommended if chan_log_always is yes)
-#      0 = Don't automatically recall anything
+#     The program can be anywhere in your $PATH, or you can start it with
+#     "~/" if its in a directory under your home directory.
 #
-#chan_log_recall 128
+#     This is done regardless of the 'chan_log_enabled' and 'chan_log_always'
+#     options.
+#
+#     none = Do not pipe log messages to a program
+#
+#chan_log_program "none"
 
 
 # OTHER LOG OPTIONS
@@ -399,60 +413,61 @@
 
 # other_log_enabled
 #     Whether logging of server and private messages to files should take
-#     place.
+#     place.  If this is 'yes', then you'll be able to recall server and
+#     private messages when you rejoined and see what you missed.
 #
 #     yes = Server/private messages are logged to files
 #      no = Server/private messages are NOT logged to files
 #
 #other_log_enabled = yes
 
-# other_log_dir
-#     Directory to keep the server/private message log in.  If you don't use
-#     this, dircproxy stores it in a temporary directory and deletes it when
-#     finished.  If you do define it, it'll add to the log as you use it.
-#     If you start with "~/" then it will use a directory under your home
-#     directory.
-#
-#     Should probably note that unless you *really* want to keep your logs
-#     you don't need this.  If you don't set 'other_log_always' to 'yes'
-#     then you get old log text recalled to your client.
-#
-#     none = Store in temporary directory and delete when finished
-#
-#other_log_dir "none"
-
-# other_log_program
-#     Program to pipe server and private messages into.  If given, dircproxy
-#     will run this program for each log file entry giving the full source
-#     information as the first argument, the destination as the second and
-#     the text as a single line on standard input.
-#
-#     The program can be anywhere in your $PATH, or you can start it with
-#     "~/" if its in a directory under your home directory.
-#
-#     This is done completely seperately to logging to files, even if
-#     they are disabled.
-#
-#     none = Do not pipe log messages to a program
-#
-#other_log_program "none"
-
 # other_log_always
 #     Server and private messages will always be logged while you are offline,
 #     so when you come back you can see what you missed.  You can also, if you
 #     wish, log these messages while online, so if you're only away a short
-#     time you can get an idea of any context etc.  This is also useful if
-#     you're using dircproxy's logs yourself, and wish to log everything.
+#     time you can get an idea of any context etc.
+#
+#     This only applies if 'other_log_enabled' is 'yes'.
 #
 #     yes = Log server/private messages while offline and online
 #      no = Log server/private messages only while offline
 #
 #other_log_always no
 
+# other_log_maxsize
+#     To preserve your harddisk space, you can limit the size of the
+#     server/private message log file.  Once the log file reaches this number
+#     of lines, every line added will result in a line removed from the top.
+#     If you know you are never going to want all that logged information,
+#     this might be a good setting for you.
+#
+#     This only applies if 'other_log_enabled' is 'yes'.
+#
+#     0 = No limit to log file
+#
+#other_log_maxsize 0
+
+# other_log_recall
+#     Number of lines from the server/private message log file to automatically
+#     recall to your IRC client when you attach.  If this is low, you may not
+#     get much useful information, if this is high, it may take a long time for
+#     all the information to arrive.
+#
+#     This only applies if 'other_log_enabled' is 'yes'.
+#
+#     -1 = Recall the whole log (not recommended if other_log_always is yes)
+#      0 = Don't automatically recall anything
+#
+#other_log_recall -1
+
 # other_log_timestamp
 #     Server and private messages can have a timestamp added to the front to
 #     let you know exactly when a message was logged.  These timestamps are
 #     displayed when you recall the log files, or when automatially dumped.
+#
+#     This applies to the server/private message log if 'other_log_enabled'
+#     is 'yes' and also the permanent copy if 'other_log_copydir' is set to
+#     something other than 'none'.
 #
 #     yes = Include timestamp
 #      no = Do not include timestamp
@@ -473,29 +488,41 @@
 #
 #     yes = Do fancy relative timestamping
 #      no = Do normal timestamping
+#
 #other_log_relativetime yes
 
-# other_log_maxsize
-#     To preserve your harddisk space, you can limit the size of the
-#     server/private message log file.  Once the log file reaches this number
-#     of lines, every line added will result in a line removed from the top.
-#     If you know you are never going to want all that logged information,
-#     this might be a good setting for you.
+# other_log_copydir
+#     As well as dircproxy's own log file, it can keep a permanent copy
+#     somewhere for your use.  dircproxy will append all server and private
+#     messages seen to this file, but will not use it itself.
 #
-#     0 = No limit to log file
+#     If you do define it, it'll add to the log as it uses it.  If you start
+#     with "~/" then it will use a directory under your home directory.
 #
-#other_log_maxsize 0
+#     This is done regardless of the 'other_log_enabled' and 'other_log_always'
+#     options, although if those are off then won't get that text recalled
+#     to your client, despite it being in this file.  The timestamping options
+#     do apply however.
+#
+#     none = Do not make a permanent copy
+#
+#other_log_copydir "none"
 
-# other_log_recall
-#     Number of lines from the server/private message log file to automatically
-#     recall to your IRC client when you attach.  If this is low, you may not
-#     get much useful information, if this is high, it may take a long time for
-#     all the information to arrive.
+# other_log_program
+#     Program to pipe server and private messages into.  If given, dircproxy
+#     will run this program for each log file entry giving the full source
+#     information as the first argument, the destination as the second and
+#     the text as a single line on standard input.
 #
-#     -1 = Recall the whole log (not recommended if other_log_always is yes)
-#      0 = Don't automatically recall anything
+#     The program can be anywhere in your $PATH, or you can start it with
+#     "~/" if its in a directory under your home directory.
 #
-#other_log_recall -1
+#     This is done regardless of the 'other_log_enabled' and 'other_log_always'
+#     options.
+#
+#     none = Do not pipe log messages to a program
+#
+#other_log_program "none"
 
 
 # MISC LOG OPTIONS

@@ -41,7 +41,8 @@ Questions
           attached?
      4.2  How do I log everything and keep it for my own reference in
           years to come?
-     4.3  I'm seeing old logged text in the channel, why?
+     4.3  Why does the permanent copy contain text from all the clients
+          dircproxy is proxying?
 
 
 Answers
@@ -339,8 +340,8 @@ Answers
      X clients (which can't be screen'd).
 
      This means it tries to give you a "full screen" of text when you
-     reattach.  This means that if you only just disconnected, a full
-     screen involves that which happened before you disconnected.
+     reattach, so if you've only just disconnected, a full screen
+     includes that which happened before you disconnected.
 
      Its actually quite useful when you think about it:
 
@@ -362,32 +363,40 @@ Answers
  4.2  How do I log everything and keep it for my own reference in
       years to come?
 
-     Define a directory for dircproxy to store them in, and then tell
-     it to log everything.  Put this in your config file:
+     Create a directory for dircproxy to store the logs in, and then
+     tell dircproxy to store a "permanent copy" in that directory like
+     this:
 
-         # To keep channel logs
-         chan_log_dir /path/to/directory
-	 chan_log_always yes
-	 chan_log_recall 128
+	 chan_log_copydir /path/to/directory
+	 other_log_copydir /path/to/directory
 
-         # To keep server and private messages
-	 other_log_dir /path/to/directory
-	 other_log_always yes
-	 other_log_recall 128
+ 4.3  Why does the permanent copy contain text from all the clients
+      dircproxy is proxying?
 
- 4.3  I'm seeing old logged text in the channel, why?
+     Because you've set the directory name globally for all connection
+     classes in the configuration file.  Because dircproxy doesn't use
+     the logs itself, its not a security risk or anything to be able to
+     do this, and if each person is on a different channel, its quite
+     a handy thing to do.
 
-     You've set 'chan_log_dir' to something other than 'none'.  By
-     doing this you are indicating you want the log file information
-     kept and recalled forever.
+     If you don't want it to do this, define the 'chan_log_copydir' and
+     'other_log_copydir' inside each connection class instead of the
+     global level, like this:
 
-     If you don't want this, then leave it as 'none' (the default).
-     dircproxy will keep your logs in a temporary directory and clear
-     them as dictated by the configuration.
+         connection {
+	     :
+	     chan_log_copydir /path/to/directory
+	     other_log_copydir /path/to/directory
+	     :
+	 }
 
-     It will NOT clear logs in a 'chan_log_dir'.
+	 connection {
+	     :
+	     chan_log_copydir /path/to/directory2
+	     other_log_copydir /path/to/directory2
+	     :
+	 }
 
-     This applies to 'other_log_dir' too.
 
 
 Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
