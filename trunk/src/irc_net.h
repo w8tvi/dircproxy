@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.18 2000/08/31 15:32:32 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.19 2000/09/01 12:16:00 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -29,7 +29,7 @@ struct logfile {
   char *filename;
   FILE *file;
 
-  unsigned long nlines;
+  unsigned long nlines, maxlines;
 };
 
 /* a description of an authorised connction */
@@ -39,6 +39,7 @@ struct ircconnclass {
   long server_dnsretry;
   long server_maxattempts;
   long server_maxinitattempts;
+  long server_pingtimeout;
   long channel_rejoin;
   int disconnect_existing;
   char *drop_modes;
