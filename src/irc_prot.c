@@ -5,8 +5,10 @@
  * irc_prot.c
  *  - IRC protocol message parsing
  *  - IRC x!y@z parsing
+ *  - CTCP stripping
+ *  - Username sanitisation
  * --
- * @(#) $Id: irc_prot.c,v 1.6 2000/10/11 16:02:06 keybuk Exp $
+ * @(#) $Id: irc_prot.c,v 1.7 2000/10/13 12:43:59 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
