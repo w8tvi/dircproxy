@@ -1,61 +1,82 @@
-dircproxy: Detchable IRC Proxy Server
+dircproxy: Detachable IRC Proxy Server
 -------------------------------------
 
-dircproxy is a detachable IRC proxy server designed for those people
-who use IRC from different workstations, or different clients.  You
-connect to IRC through dircproxy, and it will keep you connected to
-the server, even after you disconnect.  While you're detached it logs
-both channel and private messages, and important events for you.
-When you reattach, it downloads them to you as if they'd just arrived.
-This gives it roughly the same functionality as using ircII and screen
-on a permanently connected host, but gives you the advantage of using
-whatever irc client you like (especially X ones).
+dircproxy is an IRC proxy server designed for people who use IRC
+from lots of different workstations or clients, but wish to remain
+connected and see what they missed while they were away.  You connect
+to IRC through dircproxy, and it keeps you connected to the server,
+even after you detach your client from it.  While you're detached,
+it logs channel and private messages as well as important events,
+and when you re-attach it'll let you know what you missed.
+
+This can be used to give you roughly the same functionality as
+using ircII and screen together, except you can use whatever IRC
+client you like, including X ones!
 
 
-It supports all the usual things like optional dcc rewriting for those
-people behind firewalls (it can be switched off if you like though),
-binding to a different host on your machine, and continually attempting
-reconnection to an irc server if the connection is lost.  It also
-supports some neat features, such as proxying for multiple people (so
-you only need install it once per machine), rejoining channels when kicked
-and setting you /AWAY while you are detached.
+Features
+========
 
-You need to make no changes to your IRC client for this to work.  You
-connect to dircproxy as the server, supplying a password using the
-PASS command, which all IRC client's should support.  Upon a successful
-connection, dircproxy will either reattach you to your left session, or
-begin connection to the irc server specificied in the configuration file
-for your password.
+ o Runs on console, as daemon and from inetd
+ o Can proxy for multiple people at once
+ o Can bind proxy sessions to any IP on the server
+ o Uses IRC server passwords to authenticate.  No need to use any
+   special commands
+ o Logs are spooled in ordinary IRC protocol format for optimal reading
+ o Logs can be automatically spooled on reconnect, to fill your window
+   up giving you a "scroll-back"
+ o Will automatically reconnect to the server if connection is dropped
+ o Will automatically rejoin channels for you if you're kicked
+ o Sets you /AWAY when you detach with a custom away message
+ o Host and Password based connection security
+ o Easy to configure and get going
 
-Advanced users might want to use the /DIRCPROXY command, which allows you to
-manipulate the proxy, as well as read back through the logs.  There are 
-configuration files for various clients in the contrib directory that provide
-easy shortcuts for the /DIRCPROXY commands.
+dircproxy is currently under development, so many more features will
+be added as it progresses.
 
+
+Installation
+============
 
 See the file INSTALL for building and installation instructions.
 
 
-I have personally got this compiling on the following architectures:
+Running dircproxy
+=================
 
-	i586-pc-linux-gnu	Linux 2.2 with glibc 2.0 (RedHat 5.2)
-	i686-pc-linux-gnu	Linux 2.2 with glibc 2.1 (RedHat 6.1)
-	i686-pc-linux-gnu	Linux 2.2 with glibc 2.1 (Debian 2.2)
-	i686-pc-linux-gnu	Linux 2.2 with glibc 2.1 (Caldera 2.3)
-	i686-pc-linux-gnu	Linux 2.2 with glibc 2.1 (Mandrake 7.0)
-	i686-pc-linux-gnu	Linux 2.2 with glibc 2.1 (Slackware 7.0)
-	i686-pc-linux-gnu	Linux 2.2 with glibc 2.1 (SuSE 6.3)
-	i686-pc-linux-gnu	Linux 2.2-SMP with glibc 2.1 (RedHat 6.2)
-	i386-unknown-freebsd3.4	FreeBSD 3.4-RELEASE
-	i386-unknown-freebsd4.0	FreeBSD 4.0-STABLE
-	sparc-sun-solaris2.7	SunOS 5.7 / Solaris 2.7 - SPARCserver-1000
-	ia64-unknown-linux-gnu	Linux 2.3.99-SMP, glibc 2.1 on Itanium
+Once you have installed and configured dircproxy, you can run it
+from the console.  It will automatically enter the background
+(unless you supply the '-D' parameter) and begin listening for
+incoming connections.
 
-If you get it to compile on any others (it should) then please let me know
-so I can add them to the list.  Send me the output of the "config.guess"
-script along with your brief description of the machine type and I'll add
-it to the list.  Thanks.
+You should not need to modify your IRC client or add any special
+scripts to support dircproxy.  Authentication is done using the
+standard IRC server password, your IRC client should support
+this. If you're not sure, try something like
+'/server localhost:57000:password' from your IRC client's console.
 
+Connect to it with your IRC client, supplying the same password as
+you set in the config file, dircproxy will then connect to the IRC
+server for you and begin proxying your session.
+
+When you detach, dircproxy will remain running and remain connected
+to the IRC server, logging any channel or private messages for you
+until your return.
+
+To re-attach, just connect with your IRC client, again supplying the
+password.  dircproxy will see you have left a session running and
+re-attach you to that instead of creating a new one.  Messages you
+missed while you were away will be sent to you in such a way that
+they will fill your IRC windows as if they'd just arrived.
+
+
+You can also run dircproxy from inetd if you wish, although their
+are very few reasons to do this.  See the file README.inetd for more
+information on this feature.
+
+
+More Information
+================
 
 The dircproxy home page is at:
 
