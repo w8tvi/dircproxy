@@ -1,6 +1,13 @@
 NEWS about changes for existing users.
 --------------------------------------
 
+Version 0.6.0 - Wed May 24 22:33:00 BST 2000
+
+	* There is now a configuration file.  Copy the dircproxyrc.example
+	  from the conf directory to your home directory and call it
+	  .dircproxyrc - this file contains all the documentation for
+	  configuring dircproxy.
+
 Version 0.5.3 - Sat May 13 16:32:00 BST 2000
 
 	* Many of the TODO_CFG_* options defined in dircproxy.h have now
