@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.20 2000/08/30 10:48:39 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.21 2000/09/01 12:15:36 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -119,6 +119,13 @@
  * 0 = iterate forever, not recommended!
  */
 #define DEFAULT_SERVER_MAXINITATTEMPTS 5
+
+/* DEFAULT_SERVER_PINGTIMEOUT
+ * How many seconds after receiving a PING do we wait until we assume the
+ * server is stoned?  Receipt of another ping resets this timer.
+ * 0 = don't do stoned checking
+ */
+#define DEFAULT_SERVER_PINGTIMEOUT 0
 
 /* DEFAULT_CHANNEL_REJOIN
  * If we are kicked off a channel, how many seconds do we wait before attempting

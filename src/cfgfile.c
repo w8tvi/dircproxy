@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.13 2000/08/30 14:03:31 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.14 2000/09/01 12:15:36 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -46,6 +46,7 @@ int cfg_read(const char *filename, char **listen_port) {
   long server_dnsretry;
   long server_maxattempts;
   long server_maxinitattempts;
+  long server_pingtimeout;
   long channel_rejoin;
   int disconnect_existing;
   char *drop_modes;
@@ -77,6 +78,7 @@ int cfg_read(const char *filename, char **listen_port) {
   server_dnsretry = DEFAULT_SERVER_DNSRETRY;
   server_maxattempts = DEFAULT_SERVER_MAXATTEMPTS;
   server_maxinitattempts = DEFAULT_SERVER_MAXINITATTEMPTS;
+  server_pingtimeout = DEFAULT_SERVER_PINGTIMEOUT;
   channel_rejoin = DEFAULT_CHANNEL_REJOIN;
   disconnect_existing = DEFAULT_DISCONNECT_EXISTING;
   drop_modes = x_strdup(DEFAULT_DROP_MODES);
@@ -196,15 +198,21 @@ int cfg_read(const char *filename, char **listen_port) {
         _cfg_read_numeric(&buf,
                           &(class ? class->server_maxinitattempts
                                   : server_maxinitattempts));
+        
+      } else if (!strcasecmp(key, "server_pingtimeout")) {
+        /* server_pingtimeout 600 */
+        _cfg_read_numeric(&buf,
+                          &(class ? class->server_pingtimeout
+                                  : server_pingtimeout));
 
       } else if (!strcasecmp(key, "channel_rejoin")) {
         /* channel_rejoin 5 */
         _cfg_read_numeric(&buf,
                           &(class ? class->channel_rejoin : channel_rejoin));
  
-      } else if (!strcasecmp(key, "disconnect_existing")) {
-        /* disconnect_existing yes
-           disconnect_existing no */
+      } else if (!strcasecmp(key, "disconnect_existing_user")) {
+        /* disconnect_existing_user yes
+           disconnect_existing_user no */
         _cfg_read_bool(&buf,
                        &(class ? class->disconnect_existing
                                : disconnect_existing));
@@ -250,7 +258,7 @@ int cfg_read(const char *filename, char **listen_port) {
           class->local_address = str;
         } else {
           free(local_address);
-          class->local_address = str;
+          local_address = str;
         }
 
       } else if (!strcasecmp(key, "away_message")) {
@@ -437,6 +445,7 @@ int cfg_read(const char *filename, char **listen_port) {
         class->server_dnsretry = server_dnsretry;
         class->server_maxattempts = server_maxattempts;
         class->server_maxinitattempts = server_maxinitattempts;
+        class->server_pingtimeout = server_pingtimeout;
         class->channel_rejoin = channel_rejoin;
         class->disconnect_existing = disconnect_existing;
         class->drop_modes = x_strdup(drop_modes);
