@@ -4,7 +4,7 @@
  *
  * help.h
  * --
- * @(#) $Id: help.h,v 1.5 2000/10/16 10:42:39 keybuk Exp $
+ * @(#) $Id: help.h,v 1.6 2000/12/06 15:10:53 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -129,6 +129,10 @@ static char *help_servers[] = {
 
 /* help jump (with new) */
 static char *help_jump_new[] = {
+  "/DIRCPROXY JUMP",
+  "disconnect from the current server and jump to the next",
+  "server in the /DIRCPROX SERVERS list",
+  "",
   "/DIRCPROXY JUMP <num>",
   "disconnect from the current server and jump to the server",
   "in the /DIRCPROXY SERVERS list specified by number",
@@ -141,6 +145,10 @@ static char *help_jump_new[] = {
 
 /* help jump (without new) */
 static char *help_jump[] = {
+  "/DIRCPROXY JUMP",
+  "disconnect from the current server and jump to the next",
+  "server in the /DIRCPROX SERVERS list",
+  "",
   "/DIRCPROXY JUMP <num>",
   "disconnect from the current server and jump to the server",
   "in the /DIRCPROXY SERVERS list specified by number",
