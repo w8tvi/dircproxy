@@ -1,151 +1,83 @@
-2002-08-17 21:48  Scott James Remnant <scott@netsplit.com>
+2002-11-21 14:10  Scott James Remnant <scott@netsplit.com>
 
-	* contrib/dircproxy.spec, src/irc_server.c: Elminiate code
-	references to sourceforge
+	* autogen.sh: Oops, autoheader is part of autoconf
 
-2002-08-17 21:46  Scott James Remnant <scott@netsplit.com>
+2002-11-21 14:09  Scott James Remnant <scott@netsplit.com>
 
-	* INSTALL: AIX and better Solaris descriptions
+	* autogen.sh: Fix so it'll work on my Debian box
 
-2002-08-17 21:39  Scott James Remnant <scott@netsplit.com>
+2002-11-21 14:06  Scott James Remnant <scott@netsplit.com>
 
-	* README, doc/dircproxy.1: Documentation updates
+	* conf/dircproxyrc, doc/dircproxy.1, src/dircproxy.h: [MFH] Change
+	the default setting for refuse_modes to "" from "+r", it seems
+	DALnet have decided to use +r to indicate you are registered with
+	NickServ, not that your connection is restricted like most sensible
+	networks!
 
-2002-08-17 21:22  Scott James Remnant <scott@netsplit.com>
+2002-09-09 12:51  Scott James Remnant <scott@netsplit.com>
 
-	* src/irc_log.c: Keep the original nickname (without <>s, []s or
-	--s) strip off anything after the ! and make sure the log filename
-	is lowercase.
+	* configure.in, contrib/dircproxy.spec: CVS version now 1.0.5
 
-2002-08-17 21:07  Scott James Remnant <scott@netsplit.com>
+2002-09-09 12:38  Scott James Remnant <scott@netsplit.com>
 
-	* conf/dircproxyrc: Newer, leaner config file
+	* ChangeLog, NEWS: Version 1.0.4 released.
 
-2002-08-17 21:06  Scott James Remnant <scott@netsplit.com>
+2002-09-09 12:29  Scott James Remnant <scott@netsplit.com>
 
-	* src/irc_log.c: Logging of a user's copy or to a program is done
-	universally now, with the advantage that privmsgs are logged by
-	nickname
+	* configure.in: Use maintainer mode, it's good
 
-2002-08-17 21:05  Scott James Remnant <scott@netsplit.com>
+2002-09-09 12:27  Scott James Remnant <scott@netsplit.com>
 
-	* src/: cfgfile.c, irc_client.c, irc_net.c, irc_net.h, dircproxy.h:
-	Rename the other_log_* variables to server_log, remove _copydir and
-	_program in favour of new log_dir and log_program variables
+	* src/main.c: MFH: Significantly fluffier signal handling, all we
+	do now is use the HUP signal to set a variable which causes the
+	configuration to be reloaded in the main loop.	All we do now for
+	HUP is catch it, so it causes things to be interrupted, then in the
+	main loop we ALWAYS call waitpid() until all children have been
+	reaped.
+	
+	This gets around every signal semantic that causes problems on
+	exotic OSs (and FreeBSD :)
 
-2002-08-17 19:52  Scott James Remnant <scott@netsplit.com>
+2002-09-09 12:24  Scott James Remnant <scott@netsplit.com>
 
-	* configure.ac: Ok, this will be dircproxy 1.1.0, a series of bug
-	fixes and new features until 1.2.0
+	* src/irc_log.c: MFH: Use a static counter to create log
+	directories, rather than the client socket number which can get
+	reused in some circumstances
 
-2002-08-17 19:52  Scott James Remnant <scott@netsplit.com>
+2002-09-09 12:22  Scott James Remnant <scott@netsplit.com>
 
-	* src/: cfgfile.c, dircproxy.h, irc_log.c, irc_net.h: Collapsed the
-	three *_log_timestamp and *_log_relativetime options into a single
-	log_timestamp and log_relativetime option.  I can't see any reason
-	why these would be customised seperately, and I need to make the
-	log config file easier!
+	* contrib/dircproxy.spec: MFH: Eliminate mentions of evil
+	SourceForge
 
-2002-08-17 19:40  Scott James Remnant <scott@netsplit.com>
+2002-09-09 12:20  Scott James Remnant <scott@netsplit.com>
 
-	* conf/dircproxyrc, doc/dircproxy.1, src/cfgfile.c,
-	src/dircproxy.h, src/help.h, src/irc_client.c, src/irc_log.c,
-	src/irc_log.h, src/irc_net.c, src/irc_net.h, src/irc_server.c:
-	Merged the code to seperate the private message log into a
-	different file.
+	* conf/dircproxyrc: s/configuration classes/connection classes/, no
+	idea how I missed that
 
-2002-08-17 19:39  Scott James Remnant <scott@netsplit.com>
+2002-09-09 12:19  Scott James Remnant <scott@netsplit.com>
 
-	* src/: irc_client.c, irc_server.c: Generate rejmsg without the end
-	bit, putting that on in the function that actually sends it
+	* RELEASING: MFH: New releasing procedure (adjusted for 1.0)
 
-2002-08-17 19:38  Scott James Remnant <scott@netsplit.com>
+2002-09-09 12:18  Scott James Remnant <scott@netsplit.com>
 
-	* src/: dcc_chat.c, dcc_send.c: Call the notify function if
-	connection fails
+	* README: MFH: Remove irc.linux.com from list (no longer on
+	OpenProjects) and fix an old typo
 
-2002-08-17 19:38  Scott James Remnant <scott@netsplit.com>
+2002-09-09 12:17  Scott James Remnant <scott@netsplit.com>
 
-	* src/: dcc_net.c, dcc_net.h: The notify function takes an extra
-	parameter now, the reason for the failure
+	* NEWS: MFH: Fix time in NEWS file
 
-2002-08-17 19:24  Scott James Remnant <scott@netsplit.com>
+2002-09-09 12:16  Scott James Remnant <scott@netsplit.com>
 
-	* src/irc_client.c: Restored missing \001 off client rejmsg
+	* INSTALL: MFH: AIX support
 
-2002-08-17 17:49  Scott James Remnant <scott@netsplit.com>
+2002-09-09 12:16  Scott James Remnant <scott@netsplit.com>
 
-	* src/main.c: Handle config reloading in the main loop as well,
-	with the signal handler just setting a variable
+	* FAQ: MFH: New FAQs
 
-2002-08-17 17:46  Scott James Remnant <scott@netsplit.com>
+2002-09-09 12:11  Scott James Remnant <scott@netsplit.com>
 
-	* autogen.sh, configure.ac: Use the AM_MAINTAINER_MODE flag so
-	there aren't any surprises
-
-2002-08-17 17:35  Scott James Remnant <scott@netsplit.com>
-
-	* src/main.c: Instead of waiting on children and handling DNS
-	results in the CHLD signal handler, simply catch it (so it
-	interrupts whatever we're doing).  Then in the main loop, we always
-	wait on any children - that way we don't do anything exotic like
-	malloc() in the signal handler, which will hopefully appease
-	FreeBSD which has a bit of a problem with that.
-
-2002-08-14 21:15  Scott James Remnant <scott@netsplit.com>
-
-	* conf/dircproxyrc: Fixed a typo spotted by James O'Gorman
-
-2002-08-13 17:35  Scott James Remnant <scott@netsplit.com>
-
-	* TODO: Removed TODO file
-
-2002-08-13 17:31  Scott James Remnant <scott@netsplit.com>
-
-	* src/irc_client.c: Applied modified version of Alexander Dohmen
-	<alex@netcase.nl>'s patch to log outgoing private messages
-
-2002-08-13 17:02  Scott James Remnant <scott@netsplit.com>
-
-	* .cvsignore, RELEASING, acconfig.h, autogen.sh, configure.ac,
-	configure.in: Updated to newer automake and autoconf
-
-2002-08-13 16:47  Scott James Remnant <scott@netsplit.com>
-
-	* FAQ: Expand stuff a bit more, moving things out of TODO which I
-	doubt people'll read.
-
-2002-08-13 16:37  Scott James Remnant <scott@netsplit.com>
-
-	* FAQ: Document why we don't do RESUME in the FAQ
-
-2002-08-13 14:56  Scott James Remnant <scott@netsplit.com>
-
-	* src/irc_log.c: Use a static int counter to make the log
-	directories unique, rather than the socket number, which was a bit
-	evil hackwise.
-
-2002-08-04 13:31  Scott James Remnant <scott@netsplit.com>
-
-	* TODO: TODO for the package
-
-2002-08-04 13:26  Scott James Remnant <scott@netsplit.com>
-
-	* TODO: More stuff TODO, must get around to DOing this sometime
-
-2002-07-14 09:53  Scott James Remnant <scott@netsplit.com>
-
-	* src/main.c: Handle CHLD signals portably by reaping any that
-	arrive (as we care about getting all of them)
-
-2002-04-25 22:57  Scott James Remnant <scott@netsplit.com>
-
-	* TODO: Once again, things to do
-
-2002-02-08 18:12  Scott James Remnant <scott@netsplit.com>
-
-	* RELEASING, configure.in, contrib/dircproxy.spec: CVS version now
-	1.0.4
+	* TODO: Removed TODO file.
 
 2002-02-08 17:48  Scott James Remnant <scott@netsplit.com>
 
@@ -879,27 +811,21 @@
 
 2000-11-10 14:59  Scott James Remnant <scott@netsplit.com>
 
-	* getopt/: .cvsignore, Makefile, Makefile.in, getopt.o, getopt1.o,
-	libgetopt.a: Accidentally committed binaries, removed them and
-	added a .cvsignore
+	* getopt/.cvsignore: Accidentally committed binaries, removed them
+	and added a .cvsignore
 
 2000-11-10 14:57  Scott James Remnant <scott@netsplit.com>
 
-	* crypt/: .cvsignore, Makefile, Makefile.in, dircproxy-crypt,
-	main.o: Accidentally checked in the binaries (wakey, wakey!)
-	Removed them and added in a .cvsignore file
+	* crypt/.cvsignore: Accidentally checked in the binaries (wakey,
+	wakey!) Removed them and added in a .cvsignore file
 
 2000-11-10 14:55  Scott James Remnant <scott@netsplit.com>
 
-	* contrib/Makefile.am, contrib/crypt.c, src/Makefile.am,
-	src/getopt.c, src/getopt.h, src/getopt1.c, Makefile.am,
-	crypt/Makefile, crypt/Makefile.am, crypt/Makefile.in,
-	crypt/dircproxy-crypt, crypt/main.c, crypt/main.o, getopt/Makefile,
-	getopt/Makefile.am, getopt/Makefile.in, getopt/getopt.c,
-	getopt/getopt.h, getopt/getopt.o, getopt/getopt1.c,
-	getopt/getopt1.o, getopt/libgetopt.a: Moved the getopt files out of
-	src into their own getopt directory, which gets compiled into a
-	libgetopt.a we include to make dircproxy itself.
+	* contrib/Makefile.am, src/Makefile.am, Makefile.am,
+	crypt/Makefile.am, crypt/main.c, getopt/Makefile.am,
+	getopt/getopt.c, getopt/getopt.h, getopt/getopt1.c: Moved the
+	getopt files out of src into their own getopt directory, which gets
+	compiled into a libgetopt.a we include to make dircproxy itself.
 	
 	Also moved the crypt.c out of contrib and into its own crypt
 	directory, improved this a bit and linked it to libgetopt.a to make
@@ -1199,10 +1125,9 @@
 
 2000-10-18 13:26  Scott James Remnant <scott@netsplit.com>
 
-	* TODO, src/Makefile.am, src/net.c, src/net.h, src/sock.c,
-	src/sock.h: Replacing sock.c/sock.h with a new net.c/net.h which is
-	much more advanced, and will also do things like the poll() /
-	select() loop.
+	* TODO, src/Makefile.am, src/net.c, src/net.h: Replacing
+	sock.c/sock.h with a new net.c/net.h which is much more advanced,
+	and will also do things like the poll() / select() loop.
 
 2000-10-16 12:48  Scott James Remnant <scott@netsplit.com>
 
@@ -1435,11 +1360,6 @@
 2000-10-13 12:22  Scott James Remnant <scott@netsplit.com>
 
 	* src/memdebug.h: Being picky and marked the #endif with a comment
-
-2000-10-13 12:21  Scott James Remnant <scott@netsplit.com>
-
-	* src/sock.c: Fixed some comments.  If we're gonna have output
-	buffers I want to not confuse them with the input buffers.
 
 2000-10-12 16:24  Scott James Remnant <scott@netsplit.com>
 
@@ -1789,14 +1709,6 @@
 
 	* src/irc_net.c: Need string.h
 
-2000-09-01 12:47  Scott James Remnant <scott@netsplit.com>
-
-	* contrib/crypt.c: Also include string.h
-
-2000-09-01 12:47  Scott James Remnant <scott@netsplit.com>
-
-	* contrib/crypt.c: Oops, put the #else in the wrong place
-
 2000-09-01 12:19  Scott James Remnant <scott@netsplit.com>
 
 	* src/irc_log.c: Only replace / its not worth replacing ., just
@@ -1878,10 +1790,6 @@
 
 	* src/cfgfile.c: Oops, accidental ` in the code
 
-2000-08-30 13:41  Scott James Remnant <scott@netsplit.com>
-
-	* contrib/crypt.c: Return a value from main()
-
 2000-08-30 13:40  Scott James Remnant <scott@netsplit.com>
 
 	* contrib/Makefile.am: Oops had a typo
@@ -1893,10 +1801,6 @@
 2000-08-30 13:39  Scott James Remnant <scott@netsplit.com>
 
 	* Makefile.am, configure.in: Added the contrib subdir
-
-2000-08-30 13:30  Scott James Remnant <scott@netsplit.com>
-
-	* contrib/crypt.c: Added new crypt program
 
 2000-08-30 13:14  Scott James Remnant <scott@netsplit.com>
 
@@ -2109,11 +2013,11 @@
 2000-08-25 09:38  Scott James Remnant <scott@netsplit.com>
 
 	* src/: dircproxy.h, irc_client.c, irc_log.c, irc_net.c,
-	irc_server.c, main.c, sock.c, sprintf.c: Got rid of the
-	DEBUG_SYSCALL_FAIL, DEBUG_SYSCALL_DOH macros and replaced them with
-	a simple syscall_fail() function.  Also added a debug() function to
-	replace all those #ifdef DEBUG/printf things lying around.  This
-	meant adding a couple of headers to a few files too.
+	irc_server.c, main.c, sprintf.c: Got rid of the DEBUG_SYSCALL_FAIL,
+	DEBUG_SYSCALL_DOH macros and replaced them with a simple
+	syscall_fail() function.  Also added a debug() function to replace
+	all those #ifdef DEBUG/printf things lying around.  This meant
+	adding a couple of headers to a few files too.
 
 2000-08-25 09:26  Scott James Remnant <scott@netsplit.com>
 
@@ -2205,10 +2109,6 @@
 	document the configuraton file options (which are changing soon
 	anyway!).
 
-2000-08-24 09:15  Scott James Remnant <scott@netsplit.com>
-
-	* src/sock.c: Fixed a memory leak if a send() failed to the server.
-
 2000-08-23 14:30  Scott James Remnant <scott@netsplit.com>
 
 	* src/main.c: Only do mem_report stuff if DEBUG_MEMORY is defined,
@@ -2228,14 +2128,14 @@
 
 2000-08-23 13:34  Scott James Remnant <scott@netsplit.com>
 
-	* doc/: Makefile.am, dircproxy.1, dircproxy.8: Just had a bit of a
-	decision change.  dircproxy is now installed under "bin" not
-	"sbin", this means the man page is a .1 as well.
+	* doc/: Makefile.am, dircproxy.1: Just had a bit of a decision
+	change.  dircproxy is now installed under "bin" not "sbin", this
+	means the man page is a .1 as well.
 
 2000-08-23 13:30  Scott James Remnant <scott@netsplit.com>
 
-	* doc/: Makefile.am, dircproxy.1, dircproxy.8: As dircproxy gets
-	installed in sbin it should be an (8) man page.
+	* doc/: Makefile.am, dircproxy.1: As dircproxy gets installed in
+	sbin it should be an (8) man page.
 
 2000-08-23 13:25  Scott James Remnant <scott@netsplit.com>
 
@@ -2393,9 +2293,9 @@
 
 2000-08-16 15:40  Scott James Remnant <scott@netsplit.com>
 
-	* conf/: Makefile.am, dircproxy.conf, dircproxyrc: Changed the name
-	of the default configuration file to dircproxyrc, this will be the
-	name of the file wherever it goes (to avoid confusion)
+	* conf/: Makefile.am, dircproxyrc: Changed the name of the default
+	configuration file to dircproxyrc, this will be the name of the
+	file wherever it goes (to avoid confusion)
 
 2000-06-28 12:41  Scott James Remnant <scott@netsplit.com>
 
@@ -2413,9 +2313,9 @@
 
 2000-06-26 16:21  Scott James Remnant <scott@netsplit.com>
 
-	* conf/: Makefile.am, dircproxy.conf, dircproxyrc.example: Adjusted
-	these files so they reflect the way things now are.  this file goes
-	in share and isn't automatically installed.
+	* conf/Makefile.am: Adjusted these files so they reflect the way
+	things now are.  this file goes in share and isn't automatically
+	installed.
 
 2000-06-20 13:41  Scott James Remnant <scott@netsplit.com>
 
@@ -2508,8 +2408,7 @@
 
 2000-05-24 21:29  Scott James Remnant <scott@netsplit.com>
 
-	* conf/dircproxy.conf, conf/dircproxyrc.example, src/dircproxy.h:
-	Changed the default rejoin to 15 seconds
+	* src/dircproxy.h: Changed the default rejoin to 15 seconds
 
 2000-05-24 21:29  Scott James Remnant <scott@netsplit.com>
 
@@ -2741,9 +2640,8 @@
 
 2000-05-24 17:16  Scott James Remnant <scott@netsplit.com>
 
-	* conf/: .cvsignore, Makefile.am, dircproxy.conf,
-	dircproxyrc.example: Written the default configuration files, and
-	everything.  So adding them to CVS :o)
+	* conf/: .cvsignore, Makefile.am: Written the default configuration
+	files, and everything.	So adding them to CVS :o)
 
 2000-05-24 12:38  Scott James Remnant <scott@netsplit.com>
 
@@ -2854,12 +2752,6 @@
 	* src/irc_client.c: Fixed a missing bracket problem that crept in
 	and prevented compilation...  doh! damned "TODO" code
 
-2000-05-13 04:07  Scott James Remnant <scott@netsplit.com>
-
-	* src/sock.c: Made the calls to set/unset non blocking a bit more
-	friendly.  Also we now block when doing a send() otherwise we loose
-	data (doh!)
-
 2000-05-13 02:38  Scott James Remnant <scott@netsplit.com>
 
 	* src/dircproxy.h: PACKAGE and VERSION will always be defined in
@@ -2878,23 +2770,28 @@
 
 2000-05-13 02:23  Scott James Remnant <scott@netsplit.com>
 
-	* .cvsignore, FILES.autoconf, src/.cvsignore: Removed the
-	FILES.autoconf file, and replaced it with a .cvsignore in each
-	directory.  This means that 'cvs update' etc will ignore any files
-	generated by auto{conf,make}.  This is a good-thing.  Means you can
-	run autogen.sh on your checked out version without it getting in
-	the way of CVS.
+	* .cvsignore, src/.cvsignore: Removed the FILES.autoconf file, and
+	replaced it with a .cvsignore in each directory.  This means that
+	'cvs update' etc will ignore any files generated by
+	auto{conf,make}.  This is a good-thing.  Means you can run
+	autogen.sh on your checked out version without it getting in the
+	way of CVS.
 
 2000-05-13 02:13  Scott James Remnant <scott@netsplit.com>
 
-	* AUTHORS, ChangeLog, FILES.autoconf, Makefile.am, NEWS, PROTOCOL,
-	README, TODO, acconfig.h, autogen.sh, README.inetd, configure.in,
-	src/Makefile.am, src/dircproxy.h, src/dns.c, src/dns.h, src/sock.c,
-	src/irc_prot.c, src/main.c, src/match.c, src/match.h, src/sock.h,
-	src/sprintf.c, src/sprintf.h, src/irc_string.c, src/stringex.h,
-	src/irc_net.c, src/memdebug.h, src/irc_prot.h, src/irc_string.h,
-	src/stringex.c, src/irc_log.c, src/irc_log.h, src/irc_net.h,
-	src/irc_client.c, src/irc_client.h, src/irc_server.h,
-	src/memdebug.c, src/irc_server.c, src/timers.c, src/timers.h,
-	src/getopt.c, src/getopt.h, src/getopt1.c: Initial revision
+	* autogen.sh: Imported version 0.5.2 into the CVS tree.  Its in a
+	CLEAN state that requires autoconf and automake (run autogen.sh) to
+	build.
+
+2000-05-13 02:13  Scott James Remnant <scott@netsplit.com>
+
+	* AUTHORS, ChangeLog, Makefile.am, NEWS, PROTOCOL, README, TODO,
+	acconfig.h, README.inetd, configure.in, src/Makefile.am,
+	src/dircproxy.h, src/dns.c, src/dns.h, src/irc_prot.c, src/main.c,
+	src/match.c, src/match.h, src/sprintf.c, src/sprintf.h,
+	src/irc_string.c, src/stringex.h, src/irc_net.c, src/memdebug.h,
+	src/irc_prot.h, src/irc_string.h, src/stringex.c, src/irc_log.c,
+	src/irc_log.h, src/irc_net.h, src/irc_client.c, src/irc_client.h,
+	src/irc_server.h, src/memdebug.c, src/irc_server.c, src/timers.c,
+	src/timers.h: Initial revision
 

@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.52 2002/11/20 21:41:25 scott Exp $
+ * @(#) $Id: dircproxy.h,v 1.48.4.1 2002/11/21 14:06:44 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -316,44 +316,6 @@
  */
 #define DEFAULT_CTCP_REPLIES 1
 
-/* DEFAULT_LOG_TIMESTAMP
- * Whether log entries are created with a timestamp.
- * 1 = Yes
- * 0 = No
- */
-#define DEFAULT_LOG_TIMESTAMP 1
-
-/* DEFAULT_LOG_RELATEIVETIME
- * Whether to use intelligent relative timestamps when recalling log files.
- * 1 = Yes
- * 0 = No
- */
-#define DEFAULT_LOG_RELATIVETIME 1
-
-/* DEFAULT_LOG_TIMEOFFSET
- * Different in minutes from the IRC client to the dircproxy machine.
- *  0 = No difference
- */
-#define DEFAULT_LOG_TIMEOFFSET 0
-
-/* DEFAULT_LOG_EVENTS
- * Bitmask of events that we can log.  All is 0xffff, best to keep it at
- * that.  Otherwise check irc_net.h for the possible list.
- */
-#define DEFAULT_LOG_EVENTS 0xffff
-
-/* DEFAULT_LOG_DIR
- * Directory to store user's log files in.
- * 0 = don't do this
- */
-#define DEFAULT_LOG_DIR 0
-
-/* DEFAULT_LOG_PROGRAM
- * Program to pipe log messages into.
- * 0 = don't do this
- */
-#define DEFAULT_LOG_PROGRAM 0
-
 /* DEFAULT_CHAN_LOG_ENABLED
  * Whether to log channel text
  * 1 = Yes
@@ -367,6 +329,20 @@
  *  0 = No
  */
 #define DEFAULT_CHAN_LOG_ALWAYS 1
+
+/* DEFAULT_CHAN_LOG_TIMESTAMP
+ * Include a timestamp with the logged text.
+ *  1 = Yes
+ *  0 = No
+ */
+#define DEFAULT_CHAN_LOG_TIMESTAMP 0
+
+/* DEFAULT_CHAN_LOG_RELATIVETIME
+ * Do fancy relative-time timestamping.
+ *  1 = Yes
+ *  0 = No
+ */
+#define DEFAULT_CHAN_LOG_RELATIVETIME 1
 
 /* DEFAULT_CHAN_LOG_MAXSIZE
  * Maximum number of lines a log file should be.  Once they reach this size,
@@ -384,65 +360,85 @@
  */
 #define DEFAULT_CHAN_LOG_RECALL 128
 
-/* DEFAULT_PRIVATE_LOG_ENABLED
- * Whether to log private messages
+/* DEFAULT_CHAN_LOG_COPYDIR
+ * Directory to log a copy of all text received in.
+ * 0 = Don't do this
+ */
+#define DEFAULT_CHAN_LOG_COPYDIR 0
+
+/* DEFAULT_CHAN_LOG_PROGRAM
+ * Default program to pass log text through.
+ * 0 = Don't do this
+ */
+#define DEFAULT_CHAN_LOG_PROGRAM 0
+
+/* DEFAULT_OTHER_LOG_ENABLED
+ * Whether to log server/private messages
  * 1 = Yes
  * 0 = No
  */
-#define DEFAULT_PRIVATE_LOG_ENABLED 1
+#define DEFAULT_OTHER_LOG_ENABLED 1
 
-/* DEFAULT_PRIVATE_LOG_ALWAYS
+/* DEFAULT_OTHER_LOG_ALWAYS
  * Log private messages and notices even while the client is online?
  *  1 = Yes
  *  0 = No
  */
-#define DEFAULT_PRIVATE_LOG_ALWAYS 0
+#define DEFAULT_OTHER_LOG_ALWAYS 0
 
-/* DEFAULT_PRIVATE_LOG_MAXSIZE
- * Maximum number of lines a log file should be.  Once they reach this size,
- * dircproxy will roll the log removing lines from the front.
- *  0 = No limit
- */
-#define DEFAULT_PRIVATE_LOG_MAXSIZE 0
-
-/* DEFAULT_PRIVATE_LOG_RECALL
- * Number of lines to automatically recall on reconnection to dircproxy.
- * If this is defined, then it is also used as the default size for the
- * /DIRCPROXY RECALL command
- * -1 = All lines (not recommended if always)
- *  0 = Don't recall any
- */
-#define DEFAULT_PRIVATE_LOG_RECALL -1
-
-/* DEFAULT_SERVER_LOG_ENABLED
- * Whether to log server messages
- * 1 = Yes
- * 0 = No
- */
-#define DEFAULT_SERVER_LOG_ENABLED 1
-
-/* DEFAULT_SERVER_LOG_ALWAYS
- * Log server messages even while the client is online?
+/* DEFAULT_OTHER_LOG_TIMESTAMP
+ * Include a timestamp with the logged text.
  *  1 = Yes
  *  0 = No
  */
-#define DEFAULT_SERVER_LOG_ALWAYS 0
+#define DEFAULT_OTHER_LOG_TIMESTAMP 0
 
-/* DEFAULT_SERVER_LOG_MAXSIZE
+/* DEFAULT_OTHER_LOG_RELATIVETIME
+ * Do fancy relative-time timestamping.
+ *  1 = Yes
+ *  0 = No
+ */
+#define DEFAULT_OTHER_LOG_RELATIVETIME 1
+
+/* DEFAULT_OTHER_LOG_MAXSIZE
  * Maximum number of lines a log file should be.  Once they reach this size,
  * dircproxy will roll the log removing lines from the front.
  *  0 = No limit
  */
-#define DEFAULT_SERVER_LOG_MAXSIZE 0
+#define DEFAULT_OTHER_LOG_MAXSIZE 0
 
-/* DEFAULT_SERVER_LOG_RECALL
+/* DEFAULT_OTHER_LOG_RECALL
  * Number of lines to automatically recall on reconnection to dircproxy.
  * If this is defined, then it is also used as the default size for the
  * /DIRCPROXY RECALL command
  * -1 = All lines (not recommended if always)
  *  0 = Don't recall any
  */
-#define DEFAULT_SERVER_LOG_RECALL -1
+#define DEFAULT_OTHER_LOG_RECALL -1
+
+/* DEFAULT_OTHER_LOG_COPYDIR
+ * Directory to log a copy of all text received in.
+ * 0 = Don't do this
+ */
+#define DEFAULT_OTHER_LOG_COPYDIR 0
+
+/* DEFAULT_OTHER_LOG_PROGRAM
+ * Default program to pass log text through.
+ * 0 = Don't do this
+ */
+#define DEFAULT_OTHER_LOG_PROGRAM 0
+
+/* DEFAULT_LOG_TIMEOFFSET
+ * Different in minutes from the IRC client to the dircproxy machine.
+ *  0 = No difference
+ */
+#define DEFAULT_LOG_TIMEOFFSET 0
+
+/* DEFAULT_LOG_EVENTS
+ * Bitmask of events that we can log.  All is 0xffff, best to keep it at
+ * that.  Otherwise check irc_net.h for the possible list.
+ */
+#define DEFAULT_LOG_EVENTS 0xffff
 
 /* DEFAULT_DCC_PROXY_INCOMING
  * Whether to proxy incoming DCC requests
