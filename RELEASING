@@ -1,0 +1,29 @@
+Release checklist
+
+ 1.  Perform a `make maintainer-clean` and remove any litter
+ 2.  Check it compiles and runs --enable-debug
+ 3.  Perform a `make maintainer-clean` and remove any litter
+ 4.  Check it compiles and runs without any flags
+ 5.  Fix any bugs/warnings, commit them, and return to 1
+ 6.  Edit the NEWS file, add in new version and any config/use changes
+ 7.  Check the TODO file is up to date
+ 8.  Perform a `make maintainer-clean` and remove any litter
+ 9.  Run cvs2cl.pl --gmt --prune -U AUTHORS.map to create new ChangeLog
+10.  rm ChangeLog.bak
+11.  diff the ChangeLog to get "ChangeLog summary"
+12.  Read "ChangeLog summary" and write "Changes summary" from it
+13.  Commit the new Changelog, TODO and NEWS files with a log file message of
+     "Version x.x.x released."
+14.  do a cvs tag RELEASE-x_x_x
+15.  do an autogen.sh without any flags
+16.  make dist
+17.  Upload dist file onto download and dircproxy on sourceforge.net
+18.  Remove 'src' directory from dircproxy and replace with new version
+19.  Add new file release on sourceforge quoting "Changes summary" and
+     "ChangeLog summary"
+20.  Add new news item title "dircproxy x.x.x released" containing the
+     "Changes summary"
+21.  Announce new version on freshmeat quoting the "Changes summary"
+22.  E-mail dircproxy-announce list with the "Changes summary".
+23.  Edit configure.in and increment the version number, commit with message
+     "CVS version now x.x.x"
