@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.20 2000/08/24 11:10:21 keybuk Exp $
+ * @(#) $Id: main.c,v 1.21 2000/08/24 11:25:10 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,21 +48,19 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.20 2000/08/24 11:10:21 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.21 2000/08/24 11:25:10 keybuk Exp $";
 
 /* The name of the program */
 char *progname;
 
-/* Configuration variables */
-char *listen_port = 0;
-long channel_rejoin = DEFAULT_CHANNEL_REJOIN;
+/* whether we went in the background or not */
+int in_background = 0;
+
+/* This will be going before the next release! */
 unsigned long log_autorecall = DEFAULT_LOG_AUTORECALL;
 
 /* set to 1 to abort the main loop */
 static int stop_poll = 0;
-
-/* whether we went in the background or not */
-int in_background = 0;
 
 /* Long options */
 struct option long_opts[] = {
@@ -79,8 +77,8 @@ struct option long_opts[] = {
 
 /* We need this */
 int main(int argc, char *argv[]) {
+  char *local_file, *cmd_listen_port, *listen_port;
   int optc, show_help, show_version, show_usage;
-  char *local_file, *cmd_listen_port;
   int inetd_mode, no_daemon;
 
   /* Set up some globals */
@@ -145,7 +143,7 @@ int main(int argc, char *argv[]) {
     pw = getpwuid(geteuid());
     if (pw && pw->pw_dir) {
       local_file = x_sprintf("%s/%s", pw->pw_dir, USER_CONFIG_FILENAME);
-      if (cfg_read(local_file)) {
+      if (cfg_read(local_file, &listen_port)) {
         /* If the local one didn't exist, set to 0 so we open
            global one */
         free(local_file);
@@ -153,7 +151,7 @@ int main(int argc, char *argv[]) {
       }
     }
   } else {
-    if (cfg_read(local_file)) {
+    if (cfg_read(local_file, &listen_port)) {
       /* This is fatal! */
       fprintf(stderr, "%s: Couldn't read configuration from %s: %s\n",
               progname, local_file, strerror(errno));
@@ -168,7 +166,7 @@ int main(int argc, char *argv[]) {
 
     /* Not fatal if it doesn't exist */
     global_file = x_sprintf("%s/%s", SYSCONFDIR, GLOBAL_CONFIG_FILENAME);
-    cfg_read(global_file);
+    cfg_read(global_file, &listen_port);
     free(global_file);
   } else {
     free(local_file);
