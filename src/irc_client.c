@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.83 2002/02/06 10:10:00 scott Exp $
+ * @(#) $Id: irc_client.c,v 1.84 2002/08/13 17:31:29 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -442,6 +442,9 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
                                 p->hostname);
                 irclog_msg(p, msg.params[0], tmp, "%s", str);
                 free(tmp);
+              } else {
+                irclog_msg(p, msg.params[0], msg.params[0], "<%s> %s",
+                           p->nickname, str);
               }
             }
           }
@@ -478,6 +481,8 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
                                   p->hostname);
                   irclog_ctcp(p, msg.params[0], tmp, "%s", cmsg.orig);
                   free(tmp);
+                } else {
+                  irclog_ctcp(p, msg.params[0], msg.params[0], "%s", cmsg.orig);
                 }
               }
               
@@ -632,6 +637,9 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
                                 p->hostname);
                 irclog_notice(p, msg.params[0], tmp, "%s", str);
                 free(tmp);
+              } else {
+                irclog_notice(p, msg.params[0], msg.params[0], "<%s> %s",
+                              p->nickname, str);
               }
             }
           }
