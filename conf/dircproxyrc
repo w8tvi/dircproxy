@@ -20,6 +20,14 @@
 # the default value is shown.  So to set something, you have to uncomment
 # AND change the value.
 
+# listen_port
+#     What port should dircproxy listen for connections from IRC clients
+#     on?
+#
+#     This can be a numeric port number, of a service name from /etc/services
+#
+#listen_port 57000
+
 # server_port
 #     What port do we connect to IRC servers on if the server string doesn't
 #     explicitly set one
