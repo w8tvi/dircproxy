@@ -7,13 +7,14 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.43 2000/11/06 17:00:47 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.44 2000/11/10 15:10:50 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
  * file called COPYING that was distributed with this code.
  */
 
+#include <pwd.h>
 #include <stdio.h>
 #include <sys/param.h>
 #include <sys/types.h>
@@ -23,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <unistd.h>
 #include <errno.h>
 
 #include <dircproxy.h>
@@ -173,6 +175,10 @@ static void _ircserver_connect2(struct ircproxy *p, void *data,
 static void _ircserver_connect3(struct ircproxy *p, void *data,
                                 struct in_addr *addr, const char *host) {
   int ret;
+#ifdef HAVE_SETEUID
+  int switched = 0;
+  pid_t old_euid;
+#endif /* HAVE_SETEUID */
 
   debug("Connecting to %s port %d", p->servername,
         ntohs(p->server_addr.sin_port));
@@ -181,7 +187,60 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
     ircclient_send_notice(p, "Connecting to %s port %d",
                           p->servername, ntohs(p->server_addr.sin_port));
 
+#ifdef HAVE_SETEUID
+  old_euid = geteuid();
+
+  /* Switch to a user */
+  if (p->conn_class->switch_user) {
+    struct passwd *pwd;
+
+    /* switch_user can be a username or a user id */
+    pwd = getpwnam(p->conn_class->switch_user);
+    if (pwd) {
+      debug("Switching to user '%s'", p->conn_class->switch_user);
+    } else {
+      uid_t uid;
+
+      /* Make sure that its "0" not an invalid user if atoi returns 0 */
+      uid = atoi(p->conn_class->switch_user);
+      if (uid || !strcmp(p->conn_class->switch_user, "0")) {
+        pwd = getpwuid(uid);
+        if (pwd)
+          debug("Switching to user #%d", uid);
+      }
+    }
+
+    /* Set the effective user id if we're root */
+    if (pwd && (getuid() == 0)) {
+      if (!seteuid(pwd->pw_uid)) {
+        switched = 1;
+      } else {
+        syscall_fail("seteuid", 0, 0);
+      }
+    }
+
+    /* Warn if we didn't */
+    if (!switched) {
+      if (IS_CLIENT_READY(p))
+        ircclient_send_notice(p, "(warning) Couldn't switch to username %s",
+                              p->conn_class->switch_user);
+    }
+  }
+#endif /* HAVE_SETEUID */
+
   p->server_sock = net_socket();
+
+#ifdef HAVE_SETEUID
+  /* Switch back to our original euid */
+  if (switched) {
+    if (seteuid(old_euid)) {
+      /* Oh, Fuck! */
+      syscall_fail("seteuid", 0, 0);
+      abort();
+    }
+  }
+#endif /* HAVE_SETEUID */
+
   if (p->server_sock == -1) {
     ret = -1;
 
@@ -967,17 +1026,69 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
             struct in_addr l_addr, r_addr;
             int l_port, r_port, t_port;
             char *tmp, *ptr, *dccmsg;
+            char *capfile = 0;
             char *rest = 0;
             int type = 0;
 
             /* Find out what type of DCC request this is */
             if (!irc_strcasecmp(cmsg.params[0], "CHAT")) {
-              type = DCC_CHAT;
+              /* Can only proxy chats if we have a client */
+              if (p->client_status == IRC_CLIENT_ACTIVE)
+                type = DCC_CHAT;
+
             } else if (!irc_strcasecmp(cmsg.params[0], "SEND")) {
-              if (p->conn_class->dcc_send_fast) {
-                type = DCC_SEND_FAST;
-              } else {
-                type = DCC_SEND_SIMPLE;
+              /* Check if we're capturing it, instead of proxying */
+              if (p->conn_class->dcc_capture_directory
+                  && ((p->client_status != IRC_CLIENT_ACTIVE)
+                      || p->conn_class->dcc_capture_always))
+              {
+                char *file;
+
+                /* Filename is after / or \ characters, this fixes any
+                   security issues we might have with it */
+                debug("Filename given '%s'", cmsg.params[1]);
+                file = strrchr(cmsg.params[1], '/');
+                if (file) {
+                  char *ptr;
+
+                  file++;
+                  ptr = strrchr(file, '\\');
+                  if (ptr)
+                    file = ptr + 1;
+                } else {
+                  file = strrchr(cmsg.params[1], '\\');
+                  if (file) {
+                    file++;
+                  } else {
+                    file = cmsg.params[1];
+                  }
+                }
+                debug("Filtered to '%s'", file);
+
+                /* Assuming we got a filename ... */
+                if (file && strlen(file)) {
+                  type = DCC_SEND_CAPTURE;
+
+                  if (p->conn_class->dcc_capture_withnick) {
+                    capfile = x_sprintf("%s/%s.%s",
+                                        p->conn_class->dcc_capture_directory,
+                                        msg.src.name, file);
+                  } else {
+                    capfile = x_sprintf("%s/%s",
+                                        p->conn_class->dcc_capture_directory,
+                                        file);
+                  }
+                  debug("Capture to '%s'", capfile);
+                }
+
+              } else if (p->client_status == IRC_CLIENT_ACTIVE) {
+                /* Proxying - so client must be active.  See whether to
+                   send it fast or normally */
+                if (p->conn_class->dcc_send_fast) {
+                  type = DCC_SEND_FAST;
+                } else {
+                  type = DCC_SEND_SIMPLE;
+                }
               }
             }
 
@@ -1004,21 +1115,34 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
             tmp = x_sprintf("\001%s\001", unquoted);
             ptr = strstr(str, tmp);
 
-            /* Set up a dcc proxy */
-            if (ptr && (p->client_status == IRC_CLIENT_ACTIVE)
+            /* Set up a dcc proxy, note: type is 0 if there isn't a client
+               active and we're not capturing it.  This will send a reject
+               back which is exactly what we want to do. */
+            if (ptr && type
                 && !dccnet_new(type, p->conn_class->dcc_proxy_timeout,
                                p->conn_class->dcc_proxy_ports,
                                p->conn_class->dcc_proxy_ports_sz,
-                               &l_port, r_addr, r_port)) {
-              dccmsg = x_sprintf("\001DCC %s %s %lu %u%s%s\001",
-                                 cmsg.params[0], cmsg.params[1],
-                                 l_addr.s_addr, l_port,
-                                 (rest ? " " : ""), (rest ? rest : ""));
+                               &l_port, r_addr, r_port,
+                               capfile, p->conn_class->dcc_capture_maxsize))
+            {
+              if (capfile) {
+                dccmsg = x_strdup("");
 
-              if (p->conn_class->log_events & IRC_LOG_CTCP)
-                irclog_notice(p, msg.params[0], p->servername,
-                              "DCC %s Request from %s", cmsg.params[0],
-                              msg.src.fullname);
+                if (p->conn_class->log_events & IRC_LOG_CTCP)
+                  irclog_notice(p, msg.params[0], p->servername,
+                                "Captured DCC %s from %s into %s",
+                                cmsg.params[0], msg.src.fullname, capfile);
+              } else {
+                dccmsg = x_sprintf("\001DCC %s %s %lu %u%s%s\001",
+                                   cmsg.params[0], cmsg.params[1],
+                                   l_addr.s_addr, l_port,
+                                   (rest ? " " : ""), (rest ? rest : ""));
+
+                if (p->conn_class->log_events & IRC_LOG_CTCP)
+                  irclog_notice(p, msg.params[0], p->servername,
+                                "DCC %s Request from %s", cmsg.params[0],
+                                msg.src.fullname);
+              }
 
             } else if (ptr) {
               dccmsg = x_strdup("");
@@ -1048,6 +1172,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
             }
 
             free(tmp);
+            if (capfile)
+              free(capfile);
 
           } else {
             /* Unknown DCC */
@@ -1067,7 +1193,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       }
 
       /* Send str */
-      if (strlen(str))
+      if (strlen(str) && (p->client_status == IRC_CLIENT_ACTIVE))
         net_send(p->client_sock, ":%s PRIVMSG %s :%s\r\n",
                  msg.src.orig, msg.params[0], str);
       squelch = 1;
