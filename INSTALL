@@ -9,8 +9,9 @@ I have seen or heard about it running on the following types
 of system:
 	Linux 2.x+ on i386 (Debian, RedHat, Slackware, etc)
         Linux 2.4+ on ia64 (TurboLinux)
-        Solaris 2.5+
+        Solaris 2.5.1, 2.6, 7, 8, 9
         FreeBSD 3.x, 4.x+
+	AIX 4.3.3
 	NetBSD on a MicroVAX 3100 (yes, really!)
 	Windows NT (with cygwin compiler)
 	Mac OS X on G3 (you may need to configure with --host=darwin)
