@@ -5,7 +5,7 @@
  * sprintf.c
  *  - various ways of doing allocating sprintf() functions to void b/o
  * --
- * @(#) $Id: sprintf.c,v 1.4 2000/05/24 19:02:04 keybuk Exp $
+ * @(#) $Id: sprintf.c,v 1.5 2000/05/24 19:05:20 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <ctype.h>
 
 #include <dircproxy.h>
 #include "stringex.h"
@@ -219,7 +220,7 @@ char *x_vsprintf(const char *format, va_list ap) {
       }
 
       if (*formatpos == '*') {
-        width = va_arg(args, int);
+        width = va_arg(ap, int);
         if (width < 0) {
           width =- width;
           padding = 0;
@@ -241,7 +242,7 @@ char *x_vsprintf(const char *format, va_list ap) {
       if (*formatpos == '.') {
         formatpos++;
         if (*formatpos == '*') {
-          prec = abs(va_arg(args, int));
+          prec = abs(va_arg(ap, int));
           formatpos++;
         } else {
           while (isdigit(*formatpos)) {
@@ -268,7 +269,7 @@ char *x_vsprintf(const char *format, va_list ap) {
         }
 
         newdest = (char *)realloc(newdest, newdestlen + 1);
-        newdest[newdestlen - 1] = va_arg(args, unsigned char);
+        newdest[newdestlen - 1] = va_arg(ap, unsigned char);
         newdest[newdestlen] = 0;
         newdestlen++;
 
@@ -283,7 +284,7 @@ char *x_vsprintf(const char *format, va_list ap) {
       } else if (*formatpos == 's') {
         char *tmpstr;
 
-        tmpstr = x_strdup(va_arg(args, char *));
+        tmpstr = x_strdup(va_arg(ap, char *));
         len = (prec && (prec < strlen(tmpstr))) ? prec : strlen(tmpstr);
         if (padding) {
           while (--width > len) {
@@ -296,7 +297,7 @@ char *x_vsprintf(const char *format, va_list ap) {
 
         newdest = (char *)realloc(newdest, newdestlen + len);
         strncpy(newdest + newdestlen - 1, tmpstr, len);
-        newstrlen += len;
+        newdestlen += len;
         free(tmpstr);
 
         if (!padding) {
@@ -352,17 +353,17 @@ char *x_vsprintf(const char *format, va_list ap) {
         }
         
         if (qualifier == 'l') {
-          num = va_arg(args, unsigned long);
+          num = va_arg(ap, unsigned long);
         } else if (qualifier == 'h') {
           if (signchar) {
-            num = va_arg(args, signed short int);
+            num = va_arg(ap, signed short int);
           } else {
-            num = va_arg(args, unsigned short int);
+            num = va_arg(ap, unsigned short int);
           }
         } else if (signchar) {
-          num = va_arg(args, signed int);
+          num = va_arg(ap, signed int);
         } else {
-          num = va_arg(args, unsigned int);
+          num = va_arg(ap, unsigned int);
         }
 
         tmpstr = _x_makenum(num, base, width, prec, padding, signchar);
@@ -371,7 +372,7 @@ char *x_vsprintf(const char *format, va_list ap) {
 
         newdest = (char *)realloc(newdest, newdestlen + strlen(tmpstr));
         strcpy(newdest + newdestlen - 1, tmpstr);
-        newstrlen += strlen(tmpstr);
+        newdestlen += strlen(tmpstr);
         free(tmpstr);
       } else if (*formatpos == '%') {
         newdest = (char *)realloc(newdest, newdestlen + 1);
