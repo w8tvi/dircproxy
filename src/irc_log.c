@@ -7,7 +7,7 @@
  *  - Handling of log programs
  *  - Recalling from log files
  * --
- * @(#) $Id: irc_log.c,v 1.36.2.1 2002/08/17 19:08:41 scott Exp $
+ * @(#) $Id: irc_log.c,v 1.36.2.2 2002/08/17 19:11:02 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -703,7 +703,7 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
   /* If to is 0, then we're recalling from the other_log, and need to send
    * it to the nickname */
   if (!to)
-    to = p->nickname ? p->nickname : FALLBACK_NICKNAME;
+    to = p->nickname ? p->nickname : "";
 
   /* Jump to the beginning */
   fseek(file, 0, SEEK_SET);
