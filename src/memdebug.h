@@ -4,7 +4,7 @@
  *
  * memdebug.h
  * --
- * @(#) $Id: memdebug.h,v 1.1 2000/05/13 02:14:00 keybuk Exp $
+ * @(#) $Id: memdebug.h,v 1.2 2000/10/13 12:22:05 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -27,7 +27,7 @@
 #define calloc(NMEMB, SIZE) mem_malloc(NMEMB * SIZE, __FILE__, __LINE__)
 #define free(PTR) mem_realloc(PTR, 0, __FILE__, __LINE__)
 #define realloc(PTR, SIZE) mem_realloc(PTR, SIZE, __FILE__, __LINE__)
-#endif
+#endif /* DEBUG_MEMORY */
 
 /* functions */
 extern void *mem_malloc(size_t, char *, int);
