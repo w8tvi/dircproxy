@@ -7,7 +7,7 @@
  *  - Handling of log programs
  *  - Recalling from log files
  * --
- * @(#) $Id: irc_log.c,v 1.32 2001/01/11 15:29:21 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.33 2001/07/12 14:36:49 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -353,7 +353,7 @@ static char *_irclog_read(FILE *file) {
 
       ptr = line + strlen(line) - 1;
       if (*ptr == '\n') {
-        while ((ptr >= line) && (*ptr <= 32)) *(ptr--) = 0;
+        while ((ptr >= line) && (!ptr || strchr(" \t\r\n", *ptr))) *(ptr--) = 0;
         break;
       }
     }
