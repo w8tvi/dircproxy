@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.32 2000/11/10 15:07:10 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.33 2000/12/06 15:08:31 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -77,6 +77,8 @@ int cfg_read(const char *filename, char **listen_port,
   def->idle_maxtime = DEFAULT_IDLE_MAXTIME;
   def->disconnect_existing = DEFAULT_DISCONNECT_EXISTING;
   def->disconnect_on_detach = DEFAULT_DISCONNECT_ON_DETACH;
+  def->initial_modes = (DEFAULT_INITIAL_MODES
+                        ? x_strdup(DEFAULT_INITIAL_MODES) : 0);
   def->drop_modes = (DEFAULT_DROP_MODES ? x_strdup(DEFAULT_DROP_MODES) : 0);
   def->refuse_modes = (DEFAULT_REFUSE_MODES
                        ? x_strdup(DEFAULT_REFUSE_MODES) : 0);
@@ -286,6 +288,30 @@ int cfg_read(const char *filename, char **listen_port,
         /* disconnect_on_detach yes
            disconnect_on_detach no */
         _cfg_read_bool(&buf, &(class ? class : def)->disconnect_on_detach);
+
+      } else if (!strcasecmp(key, "initial_modes")) {
+        /* initial_modes "ow"
+           initial_modes "" */
+        char *str;
+
+        if (_cfg_read_string(&buf, &str))
+          UNMATCHED_QUOTE;
+
+        while ((*str == '+') || (*str == '-')) {
+          char *tmp;
+          
+          tmp = str;
+          str = x_strdup(tmp + 1);
+          free(tmp);
+        }
+
+        if (!strlen(str)) {
+          free(str);
+          str = 0;
+        }
+
+        free((class ? class : def)->initial_modes);
+        (class ? class : def)->initial_modes = str;
 
       } else if (!strcasecmp(key, "drop_modes")) {
         /* drop_modes "ow"
@@ -930,13 +956,13 @@ int cfg_read(const char *filename, char **listen_port,
           free((class ? class : def)->switch_user);
           (class ? class : def)->switch_user = str;
         } else {
-          error("must be run as root to use 'switch_user' at line %ld of %s",
-                line, filename);
+          error("(warning) must be run as root to use 'switch_user' "
+                "at line %ld of %s", line, filename);
           free(str);
         }
 #else /* HAVE_SETEUID */
-        error("Your system does not support 'switch_user' at line %ld of %s",
-              line, filename);
+        error("(warning) Your system does not support 'switch_user' "
+              "at line %ld of %s", line, filename);
         free(str);
 #endif /* HAVE_SETEUID */
 
@@ -1034,6 +1060,8 @@ int cfg_read(const char *filename, char **listen_port,
           memcpy(class->server_throttle, def->server_throttle,
                  sizeof(long) * 2);
         }
+        class->initial_modes = (def->initial_modes
+                             ? x_strdup(def->initial_modes) : 0);
         class->drop_modes = (def->drop_modes
                              ? x_strdup(def->drop_modes) : 0);
         class->refuse_modes = (def->refuse_modes
@@ -1253,6 +1281,7 @@ int cfg_read(const char *filename, char **listen_port,
   fclose(fd);
   free(def->server_port);
   free(def->server_throttle);
+  free(def->initial_modes);
   free(def->drop_modes);
   free(def->refuse_modes);
   free(def->local_address);
