@@ -302,7 +302,7 @@
 #     yes = Channel text is logged to files
 #      no = Channel text is NOT logged to files
 #
-#chan_log_enabled = yes
+#chan_log_enabled yes
 
 # chan_log_always
 #     Channel text will always be logged while you are offline, so when you
@@ -419,7 +419,7 @@
 #     yes = Server/private messages are logged to files
 #      no = Server/private messages are NOT logged to files
 #
-#other_log_enabled = yes
+#other_log_enabled yes
 
 # other_log_always
 #     Server and private messages will always be logged while you are offline,
