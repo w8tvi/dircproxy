@@ -1,0 +1,105 @@
+dircproxy: Detachable IRC Proxy Server
+-------------------------------------
+
+dircproxy is an IRC proxy server designed for people who use IRC
+from lots of different workstations or clients, but wish to remain
+connected and see what they missed while they were away.  You connect
+to IRC through dircproxy, and it keeps you connected to the server,
+even after you detach your client from it.  While you're detached,
+it logs channel and private messages as well as important events,
+and when you re-attach it'll let you know what you missed.
+
+This can be used to give you roughly the same functionality as
+using ircII and screen together, except you can use whatever IRC
+client you like, including X ones!
+
+
+Features
+========
+
+ o Runs on console, as daemon and from inetd
+ o Can proxy for multiple people at once
+ o Can bind proxy sessions to any IP on the server
+ o Uses IRC server passwords to authenticate.  No need to use any
+   special commands
+ o Logs are stored on disk in human-readable format, either in a temporary
+   directory, or stored for prosperity in a directory of your choice.
+ o Logs can contain everything that occurs, or just what happens while you're
+   detached.
+ o Logs are spooled in ordinary IRC protocol format for optimal reading
+ o Logs can be automatically spooled on reconnect, to fill your window
+   up giving you a "scroll-back"
+ o Logs can be manually recalled and played back using a special command.
+ o Log file size can be limited automatically
+ o Messages can be timestamped in log files.
+ o Can connect to servers that require a password
+ o Will automatically reconnect to the server if connection is dropped
+ o Will automatically rejoin channels for you if you're kicked
+ o Will reconect to servers if they become "stoned".
+ o Can drop modes for you when you detach
+ o Sets you /AWAY when you detach with a custom away message
+ o Host and Password based connection security
+ o Easy to configure and get going
+
+dircproxy is currently under development, so many more features will
+be added as it progresses.
+
+
+Installation
+============
+
+See the file INSTALL for building and installation instructions.
+
+
+Running dircproxy
+=================
+
+Once you have installed and configured dircproxy, you can run it
+from the console.  It will automatically enter the background
+(unless you supply the '-D' parameter) and begin listening for
+incoming connections.
+
+You should not need to modify your IRC client or add any special
+scripts to support dircproxy.  Authentication is done using the
+standard IRC server password, your IRC client should support
+this. If you're not sure, try something like
+'/server localhost:57000:password' from your IRC client's console.
+
+Connect to it with your IRC client, supplying the same password as
+you set in the config file, dircproxy will then connect to the IRC
+server for you and begin proxying your session.
+
+When you detach, dircproxy will remain running and remain connected
+to the IRC server, logging any channel or private messages for you
+until your return.
+
+To re-attach, just connect with your IRC client, again supplying the
+password.  dircproxy will see you have left a session running and
+re-attach you to that instead of creating a new one.  Messages you
+missed while you were away will be sent to you in such a way that
+they will fill your IRC windows as if they'd just arrived.
+
+
+You can also run dircproxy from inetd if you wish, although their
+are very few reasons to do this.  See the file README.inetd for more
+information on this feature.
+
+
+More Information
+================
+
+The dircproxy home page is at:
+
+	http://dircproxy.sourceforge.net/
+
+
+Please submit bug reports at:
+
+	http://sourceforge.net/bugs/?group_id=5645
+
+
+dircproxy is distributed according to the GNU General Public License.
+See the file COPYING for details.
+
+Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
+All Rights Reserved.
