@@ -17,6 +17,10 @@ Ideas for version 0.9.0:
 	* dircproxy to send a number of ctcp's to the client on first
 	  connection, then use those as replies when the client is detached.
 
+	  ctcp_replies no      - don't reply to any ctcp's (current)
+	  ctcp_replies yes     - reply to ctcp's using dircproxy info (default)
+	  ctcp_replies client  - ask first client for its replies and use them
+
 	* Ping the client every now and then in case the server doesn't.  To
 	  make sure the line hasn't dropped between the tw.
 
