@@ -1,5 +1,5 @@
 /* dircproxy-crypt
- * Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
+ * Copyright (C) 2001 Scott James Remnant <scott@netsplit.com>.
  * All Rights Reserved.
  *
  * main.c
@@ -8,7 +8,7 @@
  * This is deliberately simple, it doesn't even malloc() anything (which,
  * for something I wrote, is amazing).
  * --
- * @(#) $Id: main.c,v 1.1 2000/11/10 14:55:01 keybuk Exp $
+ * @(#) $Id: main.c,v 1.2 2001/01/11 15:29:21 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - userful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.1 2000/11/10 14:55:01 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.2 2001/01/11 15:29:21 keybuk Exp $";
 
 /* The name of the program */
 static char *progname;

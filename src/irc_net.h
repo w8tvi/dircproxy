@@ -1,10 +1,10 @@
 /* dircproxy
- * Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
+ * Copyright (C) 2001 Scott James Remnant <scott@netsplit.com>.
  * All Rights Reserved.
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.41 2000/12/26 17:26:29 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.42 2001/01/11 15:29:21 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the

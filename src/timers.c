@@ -1,11 +1,11 @@
 /* dircproxy
- * Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
+ * Copyright (C) 2001 Scott James Remnant <scott@netsplit.com>.
  * All Rights Reserved.
  *
  * timers.c
  *  - Scheduling events
  * --
- * @(#) $Id: timers.c,v 1.6 2000/10/23 12:03:44 keybuk Exp $
+ * @(#) $Id: timers.c,v 1.7 2001/01/11 15:29:21 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the

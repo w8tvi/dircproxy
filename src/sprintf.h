@@ -1,10 +1,10 @@
 /* dircproxy
- * Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
+ * Copyright (C) 2001 Scott James Remnant <scott@netsplit.com>.
  * All Rights Reserved.
  *
  * sprintf.h
  * --
- * @(#) $Id: sprintf.h,v 1.5 2000/10/16 10:43:29 keybuk Exp $
+ * @(#) $Id: sprintf.h,v 1.6 2001/01/11 15:29:21 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
