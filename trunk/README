@@ -1,13 +1,13 @@
 dircproxy: Detachable IRC Proxy Server
 -------------------------------------
 
-dircproxy is an IRC proxy server designed for people who use IRC
-from lots of different workstations or clients, but wish to remain
-connected and see what they missed while they were away.  You connect
-to IRC through dircproxy, and it keeps you connected to the server,
-even after you detach your client from it.  While you're detached,
-it logs channel and private messages as well as important events,
-and when you re-attach it'll let you know what you missed.
+dircproxy is an IRC proxy server ("bouncer") designed for people
+who use IRC from lots of different workstations or clients, but wish
+to remain connected and see what they missed while they were away.
+You connect to IRC through dircproxy, and it keeps you connected to
+the server, even after you detach your client from it.  While you're
+detached, it logs channel and private messages as well as important
+events, and when you re-attach it'll let you know what you missed.
 
 This can be used to give you roughly the same functionality as
 using ircII and screen together, except you can use whatever IRC
@@ -72,7 +72,6 @@ Features
    the proxy.  Fully documented through /DIRCPROXY HELP command, and
    the admin can enable and disable any command on
    a user-by-user basis.
- o Can automatically join channels for you on first attach.
  o Host and password based security.
  o Easy to configure and get
 
@@ -141,7 +140,7 @@ The dircproxy home page is at:
 
 Please submit bug reports at:
 
-	http://sourceforge.net/bugs/?group_id=5645
+	http://sourceforge.net/tracker/?atid=105645&group_id=5645
 
 Also join us on the #dircproxy IRC channel on irc.openprojects.net and
 irc.linux.com.
