@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.1 2000/05/24 17:18:08 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.2 2000/05/24 20:54:39 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -230,8 +230,19 @@ int cfg_read(const char *filename) {
 
         s = (struct strlist *)malloc(sizeof(struct strlist));
         s->str = str;
-        s->next = class->servers;
-        class->servers = s;
+        s->next = 0;
+
+        if (class->servers) {
+          struct strlist *ss;
+
+          ss = class->servers;
+          while (ss->next);
+            ss = ss->next;
+
+          ss->next = s;
+        } else {
+          class->servers = s;
+        }
 
       } else if (class && !strcasecmp(key, "from")) {
         /* connection {
