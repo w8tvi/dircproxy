@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.47 2001/12/21 20:15:55 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.48 2002/02/06 10:07:42 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -26,7 +26,7 @@
 /* Configuration values that aren't in the config file */
 
 /* OLD_RFC1459_PARAM_SPACE
- * RFC1459 says parameters are seperated by one or mode spaces,
+ * RFC1459 says parameters are seperated by one or more spaces,
  * however RFC2812 says they are seperated by a single space (thus
  * allowing empty parameters).  Define this to use the old RFC1459
  * behaviour IF (and only IF) you have problems.
@@ -112,6 +112,12 @@
  * What port do we listen on for new client connections?
  */
 #define DEFAULT_LISTEN_PORT "57000"
+
+/* DEFAULT_PID_FILE
+ * Path to file to write the pid of the dircproxy process to.
+ *  0 = Don't want one
+ */
+#define DEFAULT_PID_FILE 0
 
 /* DEFAULT_CLIENT_TIMEOUT
  * Maxmimum amount of time (in seconds) to allow a client to take to login.
@@ -576,6 +582,20 @@
  *  0 = Disabled
  */
 #define DEFAULT_ALLOW_DIE 0
+
+/* DEFAULT_ALLOW_USERS
+ * Whether the /DIRCPROXY USERS command can be used.
+ *  1 = Enabled
+ *  0 = Disabled
+ */
+#define DEFAULT_ALLOW_USERS 0
+
+/* DEFAULT_ALLOW_KILL
+ * Whether the /DIRCPROXY KILL command can be used.
+ *  1 = Enabled
+ *  0 = Disabled
+ */
+#define DEFAULT_ALLOW_KILL 0
 
 
 /* Global variables */
