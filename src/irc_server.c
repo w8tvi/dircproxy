@@ -291,6 +291,7 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
     } else {
       if (p->conn_class->server_ssl)
       {
+      	ret = 0;
         SSL_load_error_strings();
         SSL_library_init();
         if((p->servSSL.ctx = SSL_CTX_new(SSLv23_client_method())))
@@ -318,7 +319,6 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
 		        	 *
 		        	 * A solution could be to insert certificate signature in config-file.
 		        	*/
-							ret = 0;
 			      }
 			      else {
 				      syscall_fail("SSL_set_fd", 0, 0);

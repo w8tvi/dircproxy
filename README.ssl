@@ -17,6 +17,7 @@ What has changed in this branch
 ===============================
 
 This branch adds SSL support for both client-side and server-side.
+Both features may be used independently.
 
   o Client-side : dircproxy connects to SSL-enabled servers, allowing
     you to identify the IRC server you are connecting to, eventually
@@ -49,10 +50,28 @@ What needs to be done
   o [E] Allow dircproxy to present a certificate to identify user on server
   
 - Server-side :
-  o [P] Cleaning the code
-  o [P] Testing return value
-  o [E] Allow user to configure PK & CERT filename
+  o [P] dircproxy hangs when SSL is enabled and client connects without
+        SSL (due to "while(SSL_accept(p->cliSSL.ssl) != 1);" in irc_net.c on
+        line 235, need to find a smarter way to handle this)
   o [E] Allow user to present a certificate to identify user on server
+  
+How to use dircproxy-SSL
+========================
+
+- Client-side : Add 'server_ssl yes' (without quotes) to your config file
+  and dircproxy will connect to server using a SSL socket
+  
+- Server-side : Add 'pk_file "/path/to/privkey.pem"' and 
+  'cert_file "/path/to/cacert.pem"' (both without simple quotes) and
+  dircproxy will present the certificate to connecting users.
+
+To generate a test certificate with OpenSSL (http://www.openssl.org/),
+generate a private key with "openssl genrsa -out privkey.pem 2048" then
+generate a self-signed certificate 
+"openssl req -new -x509 -key privkey.pem -out cacert.pem -days 1095"
+
+* BEWARE NOT TO USE SELF-SIGNED CERTIFICATE IN PRODUCTION ENVIRONMENT *
+
   
 More Information
 ================

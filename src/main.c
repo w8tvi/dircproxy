@@ -85,6 +85,9 @@ static char *listen_port;
 /* File to write our pid to */
 static char *pid_file;
 
+/* Certificate & PK files path */
+char *pk_file, *cert_file;
+
 /* The configuration file we used */
 static char *config_file;
 
@@ -120,6 +123,8 @@ int main(int argc, char *argv[]) {
   progname = argv[0];
   listen_port = x_strdup(DEFAULT_LISTEN_PORT);
   pid_file = (DEFAULT_PID_FILE ? x_strdup(DEFAULT_PID_FILE) : 0);
+  cert_file = (DEFAULT_CERT_FILE ? x_strdup(DEFAULT_CERT_FILE) : 0);
+  pk_file = (DEFAULT_PK_FILE ? x_strdup(DEFAULT_PK_FILE) : 0);
 
 #ifndef DEBUG
   no_daemon = 0;
@@ -195,7 +200,7 @@ int main(int argc, char *argv[]) {
         free(local_file);
         return 2;
       }
-      if (cfg_read(local_file, &listen_port, &pid_file, &g)) {
+      if (cfg_read(local_file, &listen_port, &pid_file, &pk_file, &cert_file, &g)) {
         /* If the local one didn't exist, set to 0 so we open
            global one */
         free(local_file);
@@ -205,7 +210,7 @@ int main(int argc, char *argv[]) {
       }
     }
   } else if (local_file) {
-    if (cfg_read(local_file, &listen_port, &pid_file, &g)) {
+    if (cfg_read(local_file, &listen_port, &pid_file, &pk_file, &cert_file, &g)) {
       /* This is fatal! */
       fprintf(stderr, "%s: Couldn't read configuration from %s: %s\n",
               progname, local_file, strerror(errno));
@@ -223,7 +228,7 @@ int main(int argc, char *argv[]) {
     /* Not fatal if it doesn't exist */
     global_file = x_sprintf("%s/%s", SYSCONFDIR, GLOBAL_CONFIG_FILENAME);
     debug("Global config file: %s", global_file);
-    cfg_read(global_file, &listen_port, &pid_file, &g);
+    cfg_read(global_file, &listen_port, &pid_file, &pk_file, &cert_file, &g);
     config_file = x_strdup(global_file);
     free(global_file);
   } else {
@@ -403,7 +408,7 @@ static void _sig_usr(int sig) {
 static int _reload_config(void) {
   struct ircconnclass *oldclasses, *c;
   struct globalvars newglobals;
-  char *new_listen_port, *new_pid_file;
+  char *new_listen_port, *new_pid_file, *new_pk_file, *new_cert_file;
 
   debug("Reloading config from %s", config_file);
   new_listen_port = x_strdup(DEFAULT_LISTEN_PORT);
@@ -411,7 +416,7 @@ static int _reload_config(void) {
   oldclasses = connclasses;
   connclasses = 0;
 
-  if (cfg_read(config_file, &new_listen_port, &new_pid_file, &newglobals)) {
+  if (cfg_read(config_file, &new_listen_port, &new_pid_file, &new_pk_file, &new_cert_file, &newglobals)) {
     /* Config file reload failed */
     error("Reload of configuration file %s failed", config_file);
     ircnet_flush_connclasses(&connclasses);
@@ -443,6 +448,15 @@ static int _reload_config(void) {
   free(pid_file);
   pid_file = new_pid_file;
   new_pid_file = 0;
+
+  free(pk_file);
+  pk_file = new_pk_file;
+  new_pk_file = 0;
+
+  free(cert_file);
+  cert_file = new_cert_file;
+  new_cert_file = 0;
+
   
   /* Match everything back up to the old stuff */
   c = connclasses;
