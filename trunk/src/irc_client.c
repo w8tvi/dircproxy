@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.8 2000/05/24 18:05:43 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.9 2000/05/24 20:22:20 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -13,6 +13,7 @@
  */
 
 #include <stdio.h>
+#include <sys/param.h>
 #include <stdlib.h>
 #include <stdarg.h>
 
@@ -76,6 +77,9 @@ int ircclient_data(struct ircproxy *p) {
           && !p->awaymessage && p->conn_class->awaymessage)
         ircserver_send_command(p, "AWAY", ":%s", p->conn_class->awaymessage);
       ircclient_close(p);
+
+      /* Make a log to record notices/privmsgs while they are away */
+      irclog_open(p, "misc", &(p->misclog));
 
       return -1;
 
@@ -343,6 +347,12 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
     } else {
       p->conn_class = cc;
       p->client_status |= IRC_CLIENT_AUTHED;
+
+      /* Okay, they've authed for the first time, make the log directory
+         here */
+      if (irclog_makedir(p))
+        ircclient_send_notice(p, "(warning) Unable to create log directory, %s",
+                                 "logging disabled");
     }
 
     return 0;
@@ -524,11 +534,45 @@ int ircclient_welcome(struct ircproxy *p) {
                            p->servername, p->serverver,
                            p->serverumodes, p->servercmodes);
   ircclient_send_numeric(p, 375, ":- %s Message of the Day -", p->servername);
-  ircclient_send_numeric(p, 372, ":- %s", "nothing here");
+  if (p->misclog.open && p->misclog.nlines) {
+    ircclient_send_numeric(p, 372, ":- %s", "You missed:");
+    ircclient_send_numeric(p, 372, ":- %10ld %s", p->misclog.nlines,
+                           "server/private messages");
+    ircclient_send_numeric(p, 372, ":-   %s", "(all will be sent)");
+    ircclient_send_numeric(p, 372, ":-");
+  }
+  if (p->channels) {
+    struct ircchannel *c;
+
+    ircclient_send_numeric(p, 372, ":- %s", "You were on:");
+    c = p->channels;
+    while (c) {
+      if (c->inactive) {
+        ircclient_send_numeric(p, 372, ":-   %s", c->name,
+                               "(forcefully removed)");
+      } else if (c->log.open && c->log.nlines) {
+        ircclient_send_numeric(p, 372, ":-   %s. %ld %s. (%ld %s)",
+                               c->name, c->log.nlines, "lines logged",
+                               MIN(c->log.nlines, log_autorecall),
+                               "will be sent");
+      } else {
+        ircclient_send_numeric(p, 372, ":-   %s", c->name,
+                               "(not logged)");
+      }
+      c = c->next;
+    }
+    ircclient_send_numeric(p, 372, ":-");
+  }
+  ircclient_send_numeric(p, 372, ":- %s", "Welcome back!");
   ircclient_send_numeric(p, 376, ":End of /MOTD command.");
 
   if (p->modes)
     ircclient_send_selfcmd(p, "MODE", "%s +%s", p->nickname, p->modes);
+
+  if (p->misclog.open) {
+    irclog_recall(p, &(p->misclog), p->misclog.nlines);
+    irclog_close(&(p->misclog));
+  }
 
   if (p->awaymessage) {
     /* Ack.  There's no reason for a client to expect AWAY from a server,
@@ -545,17 +589,21 @@ int ircclient_welcome(struct ircproxy *p) {
 
     c = p->channels;
     while (c) {
-      ircclient_send_selfcmd(p, "JOIN", ":%s", c->name);
-      ircserver_send_command(p, "TOPIC", ":%s", c->name);
-      ircserver_send_command(p, "NAMES", ":%s", c->name);
+      if (c->inactive) {
+        ircclient_send_notice(p, "You were on %s, rejoin not yet successful\n",
+                              c->name);
+      } else {
+        ircclient_send_selfcmd(p, "JOIN", ":%s", c->name);
+        ircserver_send_command(p, "TOPIC", ":%s", c->name);
+        ircserver_send_command(p, "NAMES", ":%s", c->name);
 
-      irclog_recall(p, &(c->log), log_autorecall);
+        irclog_recall(p, &(c->log), log_autorecall);
+      }
 
       c = c->next;
     }
   }
 
-  irclog_recall(p, &(p->misclog), log_autorecall);
   irclog_notice_toall(p, "You connected");
 
   p->client_status |= IRC_CLIENT_SENTWELCOME;
