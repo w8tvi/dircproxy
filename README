@@ -39,10 +39,11 @@ See the file INSTALL for building and installation instructions.
 I have personally got this compiling on the following architectures:
 
 	i586-pc-linux-gnu	Linux 2.2 with glibc 2.0 (RedHat 5.2)
-	i686-pc-linux-gnu	Linux 2.2-SMP with glibc 2.2 (RedHat 6.2)
+	i686-pc-linux-gnu	Linux 2.2-SMP with glibc 2.1 (RedHat 6.2)
 	i386-unknown-freebsd3.4	FreeBSD 3.4-RELEASE
 	i386-unknown-freebsd4.0	FreeBSD 4.0-STABLE
 	sparc-sun-solaris2.7	SunOS 5.7 / Solaris 2.7 - SPARCserver-1000
+	ia64-unknown-linux-gnu	Linux 2.3.99-SMP, glibc 2.1 on Itanium
 
 If you get it to compile on any others (it should) then please let me know
 so I can add them to the list.  Send me the output of the "config.guess"
