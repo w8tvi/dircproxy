@@ -9,7 +9,7 @@
  *  - Signal handling
  *  - Debug functions
  * --
- * @(#) $Id: main.c,v 1.45 2000/11/01 15:04:17 keybuk Exp $
+ * @(#) $Id: main.c,v 1.46 2000/11/10 15:12:35 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@
 #include <errno.h>
 
 #include <dircproxy.h>
-#include "getopt.h"
+#include "getopt/getopt.h"
 #include "sprintf.h"
 #include "cfgfile.h"
 #include "irc_net.h"
@@ -52,18 +52,18 @@
 #include "net.h"
 
 /* forward declarations */
-static void sig_term(int);
-static void sig_hup(int);
-static void sig_child(int);
+static void _sig_term(int);
+static void _sig_hup(int);
+static void _sig_child(int);
 #ifdef DEBUG_MEMORY
-static void sig_usr(int);
+static void _sig_usr(int);
 #endif /* DEBUG_MEMORY */
 static int _print_usage(void);
 static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.45 2000/11/01 15:04:17 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.46 2000/11/10 15:12:35 keybuk Exp $";
 
 /* The name of the program */
 static char *progname;
@@ -84,7 +84,7 @@ static char *config_file;
 struct globalvars g;
 
 /* Long options */
-struct option long_opts[] = {
+static struct option long_opts[] = {
   { "config-file", 1, NULL, 'f' },
   { "help", 0, NULL, 'h' },
   { "version", 0, NULL, 'v' },
@@ -94,7 +94,8 @@ struct option long_opts[] = {
   { "daemon", 0, NULL, 'D' },
 #endif /* DEBUG */
   { "inetd", 0, NULL, 'I' },
-  { "listen-port", 1, NULL, 'P' }
+  { "listen-port", 1, NULL, 'P' },
+  { 0, 0, 0, 0 }
 };
 
 /* Options */
@@ -228,13 +229,13 @@ int main(int argc, char *argv[]) {
   }
 
   /* Set signal handlers */
-  signal(SIGTERM, sig_term);
-  signal(SIGINT, sig_term);
-  signal(SIGHUP, sig_hup);
-  signal(SIGCHLD, sig_child);
+  signal(SIGTERM, _sig_term);
+  signal(SIGINT, _sig_term);
+  signal(SIGHUP, _sig_hup);
+  signal(SIGCHLD, _sig_child);
 #ifdef DEBUG_MEMORY
-  signal(SIGUSR1, sig_usr);
-  signal(SIGUSR2, sig_usr);
+  signal(SIGUSR1, _sig_usr);
+  signal(SIGUSR2, _sig_usr);
 #endif /* DEBUG_MEMORY */
 
   /* Broken Pipe?  This means that someone disconnected while we were
@@ -252,36 +253,14 @@ int main(int argc, char *argv[]) {
 
     /* go daemon here */
     if (!no_daemon) {
-      debug("Running in the background");
-
-      switch (fork()) {
+      switch (go_daemon()) {
         case -1:
-          syscall_fail("fork", "first", 0);
           return -1;
         case 0:
           break;
         default:
           return 0;
       }
-
-      /* Become process group leader */
-      setsid();
-
-      switch (fork()) {
-        case -1:
-          syscall_fail("fork", "second", 0);
-          return -1;
-        case 0:
-          break;
-        default:
-          return 0;
-      }
-      
-      /* Set our umask */    
-      umask(0);
-
-      /* Okay, we're in the background now */
-      in_background = 1;
     }
 
   } else {
@@ -335,13 +314,13 @@ int main(int argc, char *argv[]) {
 }
 
 /* Signal to stop polling */
-static void sig_term(int sig) {
+static void _sig_term(int sig) {
   debug("Received signal %d to stop", sig);
   stop();
 }
 
 /* Signal to reload configuration file */
-static void sig_hup(int sig) {
+static void _sig_hup(int sig) {
   struct ircconnclass *oldclasses, *c;
   struct globalvars newglobals;
   char *new_listen_port;
@@ -427,11 +406,11 @@ static void sig_hup(int sig) {
   free(new_listen_port);
 
   /* Restore the signal */
-  signal(sig, sig_hup);
+  signal(sig, _sig_hup);
 }
 
 /* Signal to reap child process */
-static void sig_child(int sig) {
+static void _sig_child(int sig) {
   int status;
   pid_t pid;
 
@@ -443,15 +422,15 @@ static void sig_child(int sig) {
   dns_endrequest(pid, status);
 
   /* Restore the signal */
-  signal(sig, sig_child);
+  signal(sig, _sig_child);
 }
 
 
 #ifdef DEBUG_MEMORY
 /* On USR signals, dump debug information */
-static void sig_usr(int sig) {
+static void _sig_usr(int sig) {
   mem_report(sig == SIGUSR1 ? 0 : "signal");
-  signal(sig, sig_usr);
+  signal(sig, _sig_usr);
 }
 #endif /* DEBUG_MEMORY */
 
@@ -496,9 +475,12 @@ static int _print_help(void) {
 /* Called when a system call fails.  Print it to stderr or syslog */
 int syscall_fail(const char *function, const char *arg, const char *message) {
   char *msg;
+  int err;
+
+  err = errno;
 
   msg = x_sprintf("%s(%s) failed: %s", function, (arg ? arg : ""),
-                  (message ? message : strerror(errno)));
+                  (message ? message : strerror(err)));
   if (in_background) {
     syslog(LOG_NOTICE, "%s", msg);
   } else {
@@ -566,5 +548,43 @@ int debug(const char *format, ...) {
 int stop(void) {
   stop_poll = 1;
 
+  return 0;
+}
+
+/* Called to go into the background */
+int go_daemon(void) {
+  if (in_background)
+    return 0;
+
+  debug("Running in the background");
+
+  switch (fork()) {
+    case -1:
+      syscall_fail("fork", "first", 0);
+      return -1;
+    case 0:
+      break;
+    default:
+      return 1;
+  }
+
+  /* Become process group leader */
+  setsid();
+
+  switch (fork()) {
+    case -1:
+      syscall_fail("fork", "second", 0);
+      return -1;
+    case 0:
+      break;
+    default:
+      return 2;
+  }
+  
+  /* Set our umask */    
+  umask(0);
+
+  /* Okay, we're in the background now */
+  in_background = 1;
   return 0;
 }
