@@ -1,26 +1,21 @@
 Need to do
 
-	* Investigate why the 'misc' log is dissapearing
-
-	* Think better how to do PRIVMSGs/NOTICEs from people that you missed
-	  perhaps one per person...
-
-	* Maybe make misc/privmsg log remember nlines when we disconnected
-	  and only spool what was missed.
-	  (Channels are slightly different as we can SEE what we sent).
-
-	* put stats into motd about size of log files and channels joined etc
-
-	* the /DIRCPROXY command.
-	  RECALL <chan/nick/*> from nlines
-	  DETACH <away-msg>
-	  QUIT <msg>		(change /DQUIT to this)
-
-	* config file
-	  (0.6.0)
+	* Misc log is dissapearing because we reopen it every client connection
+	  This is okay, just need to neaten it a bit, I reckon this log should
+	  be for server events, and wiped every time its recalled.  PRIVMSG's
+	  we'll somehow put in their own logs, and maybe only spool what you
+	  missed also?
 
 	* Perhaps more permanent logging for those people that want it
 	  (from x-trem@gmx.net)
+	  [ i'm thinking this is up to the client though ... ]
+
+	* put stats into motd about size of log files and channels joined etc
+
+	* the /DIRCPROXY command. (0.7.0 ?)
+	  RECALL <chan/nick/*> from nlines
+	  DETACH <away-msg>
+	  QUIT <msg>		(change /DQUIT to this)
 
 	* Re-isolate certain "Connecting to server..." notices back to
 	  being from "dircproxy" and not the server...  It seems to be
@@ -31,13 +26,8 @@ Need to do
 	  confused if when rejoining a server it can't rejoin the channel).
 	  Perhaps notify user we couldn't rejoin ?
 
-	* Change ALRM signal to TERM signal, so a normal KILL will
-	  free the log files.
-
 
 Would be nice
-
-	* proper debug output and output errors to syslog
 
 	* when -I is used, it won't close the socket, because it is waiting
 	  for a client to reconnect.  Either enter listen mode somehow, or
@@ -49,26 +39,4 @@ Would be nice
 
 	* (further to above to)
 	  -dircproxy- Reconnect to this session at hostname.domain.tld:46702
-
-	* -p PASSWORD [ -s SERVER ]... [ -H HOST ] [ -m MASK ]...
-  	  --password=  --server=  --bind-host=  --from-mask=
-	  specifies the only connection class that can be used.  There must
-	  be one -s parameter of course.  Automatically turns off reading
-	  connection classes from the config file
-
-	* -f CONFIGFILE, --config-file=CONFIGFILE
-	  specifies an alternate config file (otherwise ~/.dircproxyrc)
-
-	* -P PORT, --listen-port=PORT
-	  config file override
-
-	* --rejoin-after-kick=VALUE --server-retry=VALUE
-	    --server-dns-retry=VALUE --server-max-attempts=VALUE
-	    --server-max-init-attempts=VALUE --detach-away-message=VALUE
-	  config file overrides
-
-	* --server-retry=VALUES
-	  config
-	  time between server retries
-
 
