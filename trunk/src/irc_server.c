@@ -5,7 +5,7 @@
  * irc_server.c
  *  - Handling of servers connected to the proxy
  * --
- * @(#) $Id: irc_server.c,v 1.18 2000/08/30 10:53:22 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.19 2000/09/01 12:15:36 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -39,6 +39,7 @@
 static void _ircserver_reconnect(struct ircproxy *, void *);
 static int _ircserver_gotmsg(struct ircproxy *, const char *);
 static int _ircserver_close(struct ircproxy *);
+static void _ircserver_stoned(struct ircproxy *, void *);
 static int _ircserver_forclient(struct ircproxy *, struct ircmessage *);
 
 /* hook for timer code to reconnect to a server */
@@ -458,6 +459,12 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       ircserver_send_peercmd(p, "PONG", "%s :%s", msg.params[0], msg.params[1]);
     }
 
+    if (p->conn_class->server_pingtimeout) {
+      timer_del(p, "server_stoned");
+      timer_new(p, "server_stoned", p->conn_class->server_pingtimeout,
+                _ircserver_stoned, (void *)0);
+    }
+
     /* but let it see them */
     squelch = 0;
 
@@ -645,6 +652,13 @@ static int _ircserver_close(struct ircproxy *p) {
             _ircserver_reconnect, (void *)0);
 
   return 0;
+}
+
+/* hook for timer code to close a stoned server */
+static void _ircserver_stoned(struct ircproxy *p, void *data) {
+  /* Server is, like, stoned.  Yeah man! */
+  debug("Server is stoned, reconnecting");
+  _ircserver_close(p);
 }
 
 /* Check if a message is bound for us, and if so check our username and

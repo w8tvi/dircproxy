@@ -64,6 +64,18 @@
 #
 #server_maxinitattempts 5
 
+# server_pingtimeout
+#     For some people, dircproxy doesn't notice that the connection to the
+#     server has been dropped because the socket remains open.  For example,
+#     those behind a NAT'd firewall.  dircproxy can monitor the amount of time
+#     between PINGs received from a server, and when it exceeds the number of
+#     seconds below assume the server is "stoned" and reconnect to it.
+#
+#     0 = don't monitor PINGs
+#
+#server_pingtimeout 0
+
+
 # channel_rejoin
 #     If we are kicked off a channel, how many seconds do we wait before
 #     attempting * to rejoin.
