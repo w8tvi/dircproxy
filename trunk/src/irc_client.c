@@ -4,8 +4,9 @@
  *
  * irc_client.c
  *  - Handling of clients connected to the proxy
+ *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.49 2000/10/12 16:05:08 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.50 2000/10/13 12:47:05 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
