@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.22 2000/09/26 10:58:57 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.23 2000/09/28 10:35:10 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -134,6 +134,13 @@
  *  0 = Immediately
  */
 #define DEFAULT_CHANNEL_REJOIN 15
+
+/* DEFAULT_IDLE_MAXTIME
+ * How many seconds since last PRIVMSG/NOTICE should dircproxy reset idle
+ * time?
+ * 0 = never
+ */
+#define DEFAULT_IDLE_MAXTIME 0
 
 /* DEFAULT_DISCONNECT_EXISTING
  * If a connecting user tries to use a proxy that is already in user, do

@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.16 2000/09/26 11:31:39 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.17 2000/09/28 10:35:10 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -48,6 +48,7 @@ int cfg_read(const char *filename, char **listen_port) {
   long server_maxinitattempts;
   long server_pingtimeout;
   long channel_rejoin;
+  long idle_maxtime;
   int disconnect_existing;
   int disconnect_on_detach;
   char *drop_modes;
@@ -81,6 +82,7 @@ int cfg_read(const char *filename, char **listen_port) {
   server_maxinitattempts = DEFAULT_SERVER_MAXINITATTEMPTS;
   server_pingtimeout = DEFAULT_SERVER_PINGTIMEOUT;
   channel_rejoin = DEFAULT_CHANNEL_REJOIN;
+  idle_maxtime = DEFAULT_IDLE_MAXTIME;
   disconnect_existing = DEFAULT_DISCONNECT_EXISTING;
   disconnect_on_detach = DEFAULT_DISCONNECT_ON_DETACH;
   drop_modes = x_strdup(DEFAULT_DROP_MODES);
@@ -211,6 +213,11 @@ int cfg_read(const char *filename, char **listen_port) {
         /* channel_rejoin 5 */
         _cfg_read_numeric(&buf,
                           &(class ? class->channel_rejoin : channel_rejoin));
+
+      } else if (!strcasecmp(key, "idle_maxtime")) {
+        /* idle_maxtime 120 */
+        _cfg_read_numeric(&buf,
+                          &(class ? class->idle_maxtime : idle_maxtime));
  
       } else if (!strcasecmp(key, "disconnect_existing_user")) {
         /* disconnect_existing_user yes
@@ -456,6 +463,7 @@ int cfg_read(const char *filename, char **listen_port) {
         class->server_maxinitattempts = server_maxinitattempts;
         class->server_pingtimeout = server_pingtimeout;
         class->channel_rejoin = channel_rejoin;
+        class->idle_maxtime = idle_maxtime;
         class->disconnect_existing = disconnect_existing;
         class->disconnect_on_detach = disconnect_on_detach;
         class->drop_modes = x_strdup(drop_modes);
