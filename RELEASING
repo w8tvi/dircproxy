@@ -1,6 +1,6 @@
 To remove litter:
 	for A in . conf contrib crypt doc getopt src; do \
-		(cd $A; rm `cat .cvsignore`); done
+		(cd $A; rm -rf `cat .cvsignore`); done
 
 Release checklist
 
@@ -10,37 +10,35 @@ Release checklist
  4.  Check it compiles and runs without any flags
  5.  Fix any bugs/warnings, commit them, and return to 1
  6.  Perform a `make maintainer-clean` and remove any litter
- 7.  Run `cvs2cl --gmt --prune -U AUTHORS.map -l '-b'` to create new
-     ChangeLog.  If this is a non-head branch replace the "-l 'b'" with
-     "-F BRANCH-x_x".
+ 7.  Run `cvs2cl --gmt --prune -U AUTHORS.map -F BRANCH-1_0` to create new
+     ChangeLog.
  8.  `rm ChangeLog.bak`
  9.  `cvs diff ChangeLog > changes.txt`
 10.  Edit changes.txt and undiffify it.
 11.  Read changes.txt and write summary.txt from it
 12.  Write release.txt including summary.txt after an
-     "-----Official Summary-----" marker.
+     "-----Official Summary-----" marker and blank line.
 13.  Edit the NEWS file, add in new version and any config/use changes
-14.  Check the TODO file is up to date
-15.  Adjust the Features list in the README file if necessary.  This will also
+14.  Adjust the Features list in the README file if necessary.  This will also
      require the adjustment of the website's index.html.in file.
-16.  Any changes to INSTALL?  Do them and adjust website's install.html file.
-17.  Do a general `cvs commit -m "Version x.x.x released."`
-18.  do a `cvs tag RELEASE-x_x_x`
-19.  do an `autogen.sh` without any flags
-20.  make dist
-21.  `gpg --armor --comment 'See http://dircproxy.sourceforge.net/\
+15.  Any changes to INSTALL?  Do them and adjust website's install.html file.
+16.  Do a general `cvs commit -m "Version x.x.x released."`
+17.  do a `cvs tag RELEASE-x_x_x`
+18.  do an `autogen.sh` without any flags
+19.  make dist
+20.  `gpg --armor --comment 'See http://www.dircproxy.net/\
       download.html for more information' --detach-sign DISTFILE`
-22.  scp dist file and asc file to repton:~ftp/pub/dircproxy/stable
-23.  Remove 'src' directory from website and replace with new version
-24.  Add new news item title "dircproxy x.x.x released" containing release.txt
-25.  Add new version to bugzilla's dircproxy product
-26.  Run build-site.pl to make the site carry the latest information.
-27.  Check the site front page, news page and download page.
-28.  Announce new version on freshmeat using summary.txt
-29.  E-mail dircproxy-announce list with release.txt making sure to sign
+21.  scp dist file and asc file to tetris:~ftp/pub/dircproxy/stable
+22.  Remove 'src' directory from website and replace with new version
+23.  Add new news item title "dircproxy x.x.x released!" containing release.txt
+24.  Add new version to bugzilla's dircproxy product
+25.  Run build-site.pl to make the site carry the latest information.
+26.  Check the site front page, news page and download page.
+27.  Announce new version on freshmeat using summary.txt
+28.  E-mail dircproxy-announce list with release.txt making sure to sign
      the e-mail.
-30.  E-Mail greid@ukug.uk.freebsd.org with any significant changes that could
+29.  E-Mail lester@mazpe.net with any significant changes that could
      affect packaging (new files etc), making sure to sign the e-mail.
-31.  Update and upload the new Debian package to master
-32.  Edit configure.in & contrib/dircproxy.spec and increment the version
+30.  Update and upload the new Debian package to master
+31.  Edit configure.in & contrib/dircproxy.spec and increment the version
      number, commit with message "CVS version now x.x.x"
