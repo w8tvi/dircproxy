@@ -12,7 +12,7 @@
  * get accidentally overrun.  This is purely debug, you should
  * NEVER use this in a real program.
  * --
- * @(#) $Id: memdebug.c,v 1.4 2000/09/27 16:11:38 keybuk Exp $
+ * @(#) $Id: memdebug.c,v 1.5 2000/10/23 12:26:42 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -41,6 +41,13 @@ struct memstamp {
   struct memstamp *next;
 };
 
+/* For statistics */
+struct memcount {
+  char *file;
+  unsigned long count;
+  struct memcount *next;
+};
+
 /* definition of the magic number */
 #define MEMMAGIC 0xDC10
 
@@ -58,6 +65,7 @@ static unsigned long memalloccount = 0L;
 static unsigned long memfreecount = 0L;
 static unsigned long memusage = 0L;
 static struct memstamp *memstamplist = NULL;
+static struct memcount *memcounts = 0;
 
 /* Insert a new memory stamp onto the list */
 static void _mem_insert(struct memstamp *ms) {
@@ -98,7 +106,9 @@ static void _mem_checkpad(struct memstamp *ms, char *file, int line) {
     data[strlen(MEMPREBUFF)] = 0;
 
     fprintf(stderr, "MEM: possible underun detected by (%s/%d) "
-           "alloc at (%s/%d).\n", file, line, ms->file, ms->line);
+           "alloc at (%s/%d).\n", file ? file : "debug code",
+           file ? line : 0, ms->file ? ms->file : "debug code",
+           ms->file ? ms->line : 0);
     fprintf(stderr, "     [%s:%s]\n", MEMPREBUFF, data);
     free(data);
   }
@@ -112,7 +122,8 @@ static void _mem_checkpad(struct memstamp *ms, char *file, int line) {
     data[strlen(MEMPOSTBUFF)] = 0;
 
     fprintf(stderr, "MEM: possible overun detected by (%s/%d) "
-           "alloc at (%s/%d).\n", file, line, ms->file, ms->line);
+           "alloc at (%s/%d).\n", file ? file : "debug code", file ? line : 0,
+           ms->file ? ms->file : "debug code", ms->file ? ms->line : 0);
     fprintf(stderr, "     [%s:%s]\n", MEMPOSTBUFF, data);
     free(data);
   }
@@ -121,6 +132,7 @@ static void _mem_checkpad(struct memstamp *ms, char *file, int line) {
 /* Wrapper around malloc() which adds a memstamp to the front */
 void *mem_malloc(size_t size, char *file, int line) {
   struct memstamp *ms;
+  struct memcount *mc;
 
   if (size > 0) {
     unsigned long malloc_sz;
@@ -131,20 +143,55 @@ void *mem_malloc(size_t size, char *file, int line) {
 
     if (!(ms = (struct memstamp *)malloc(malloc_sz))) {
       fprintf(stderr, "MEM: malloc failed to alloc %lu(%lu) bytes (%s/%d)\n",
-              (unsigned long)malloc_sz, (unsigned long)size, file, line);
+              (unsigned long)malloc_sz, (unsigned long)size,
+              file ? file : "debug code", file ? line : 0);
       abort();
     }
 
-    if (!(ms->file = (char *)malloc(strlen(file) + 1))) {
-      fprintf(stderr, "MEM: malloc failed to alloc %lu bytes (%s/%d)\n",
-              (unsigned long)(strlen(file) + 1), file, line);
-      abort();
+    if (file && strlen(file)) {
+      mc = memcounts;
+      while (mc) {
+        if (!strcmp(mc->file, file)) {
+          mc->count++;
+          break;
+        }
+
+        mc = mc->next;
+      }
+      if (!mc) {
+        if (!(mc = (struct memcount *)malloc(sizeof(struct memcount)))) {
+          fprintf(stderr, "MEM: malloc failed to alloc %lu bytes (%s/%d)\n",
+                  (unsigned long)(sizeof(struct memcount)), file, line);
+          abort();
+        }
+   
+        if (!(mc->file = (char *)malloc(strlen(file) + 1))) {
+          fprintf(stderr, "MEM: malloc failed to alloc %lu bytes (%s/%d)\n",
+                  (unsigned long)(strlen(file) + 1), file, line);
+          abort();
+        }
+   
+        strcpy(mc->file, file);
+        mc->count = 1;
+        mc->next = memcounts;
+        memcounts = mc;
+      }
+
+      if (!(ms->file = (char *)malloc(strlen(file) + 1))) {
+        fprintf(stderr, "MEM: malloc failed to alloc %lu bytes (%s/%d)\n",
+                (unsigned long)(strlen(file) + 1), file, line);
+        abort();
+      }
+      strcpy(ms->file, file);
+      ms->allocnum = memalloccount++;
+      ms->line = line;
+    } else {
+      ms->file = 0;
+      ms->allocnum = 0;
+      ms->line = 0;
     }
-    strcpy(ms->file, file);
     ms->magic = MEMMAGIC;
     ms->size = size;
-    ms->allocnum = memalloccount++;
-    ms->line = line;
     memusage += size;
     _mem_insert(ms);
 
@@ -177,7 +224,8 @@ void *mem_realloc(void *ptr, size_t size, char *file, int line) {
   ms = (struct memstamp *)((char *)ptr - data_off);
   if (ms->magic != MEMMAGIC) {
     fprintf(stderr, "MEM: %s of illegal block (%s/%d)\n",
-            (size > 0) ? "realloc" : "free", file, line);
+            (size > 0) ? "realloc" : "free", file ? file : "debug code",
+            file ? line : 0);
     return NULL;
   }
 
@@ -193,7 +241,8 @@ void *mem_realloc(void *ptr, size_t size, char *file, int line) {
       memcpy(block, (char *)ms + data_off, ms->size);
   }
 
-  memfreecount++;
+  if (ms->file)
+    memfreecount++;
   memusage -= ms->size;
   _mem_delete(ms);
   free(ms->file);
@@ -204,19 +253,36 @@ void *mem_realloc(void *ptr, size_t size, char *file, int line) {
 /* Reports current memory usage and shows what was malloc()d where */
 void mem_report(char *message) {
   struct memstamp *msptr;
+  struct memcount *mc;
   
   msptr = memstamplist;
   printf("MEM:REPORT%s%s%s %lu bytes in use [%lu alloc][%lu free]\n",
          message ? " (" : "", message ? message : "", message ? ")" : "",
          memusage, memalloccount, memfreecount);
 
+  mc = memcounts;
+  while (mc) {
+    unsigned long i, t;
+
+    printf("%16s %8lu ", mc->file, mc->count);
+
+    t = ((double)mc->count / (double)memalloccount) * 40;
+    for (i = 0; i < t; i++)
+      printf("#");
+    printf("\n");
+
+    mc = mc->next;
+  }
+  printf("\n");
+  
   while (msptr) {
     if (message) {
       int i;
       
       printf("     %s/%d - %lu bytes alloc'd [an:%lu]\n",
-             msptr->file, msptr->line, (unsigned long)msptr->size,
-             msptr->allocnum);
+             msptr->file ? msptr->file : "debug code",
+             msptr->file ? msptr->line : 0, (unsigned long)msptr->size,
+             msptr->file ? msptr->allocnum : 0);
 
       printf("     [");
       for (i = 0; i <= MIN(msptr->size, 70); i++) {
