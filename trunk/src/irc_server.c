@@ -5,7 +5,7 @@
  * irc_server.c
  *  - Handling of servers connected to the proxy
  * --
- * @(#) $Id: irc_server.c,v 1.24 2000/10/10 13:08:35 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.25 2000/10/12 16:02:42 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -37,6 +37,12 @@
 
 /* forward declarations */
 static void _ircserver_reconnect(struct ircproxy *, void *);
+static void _ircserver_connect2(struct ircproxy *, void *, struct in_addr *,
+                                const char *);
+static void _ircserver_connect3(struct ircproxy *, void *, struct in_addr *,
+                                const char *);
+static void _ircserver_connected2(struct ircproxy *, void *, struct in_addr *,
+                                  const char *);
 static int _ircserver_gotmsg(struct ircproxy *, const char *);
 static int _ircserver_close(struct ircproxy *);
 static int _ircserver_lost(struct ircproxy *);
@@ -95,11 +101,9 @@ static void _ircserver_reconnect(struct ircproxy *p, void *data) {
 
 /* Called to initiate a connection to a server */
 int ircserver_connect(struct ircproxy *p) {
-  struct sockaddr_in local_addr;
-  char *host, *server;
-  int ret;
+  char *server;
 
-  debug("Connecting to server");
+  debug("Connecting to server (stage 1)");
 
   if (timer_exists(p, "server_recon")) {
     debug("Connection already in progress");
@@ -119,23 +123,47 @@ int ircserver_connect(struct ircproxy *p) {
     if (strlen(pass))
       p->serverpassword = x_strdup(pass);
   }
-  
-  host = 0;
-  if (dns_filladdr(server, p->conn_class->server_port, 1,
-                   &(p->server_addr), &host)) {
+ 
+  /* DNS lookup the server */
+  dns_filladdr(p, server, p->conn_class->server_port, 1, &(p->server_addr),
+               _ircserver_connect2, 0);
+  free(server);
+  return 0;
+}
+
+/* Called to initiate a connection to a server once its been looked up */
+static void _ircserver_connect2(struct ircproxy *p, void *data,
+                                struct in_addr *addr, const char *host) {
+  if (!host || !addr) {
     debug("DNS failure, retrying");
-    free(server);
     timer_new(p, "server_recon", p->conn_class->server_dnsretry,
               _ircserver_reconnect, (void *)0);
-    return -1;
-  } else {
-    free(server);
-    free(p->servername);
-    p->servername = host;
+    return;
   }
+
+  debug("Resolved server");
+
+  /* Copy the found information into p */
+  free(p->servername);
+  p->servername = x_strdup(host);
+  p->server_addr.sin_addr.s_addr = addr->s_addr;
+  
+  if (p->conn_class->local_address) {
+    dns_addrfromhost(p, 0, p->conn_class->local_address, _ircserver_connect3);
+  } else {
+    _ircserver_connect3(p, 0, 0, 0);
+  }
+}
+
+/* Called to initiate a connection to a server once its been looked up
+   and the local_host has been looked up */
+static void _ircserver_connect3(struct ircproxy *p, void *data,
+                                struct in_addr *addr, const char *host) {
+  int ret;
 
   debug("Connecting to %s port %d", p->servername,
         ntohs(p->server_addr.sin_port));
+
   if (IS_CLIENT_READY(p))
     ircclient_send_notice(p, "Connecting to %s port %d",
                           p->servername, ntohs(p->server_addr.sin_port));
@@ -146,24 +174,26 @@ int ircserver_connect(struct ircproxy *p) {
 
   } else {
     if (p->conn_class->local_address) {
-      host = 0;
-      memset(&local_addr, 0, sizeof(struct sockaddr_in));
-      local_addr.sin_family = AF_INET;
-      local_addr.sin_addr.s_addr = INADDR_ANY;
+      if (addr) {
+        struct sockaddr_in local_addr;
 
-      if (dns_addrfromhost(p->conn_class->local_address, &(local_addr.sin_addr),
-                           &host)) {
+        memset(&local_addr, 0, sizeof(struct sockaddr_in));
+        local_addr.sin_family = AF_INET;
+        local_addr.sin_addr.s_addr = addr->s_addr;
+
+        if (bind(p->server_sock, (struct sockaddr *)&local_addr,
+                 sizeof(struct sockaddr_in))) {
+          if (IS_CLIENT_READY(p))
+            ircclient_send_notice(p, "(warning) Couldn't use local address %s",
+                                  host);
+        } else {
+          free(p->hostname);
+          p->hostname = (host ? x_strdup(host) : p->conn_class->local_address);
+        }
+      } else {
         if (IS_CLIENT_READY(p))
           ircclient_send_notice(p, "(warning) Couldn't find address for %s",
                                 p->conn_class->local_address);
-      } else if (bind(p->server_sock, (struct sockaddr *)&local_addr,
-                      sizeof(struct sockaddr_in))) {
-        if (IS_CLIENT_READY(p))
-          ircclient_send_notice(p, "(warning) Couldn't use local address %s",
-                                host);
-      } else {
-        free(p->hostname);
-        p->hostname = host;
       }
     }
 
@@ -191,38 +221,51 @@ int ircserver_connect(struct ircproxy *p) {
   }
 
   debug("Connected");
-  return ret;
 }
 
 /* Called when a new server has connected */
 int ircserver_connected(struct ircproxy *p) {
-  char *username;
-
   debug("Connection succeeded");
   p->server_status |= IRC_SERVER_CONNECTED;
 
   if (IS_CLIENT_READY(p))
     ircclient_send_notice(p, "Connected to server");
 
-  /* Icky to put this here, but I don't know where else to put it.
-     We do need this you see... */ 
+  /* Need to try and look up our local hostname now we have a socket to
+     somewhere that will tell us */
   if (!p->hostname) {
     struct sockaddr_in sock_addr;
     int len;
 
     len = sizeof(struct sockaddr_in);
     if (!getsockname(p->server_sock, (struct sockaddr *)&sock_addr, &len)) {
-      p->hostname = dns_hostfromaddr(sock_addr.sin_addr);
+      dns_hostfromaddr(p, 0, sock_addr.sin_addr, _ircserver_connected2);
+      return 0;
     } else {
       syscall_fail("getsockname", "", 0);
+      _ircserver_connected2(p, 0, 0, 0);
     }
+  } else {
+    _ircserver_connected2(p, 0, 0, 0);
   }
+
+  return 0;
+}
+
+/* Called when a new server has connected and we have a local hostname */
+static void _ircserver_connected2(struct ircproxy *p, void *data,
+                                  struct in_addr *addr, const char *name) {
+  char *username;
+
+  if (!p->hostname && name)
+    p->hostname = x_strdup(name);
 
   username = ircprot_sanitize_username(p->username);
   if (p->serverpassword)
     ircserver_send_peercmd(p, "PASS", ":%s", p->serverpassword);
   ircserver_send_peercmd(p, "NICK", ":%s", p->nickname);
   ircserver_send_peercmd(p, "USER", "%s 0 * :%s", username, p->realname);
+  p->server_status |= IRC_SERVER_INTRODUCED;
   free(username);
 
   /* Begin stoned server checking */
@@ -237,8 +280,6 @@ int ircserver_connected(struct ircproxy *p) {
   if (p->conn_class->idle_maxtime)
     timer_new(p, "server_antiidle", p->conn_class->idle_maxtime,
               _ircserver_antiidle, (void *)0);
-
-  return 0;
 }
 
 /* Called when a connection fails */
@@ -709,7 +750,7 @@ int ircserver_close_sock(struct ircproxy *p) {
   sock_close(p->server_sock);
 
   p->server_status &= ~(IRC_SERVER_CREATED | IRC_SERVER_CONNECTED
-                        | IRC_SERVER_GOTWELCOME);
+                        | IRC_SERVER_INTRODUCED | IRC_SERVER_GOTWELCOME);
 
   /* Make sure these don't get triggered */
   if (p->conn_class->server_pingtimeout) {
