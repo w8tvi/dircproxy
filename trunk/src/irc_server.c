@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.33 2000/10/16 11:23:51 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.34 2000/10/16 12:48:43 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -804,7 +804,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       str = x_strdup(msg.params[1]);
       ircprot_stripctcp(str);
       if (strlen(str)) {
-        if (msg.src.type & IRC_USER) {
+        if ((msg.src.type & IRC_USER) && msg.src.username && msg.src.hostname) {
           char *tmp;
 
           tmp = x_sprintf("%s!%s@%s", msg.src.name, msg.src.username,
@@ -813,7 +813,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
           free(tmp);
         } else if (msg.src.type & IRC_SERVER) {
           irclog_msg(p, msg.params[0], msg.src.name, "%s", str);
-        } else if (msg.src.type == IRC_PEER) {
+        } else {
           irclog_msg(p, msg.params[0], p->servername, "%s", str);
         }
       }
@@ -830,7 +830,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       str = x_strdup(msg.params[1]);
       ircprot_stripctcp(str);
       if (strlen(str)) {
-        if (msg.src.type & IRC_USER) {
+        if ((msg.src.type & IRC_USER) && msg.src.username && msg.src.hostname) {
           char *tmp;
 
           tmp = x_sprintf("%s!%s@%s", msg.src.name, msg.src.username,
@@ -839,7 +839,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
           free(tmp);
         } else if (msg.src.type & IRC_SERVER) {
           irclog_notice(p, msg.params[0], msg.src.name, "%s", str);
-        } else if (msg.src.type == IRC_PEER) {
+        } else {
           irclog_notice(p, msg.params[0], p->servername, "%s", str);
         }
       }
