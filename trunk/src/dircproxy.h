@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.40 2000/11/10 15:07:10 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.41 2000/12/06 15:25:50 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -215,6 +215,12 @@
  *  0 = No, always persists until they explicitly quit
  */
 #define DEFAULT_DISCONNECT_ON_DETACH 0
+
+/* DEFAULT_INITIAL_MODES
+ * User modes to automatically set on first server connection.
+ * 0 = don't do this
+ */
+#define DEFAULT_INITIAL_MODES "i"
 
 /* DEFAULT_DROP_MODES
  * User modes to automatically drop when the client detaches.
