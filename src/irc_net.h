@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.29 2000/10/13 13:50:24 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.30 2000/10/13 13:55:13 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -104,6 +104,7 @@ struct ircconnclass {
 /* a channel someone is on */
 struct ircchannel {
   char *name;
+  char *key;
   int inactive;
   int unjoined;
   struct logfile log;

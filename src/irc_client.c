@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.55 2000/10/13 13:50:24 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.56 2000/10/13 13:55:13 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -893,8 +893,13 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
 
         c = tmp_p->channels;
         while (c) {
-          if (c->unjoined)
-            ircserver_send_command(tmp_p, "JOIN", ":%s", c->name);
+          if (c->unjoined) {
+            if (c->key) {
+              ircserver_send_command(tmp_p, "JOIN", "%s :%s", c->name, c->key);
+            } else {
+              ircserver_send_command(tmp_p, "JOIN", ":%s", c->name);
+            }
+          }
 
           c = c->next;
         }
@@ -965,11 +970,22 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
       s = p->conn_class->channels;
       while (s) {
         struct ircchannel *c;
-        
-        ircnet_addchannel(p, s->str);
-        c = ircnet_fetchchannel(p, s->str);
-        if (c)
+        char *name, *key;
+
+        name = x_strdup(s->str);
+        key = strchr(name, ' ');
+        if (key)
+          *(key++) = 0;
+
+        ircnet_addchannel(p, name);
+        c = ircnet_fetchchannel(p, name);
+        if (c) {
           c->inactive = 1;
+          if (key)
+            c->key = x_strdup(key);
+        }
+
+        free(name);
 
         s = s->next;
       }

@@ -9,7 +9,7 @@
  *  - Miscellaneous IRC functions
  *  - The main poll() loop
  * --
- * @(#) $Id: irc_net.c,v 1.28 2000/10/13 13:50:24 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.29 2000/10/13 13:55:13 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -357,6 +357,7 @@ struct ircchannel *ircnet_freechannel(struct ircchannel *chan) {
 
   irclog_free(&(chan->log));
   free(chan->name);
+  free(chan->key);
   free(chan);
 
   return ret;
@@ -526,8 +527,20 @@ void ircnet_freeconnclass(struct ircconnclass *class) {
 
 /* hook to rejoin a channel after a kick */
 static void _ircnet_rejoin(struct ircproxy *p, void *data) {
+  struct ircchannel *c;
+
   debug("Rejoining '%s'", (char *)data);
-  ircserver_send_command(p, "JOIN", ":%s", (char *)data);
+  c = ircnet_fetchchannel(p, (char *)data);
+  if (c) {
+    if (c->key) {
+      ircserver_send_command(p, "JOIN", "%s :%s", c->name, c->key);
+    } else {
+      ircserver_send_command(p, "JOIN", ":%s", c->name);
+    }
+  } else {
+    ircserver_send_command(p, "JOIN", ":%s", (char *)data);
+  }
+
   free(data);
 }
 

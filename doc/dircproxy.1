@@ -2,7 +2,7 @@
 .\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.20 2000/10/13 13:50:24 keybuk Exp $
+.\" @(#) $Id: dircproxy.1,v 1.21 2000/10/13 13:55:13 keybuk Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -537,10 +537,15 @@ used.
 .B join
 Channels to join when you first connect.  Multiple channels can be given,
 either by seperating the names with a comma, or by specifying multiple
-'\fBjoin\fR' lines.
+'\fBjoin\fR' lines.  You may also include the channel key by seperating it
+from the channel name with a space.
 
 Note: You \fImust\fR surround the list of channels with quotes to
 distinguish from comments.
+
+For clarification, this is the format of this line:
+
+join "\fBchannel\fR[ \fBkey\fR][,\fBchannel\fR[ \fBkey\fR]]..."
 
 .SH SIGNALS
 \fBdircproxy\fR will reread its configuration file whenever it receives

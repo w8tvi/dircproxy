@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.29 2000/10/13 13:42:56 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.30 2000/10/13 13:55:13 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -407,8 +407,13 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
       c = p->channels;
       while (c) {
-        if (!c->unjoined)
-          ircserver_send_command(p, "JOIN", ":%s", c->name);
+        if (!c->unjoined) {
+          if (c->key) {
+            ircserver_send_command(p, "JOIN", "%s :%s", c->name, c->key);
+          } else {
+            ircserver_send_command(p, "JOIN", ":%s", c->name);
+          }
+        }
         c = c->next;
       }
     }

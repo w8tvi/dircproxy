@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.25 2000/10/13 13:50:24 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.26 2000/10/13 13:55:13 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -768,8 +768,8 @@ int cfg_read(const char *filename, char **listen_port,
       } else if (class && !strcasecmp(key, "join")) {
         /* connection {
              :
-             join #foo
-             join #foo,#bar
+             join "#foo"
+             join "#foo key,#bar"
              :
            } */
         struct strlist *s;
