@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.62 2002/08/17 19:40:39 scott Exp $
+ * @(#) $Id: irc_server.c,v 1.63 2002/08/17 21:48:03 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -1309,7 +1309,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
                   && (p->client_status != IRC_CLIENT_ACTIVE)) {
           ircserver_send_command(p, "NOTICE", "%s :\001VERSION %s %s - %s\001",
                                  msg.src.name, PACKAGE, VERSION,
-                                 "http://dircproxy.sourceforge.net/");
+                                 "http://www.dircproxy.net/");
 
           if (p->conn_class->log_events & IRC_LOG_CTCP)
             irclog_notice(p, msg.params[0], p->servername, "CTCP %s from %s",
