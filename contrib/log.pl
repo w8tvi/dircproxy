@@ -40,6 +40,10 @@ $sendmail = '/usr/lib/sendmail';
 #
 # -nick!username@host-
 #     Notice from a person
+#
+# [nick!username@host]
+#     Unfiltered CTCP message (usually an ACTION) from a person
+#
 
 my $source = shift(@ARGV);
 die "No source given by dircproxy" unless $source && length $source;
