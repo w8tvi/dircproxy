@@ -5,7 +5,7 @@
  * dcc_chat.c
  *  - DCC chat protocol
  * --
- * @(#) $Id: dcc_chat.c,v 1.6 2000/11/20 12:22:56 keybuk Exp $
+ * @(#) $Id: dcc_chat.c,v 1.7 2000/11/20 15:25:54 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -39,6 +39,7 @@ void dccchat_connected(struct dccproxy *p, int sock) {
   if (sock != p->sender_sock) {
     error("Unexpected socket %d in dccchat_connected, expected %d", sock,
           p->sender_sock);
+    net_close(sock);
     return;
   }
 
@@ -61,6 +62,7 @@ void dccchat_connectfailed(struct dccproxy *p, int sock, int bad) {
   if (sock != p->sender_sock) {
     error("Unexpected socket %d in dccchat_connectfailed, expected %d", sock,
           p->sender_sock);
+    net_close(sock);
     return;
   }
 
@@ -107,6 +109,7 @@ static void _dccchat_data(struct dccproxy *p, int sock) {
   } else {
     error("Unexpected socket %d in dccchat_data, expected %d or %d", sock,
           p->sender_sock, p->sendee_sock);
+    net_close(sock);
     return;
   }
 
@@ -133,6 +136,7 @@ static void _dccchat_error(struct dccproxy *p, int sock, int bad) {
   } else {
     error("Unexpected socket %d in dccchat_error, expected %d or %d", sock,
           p->sender_sock, p->sendee_sock);
+    net_close(sock);
     return;
   }
 

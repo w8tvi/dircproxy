@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.44 2000/11/10 15:10:50 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.45 2000/11/20 15:25:54 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -306,6 +306,7 @@ static void _ircserver_connected(struct ircproxy *p, int sock) {
   if (sock != p->server_sock) {
     error("Unexpected socket %d in _ircserver_connected, expected %d", sock,
           p->server_sock);
+    net_close(sock);
     return;
   }
 
@@ -384,6 +385,7 @@ static void _ircserver_connectfailed(struct ircproxy *p, int sock, int bad) {
   if (sock != p->server_sock) {
     error("Unexpected socket %d in _ircserver_connectfailed, expected %d", sock,
           p->server_sock);
+    net_close(sock);
     return;
   }
 
@@ -406,6 +408,7 @@ static void _ircserver_data(struct ircproxy *p, int sock) {
   if (sock != p->server_sock) {
     error("Unexpected socket %d in _ircserver_data, expected %d", sock,
           p->server_sock);
+    net_close(sock);
     return;
   }
 
@@ -423,6 +426,7 @@ static void _ircserver_error(struct ircproxy *p, int sock, int bad) {
   if (sock != p->server_sock) {
     error("Unexpected socket %d in _ircserver_error, expected %d", sock,
           p->server_sock);
+    net_close(sock);
     return;
   }
 
