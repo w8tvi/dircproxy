@@ -4,8 +4,10 @@
  *
  * irc_log.c
  *  - Handling of log files
+ *  - Handling of log programs
+ *  - Recalling from log files
  * --
- * @(#) $Id: irc_log.c,v 1.22 2000/10/10 13:08:35 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.23 2000/10/13 12:44:20 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
