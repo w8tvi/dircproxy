@@ -1,6 +1,13 @@
 NEWS about changes for existing users.
 --------------------------------------
 
+Version 1.0.3 - Fri Feb  8 17:44:42 GMT 2002
+
+	* New 'pid_file', 'allow_users' and 'allow_kill' config
+	  directives.
+	* New -p command line parameter (adjusts pid_file).
+	* Included contrib scripts, cronchk.sh and privmsg-log.pl
+
 Version 1.0.2 - Tue Jan  1 18:15:00 GMT 2001
 
 	* New 'server_keepalive' config directive.
