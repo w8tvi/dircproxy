@@ -9,7 +9,7 @@
  *  - Signal handling
  *  - Debug functions
  * --
- * @(#) $Id: main.c,v 1.38 2000/10/13 12:23:51 keybuk Exp $
+ * @(#) $Id: main.c,v 1.39 2000/10/13 12:26:15 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,7 +61,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.38 2000/10/13 12:23:51 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.39 2000/10/13 12:26:15 keybuk Exp $";
 
 /* The name of the program */
 static char *progname;
@@ -525,6 +525,13 @@ int debug(const char *format, ...) {
 
   free(msg);
 #endif /* DEBUG */
+
+  return 0;
+}
+
+/* Called to stop dircproxy */
+int stop(void) {
+  stop_poll = 1;
 
   return 0;
 }
