@@ -5,7 +5,7 @@
  * dcc_send.c
  *  - DCC send protocol
  * --
- * @(#) $Id: dcc_send.c,v 1.7 2000/12/07 17:21:16 keybuk Exp $
+ * @(#) $Id: dcc_send.c,v 1.8 2000/12/21 13:22:21 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -40,7 +40,7 @@ void dccsend_connected(struct dccproxy *p, int sock) {
   if (sock != p->sender_sock) {
     error("Unexpected socket %d in dccsend_connected, expected %d", sock,
           p->sender_sock);
-    net_close(sock);
+    net_close(&sock);
     return;
   }
 
@@ -56,14 +56,13 @@ void dccsend_connectfailed(struct dccproxy *p, int sock, int bad) {
   if (sock != p->sender_sock) {
     error("Unexpected socket %d in dccsend_connectfailed, expected %d", sock,
           p->sender_sock);
-    net_close(sock);
+    net_close(&sock);
     return;
   }
 
   debug("DCC Connection failed");
   p->sender_status &= ~(DCC_SENDER_CREATED);
-  net_close(p->sender_sock);
-  p->sender_sock = -1;
+  net_close(&(p->sender_sock));
   p->dead = 1;
 }
 
@@ -114,7 +113,7 @@ static void _dccsend_data(struct dccproxy *p, int sock) {
   } else {
     error("Unexpected socket %d in dccsend_data, expected %d or %d", sock,
           p->sender_sock, p->sendee_sock);
-    net_close(sock);
+    net_close(&sock);
     return;
   }
 
@@ -154,8 +153,7 @@ static void _dccsend_error(struct dccproxy *p, int sock, int bad) {
   if (sock == p->sender_sock) {
     who = "Sender";
     p->sender_status &= ~(DCC_SENDER_CREATED);
-    net_close(p->sender_sock);
-    p->sender_sock = -1;
+    net_close(&(p->sender_sock));
 
     /* Not necessarily bad, just means the client has gone */
     if (p->bufsz && !(p->type & DCC_SEND_CAPTURE)) {
@@ -166,13 +164,12 @@ static void _dccsend_error(struct dccproxy *p, int sock, int bad) {
   } else if (sock == p->sendee_sock) {
     who = "Sendee";
     p->sendee_status &= ~(DCC_SENDEE_CREATED);
-    net_close(p->sendee_sock);
-    p->sendee_sock = -1;
+    net_close(&(p->sendee_sock));
     p->dead = 1;
   } else {
     error("Unexpected socket %d in dccsend_error, expected %d or %d", sock,
           p->sender_sock, p->sendee_sock);
-    net_close(sock);
+    net_close(&sock);
     return;
   }
 
