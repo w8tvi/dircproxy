@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.25 2000/10/10 13:08:35 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.26 2000/10/12 16:01:40 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -166,11 +166,12 @@ struct ircproxy {
 #define IRC_SERVER_CREATED     0x01
 #define IRC_SERVER_SEEN        0x02
 #define IRC_SERVER_CONNECTED   0x04
-#define IRC_SERVER_GOTWELCOME  0x08
-#define IRC_SERVER_ACTIVE      0x0f
+#define IRC_SERVER_INTRODUCED  0x08
+#define IRC_SERVER_GOTWELCOME  0x10
+#define IRC_SERVER_ACTIVE      0x1f
 
 /* Can we send data to the server? */
-#define IS_SERVER_READY(_c) (((_c)->server_status & 0x05) == 0x05)
+#define IS_SERVER_READY(_c) (((_c)->server_status & 0x0c) == 0x0c)
 
 /* global variables */
 extern struct ircconnclass *connclasses;
