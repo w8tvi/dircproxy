@@ -1,6 +1,62 @@
 NEWS about changes for existing users.
 --------------------------------------
 
+Version 0.8.0 - Fri Nov 10 15:20:00 BST 2000
+
+	* 'chan_log_dir' and 'other_log_dir' have been removed because
+	  they cause usage and security problems.  These have been replaced
+	  with 'chan_log_copydir' and 'other_log_copydir' which have a
+	  slightly different purpose.
+
+	* The log file format on disk has changed slightly to allow for the
+	  new 'relative timestamping'.
+
+	* DCC chat's and send's are now proxied by default through dircproxy.
+
+	* Removed config file options:
+		server_dnsretry
+
+	* New config file options:
+		client_timeout
+		connect_timeout
+		dns_timeout
+		server_throttle
+		server_autoconnect
+		channel_leave_on_detach
+		channel_rejoin_on_attach
+		idle_maxtime
+		refuse_modes
+		quit_message
+		attach_message
+		detach_message
+		chan_log_enabled
+		chan_log_relativetime
+		chan_log_program
+		other_log_enabled
+		other_log_relativetime
+		other_log_program
+		log_timeoffset
+		log_events
+		dcc_proxy_incoming
+		dcc_proxy_outgoing
+		dcc_proxy_ports
+		dcc_proxy_timeout
+		dcc_proxy_sendreject
+		dcc_send_fast
+		dcc_capture_directory
+		dcc_capture_always
+		dcc_capture_withnick
+		dcc_capture_maxsize
+		dcc_tunnel_incoming
+		dcc_tunnel_outgoing
+		switch_user
+		motd_file
+		allow_persist
+		allow_jump
+		allow_jump_new
+		allow_host
+		allow_die
+		
 Version 0.7.3 - Wed Sep 27 17:55:00 BST 2000
 
 	* New config file option - "disconnect_on_detach"

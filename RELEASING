@@ -1,3 +1,7 @@
+To remove litter:
+	for A in . conf contrib crypt doc getopt src; do \
+		(cd $A; rm `cat .cvsignore`); done
+
 Release checklist
 
  1.  Perform a `make maintainer-clean` and remove any litter
@@ -9,6 +13,7 @@ Release checklist
  7.  Check the TODO file is up to date
  8.  Perform a `make maintainer-clean` and remove any litter
  9.  Run cvs2cl.pl --gmt --prune -U AUTHORS.map to create new ChangeLog
+	Use -F BRANCH-x_x for non-development branches or -l '-b' for head
 10.  rm ChangeLog.bak
 11.  diff the ChangeLog to get "ChangeLog summary"
 12.  Read "ChangeLog summary" and write "Changes summary" from it
