@@ -5,7 +5,7 @@
  * timers.c
  *  - Scheduling events
  * --
- * @(#) $Id: timers.c,v 1.3 2000/05/13 05:25:04 keybuk Exp $
+ * @(#) $Id: timers.c,v 1.4 2000/05/24 18:05:43 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -60,7 +60,6 @@ char *timer_new(struct ircproxy *p, const char *id, unsigned long interval,
                 void (*func)(struct ircproxy *, void *), void *data) {
   struct timer *t;
 
-  printf("timer set for '%s'\n", id);
   if (id && timer_exists(p, id))
     return 0;
 
