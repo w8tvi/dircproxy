@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.38 2001/12/21 20:15:55 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.39 2001/12/21 20:17:06 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -245,9 +245,9 @@ int cfg_read(const char *filename, char **listen_port,
         _cfg_read_numeric(&buf, &(class ? class : def)->server_maxinitattempts);
 
       } else if (!strcasecmp(key, "server_keepalive")) {
-	/* server_keepalive yes
-	   server_keepalive no */
-	_cfg_read_bool(&buf, &(class ? class : def)->server_keepalive);
+        /* server_keepalive yes
+           server_keepalive no */
+        _cfg_read_bool(&buf, &(class ? class : def)->server_keepalive);
         
       } else if (!strcasecmp(key, "server_pingtimeout")) {
         /* server_pingtimeout 600 */
