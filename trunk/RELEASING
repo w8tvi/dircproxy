@@ -44,5 +44,5 @@ Release checklist
      the e-mail.
 31.  E-Mail nidd@debian.org with any significant changes that could affect
      packaging (new files etc), making sure to sign the e-mail.
-32.  Edit configure.in and increment the version number, commit with message
-     "CVS version now x.x.x"
+32.  Edit configure.in & contrib/dircproxy.spec and increment the version
+     number, commit with message "CVS version now x.x.x"
