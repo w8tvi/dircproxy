@@ -13,6 +13,7 @@ dircproxy_SOURCES = \
 	irc_log.c irc_log.h \
 	irc_string.c irc_string.h \
 	timers.c timers.h \
+	cfgfile.c cfgfile.h \
 	dns.c dns.h \
 	sock.c sock.h \
 	match.c match.h \
