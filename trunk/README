@@ -17,39 +17,67 @@ client you like, including X ones!
 Features
 ========
 
- o Runs on console, as daemon and from inetd
- o Can proxy for multiple people at once
- o Can bind proxy sessions to any IP on the server
- o Uses IRC server passwords to authenticate.  No need to use any
-   special commands
- o Can proxy DCC chats and sends, altering the visible IP address so
-   it completely hides your actual address.
- o Can proxy DCC chats and sends across ssh tunnels, for those people
-   behind restrictive firewalls.  See README.dcc-via-ssh for
-   information on this magic.
- o Can capture DCC sends on the server, instead of sending them on to
-   you.  Especially useful when you're detached.
- o Logs are stored on disk in human-readable format, either in a
-   temporary directory, or stored for prosperity in a directory of
-   your choice.
- o Logs can contain everything that occurs, or just what happens
-   while you're detached.
- o Logs are spooled in ordinary IRC protocol format for optimal
-   reading
- o Logs can be automatically spooled on reconnect, to fill your window
-   up giving you a "scroll-back"
- o Logs can be manually recalled and played back using a special
-   command.
- o Log file size can be limited automatically
- o Messages can be time-stamped in log files.
- o Can connect to servers that require a password
- o Will automatically reconnect to the server if connection is dropped
- o Will automatically rejoin channels for you if you're kicked
- o Will reconnect to servers if they become "stoned".
- o Can drop modes for you when you detach
- o Sets you /AWAY when you detach with a custom away message
- o Host and Password based connection security
- o Easy to configure and get going
+ o Runs on console, as a daemon or from inetd.
+ o Able to proxy many simultaneous users and IRC connections.
+ o Uses IRC server passwords to authenticate.
+ o Remains connected to server when you detach.  To reattach you just
+   use the IRC server password again, no special commands!
+ o Completely non-blocking throughout.
+ o Can connect to servers that also require a password.
+ o Can have a list of servers on the same network to connect to, it
+   will cycle this list.
+ o Throttles data sent to server to ensure you are never flooded
+   off.
+ o Can check servers to make sure they don't become "stoned".
+ o Reconnects to servers if connection is dropped.
+ o Can automatically join channels for you on first attach.
+ o Rejoins channels if you are kicked off.
+ o Can leave channels when you detach and rejoin when you come back.
+ o Can take measures to ensure you don't appear "idle" on IRC.
+ o Drop's unwanted user modes when you detached, if you forget to
+   de-opper yourself.
+ o Will refuse to connect to servers that set certain modes
+   such as +r.
+ o Can bind to any IP on your host to change your appearance on IRC.
+ o Can change what username is presented on IRC without affecting
+   other users its proxying for.
+ o Can send a message to all channels to indicate when you detach
+   and reattach.
+ o Can change your nickname when you detach.
+ o Sets you /AWAY when you detach, if you forget to do so.
+ o Fully configurable logging support so when you reattach you
+   can see what you missed.
+ o Can limit the size of log files to avoid eating diskspace.
+ o Log text recalled to your client is sent so your client sees
+   it as ordinary IRC text.
+ o Can timestamp text in log files so you know when it was sent,
+   also can adjust the timestamp you see depending on how long ago
+   it was sent.
+ o Can make permanent log files for your own use of everything
+   on channels or all private messages.
+ o Can pass log text to a program of your choice (to send you
+   an SMS for example).
+ o Can adjust log timestamps depending on timezone difference
+   between you and dircproxy.
+ o Can proxy DCC chat and sends through itself.
+ o Can capture DCC sends and store them on the dircproxy machine
+   while you're detached, and even while you're attached.
+ o Captured DCC sends can be made subject to a size limit and have
+   the sender's nickname included in the filename.
+ o Can tunnel DCC sends and chats through ssh tunnels.
+   See the included README.dcc-via-ssh for more information.
+ o Customisable message of the day for users which can include
+   stats about log file sizes.
+ o /DIRCPROXY command interface for users to do extra things with
+   the proxy.  Fully documented through /DIRCPROXY HELP command, and
+   the admin can enable and disable any command on
+   a user-by-user basis.
+ o Can automatically join channels for you on first attach.
+ o Host and password based security.
+ o Easy to configure and get
+
+All of dircproxy's features are completely configurable and can be
+enabled, disabled and adjusted through the configuration file.
 
 dircproxy is currently under development, so many more features will
 be added as it progresses.

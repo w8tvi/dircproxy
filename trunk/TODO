@@ -1,26 +1,10 @@
-New features for 0.8.0:
+Possible Future development:
 
-    DCC
+	* Miniature ident daemon that give fake replies to dircproxy
+	  controlled ports, and otherwise spawns the inbuilt identd to handle
+	  the request.  It should listen for new things to fake on a pipe.
 
-        * DCC send capturing, instead of proxying them, it stores the files
-	  locally.
-
-	    dcc_capture_directory none/"path"
-	    dcc_capture_always yes/NO
-	    dcc_capture_withnick YES/no
-	    dcc_capture_maxsize 0/...
-
-
-    IDENT
-
-        * Miniature identd daemon that answers queries for dircproxy.  Basic
-	  design, should see if it knows a certain port combo and if so
-	  return the user it knows, otherwise run the inbuilt inetd.
-
-	  Talk to it using some kind of pipe
-
-        * You can then specify which ident to show for a connection
-	  class or dircproxy:
+	* Have a single config option to change username's
 
 	    local_username "scott"
 
@@ -34,21 +18,16 @@ New features for 0.8.0:
 
 	  Again, will result in reconnection to server if changed
 
+	* Would then need a way of choosing whether to use the fake identd
+	  stuff or the seteuid() stuff to change the username.
 
-    SETUID
-    
-        * setuid() support for when dircproxy is running as root.  The
-	  switch can be done before a server connection or afterwards.
+	* Anyone want to write that fake ident daemon? :o)
 
-            switch_user NONE/"nobody"
-	    switch_user_afterconnect yes/NO
-
-          This will fork(), dedicate the new proxy then setuid() to the right
-	  user.  The parent will declare its copy of that proxy dead and close
-	  up all its sockets etc.
-
-
-Would be nice:
+	* Let more than one IRC client connect to dircproxy at a time.
+	  I kinda think this would be cool, just for the sheer amusement
+	  factor of it.  p->client_status would reflect the combined status
+	  of all the connected clients.  Would need an extra p->client_count
+	  or something
 
 	* mIRC DCC RESUME support.  This will probably happen once I'm sure
 	  dircproxy supports the major UNIX IRC client DCC weirdisms.  Then
@@ -61,7 +40,7 @@ Would be nice:
 	  connection, then use those as replies when the client is detached.
 
 	* Multiple listen ports if I can think of a good reason to
-	  have them.  
+	  have them.
 
 	* Transparent proxying using ipchains/ipfwadm or whatever the
 	  kernel uses this week.  Figure out how its done and see if its

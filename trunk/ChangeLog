@@ -1,3 +1,872 @@
+2000-11-10 15:18  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxyrc: Accidentally dropped an '=' in there
+
+2000-11-10 15:14  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_log.h: Use signed longs for log file offsets
+
+2000-11-10 15:13  Scott James Remnant <scott@netsplit.com>
+
+	* src/net.c: Made net_poll() a little more efficient by only
+	realloc()ing if the number of ufds changes
+
+2000-11-10 15:13  Scott James Remnant <scott@netsplit.com>
+
+	* src/memdebug.c: Left in some code so I can enable reporting of
+	all malloc()s if I want it
+
+2000-11-10 15:12  Scott James Remnant <scott@netsplit.com>
+
+	* src/main.c: Mostly general neatening
+
+2000-11-10 15:12  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_string.c: Made irc_strcasecmp a little more efficient
+	seeing as we use it so much
+
+2000-11-10 15:10  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_server.c: switch_user support done through seteuid()
+	
+	Added code to do dcc send capturing
+
+2000-11-10 15:09  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_log.c: _irclog_read needs to take a FILE * not a log
+	file, so it will read if the log isn't open (but a file to it is).
+	
+	Use long's as log offsets when recalling.
+	
+	Removed the last of the is_chan code
+	
+	Freeing memory we forgot to when filtering
+	
+	Adjusted the relative timestamps so > 7 days you don't see a time
+
+2000-11-10 15:08  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: Use *signed* longs for log offsets, and
+	actually detach on /QUIT so we don't wait for a socket to notice
+	they've gone
+
+2000-11-10 15:08  Scott James Remnant <scott@netsplit.com>
+
+	* src/dns.c: Added an extra pipe to avoid race conditions, also
+	actually check the wait() status properly
+
+2000-11-10 15:07  Scott James Remnant <scott@netsplit.com>
+
+	* src/: cfgfile.c, dircproxy.h, irc_net.c, irc_net.h: Added the
+	dcc_capture_* options and the switch_user option
+
+2000-11-10 15:06  Scott James Remnant <scott@netsplit.com>
+
+	* src/: dcc_net.c, dcc_net.h, dcc_send.c: Added dcc capture support
+
+2000-11-10 15:04  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxyrc: Added the new dcc_* and switch_user options
+
+2000-11-10 15:03  Scott James Remnant <scott@netsplit.com>
+
+	* doc/dircproxy.1: Added documentation for dcc_* options and the
+	switch_user option
+
+2000-11-10 15:02  Scott James Remnant <scott@netsplit.com>
+
+	* doc/dircproxy-crypt.1: dircproxy-crypt now has command line
+	options - updated the man page
+
+2000-11-10 15:01  Scott James Remnant <scott@netsplit.com>
+
+	* FAQ, README.inetd: Documentation updates
+
+2000-11-10 15:00  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in: A few more checks, and added getopt and crypt dirs
+
+2000-11-10 15:00  Scott James Remnant <scott@netsplit.com>
+
+	* contrib/log.pl: Added in docs for unfiltered ctcp
+
+2000-11-10 14:59  Scott James Remnant <scott@netsplit.com>
+
+	* getopt/: .cvsignore, Makefile, Makefile.in, getopt.o, getopt1.o,
+	libgetopt.a: Accidentally committed binaries, removed them and
+	added a .cvsignore
+
+2000-11-10 14:57  Scott James Remnant <scott@netsplit.com>
+
+	* crypt/: .cvsignore, Makefile, Makefile.in, dircproxy-crypt,
+	main.o: Accidentally checked in the binaries (wakey, wakey!)
+	Removed them and added in a .cvsignore file
+
+2000-11-10 14:55  Scott James Remnant <scott@netsplit.com>
+
+	* contrib/Makefile.am, contrib/crypt.c, src/Makefile.am,
+	src/getopt.c, src/getopt.h, src/getopt1.c, Makefile.am,
+	crypt/Makefile, crypt/Makefile.am, crypt/Makefile.in,
+	crypt/dircproxy-crypt, crypt/main.c, crypt/main.o, getopt/Makefile,
+	getopt/Makefile.am, getopt/Makefile.in, getopt/getopt.c,
+	getopt/getopt.h, getopt/getopt.o, getopt/getopt1.c,
+	getopt/getopt1.o, getopt/libgetopt.a: Moved the getopt files out of
+	src into their own getopt directory, which gets compiled into a
+	libgetopt.a we include to make dircproxy itself.
+	
+	Also moved the crypt.c out of contrib and into its own crypt
+	directory, improved this a bit and linked it to libgetopt.a to make
+	it a bit neater
+
+2000-11-06 17:02  Scott James Remnant <scott@netsplit.com>
+
+	* src/: irc_net.c, irc_net.h: Extra config options added and freed.
+	 Ports are int not shorts
+
+2000-11-06 17:00  Scott James Remnant <scott@netsplit.com>
+
+	* src/: irc_client.c, irc_server.c: DCC code modified to work a lot
+	better, and be configurable and take advantage of tunnel ports and
+	stuff.
+	
+	Debug code should be inside ''s Fixed memory leak of not freeing
+	p->serverpassword Made sure that msg.src contains information for
+	server code (irc client code doesn't need this)
+
+2000-11-06 16:57  Scott James Remnant <scott@netsplit.com>
+
+	* src/: dns.c, dns.h: Use an extra pipe to tell the child when the
+	parent is able to reap it, this avoids the race condition that
+	happens on really fast machines where the child exits before the
+	parent's had time to realise its a dns query (therefore never
+	finishes the request and hangs).
+	
+	Also use ints not shorts for ports!
+
+2000-11-06 16:56  Scott James Remnant <scott@netsplit.com>
+
+	* src/: dcc_net.c, dcc_net.h: Code to do port ranges added, timeout
+	code added, dcc send hooks added and p->type changed to be a mask
+
+2000-11-06 16:55  Scott James Remnant <scott@netsplit.com>
+
+	* src/: dcc_chat.c, dcc_chat.h: Made data+error functions tatic as
+	they aren't used outside of here.  Also extra warning if connection
+	fails.
+
+2000-11-06 16:54  Scott James Remnant <scott@netsplit.com>
+
+	* src/: cfgfile.c, dircproxy.h: New config file options:       
+	dcc_proxy_incoming   [bool]	dcc_proxy_outgoing   [bool]    
+	dcc_proxy_ports      [specially handled]	dcc_proxy_timeout  
+	 [numeric]  dcc_proxy_sendreject [bool]     dcc_send_fast	
+	[bool]	   dcc_tunnel_incoming	[int]	   dcc_tunnel_outgoing 
+	[int]
+
+2000-11-06 16:47  Scott James Remnant <scott@netsplit.com>
+
+	* src/: Makefile.am, dcc_send.c, dcc_send.h: Added the code to do
+	both simple and fast dcc send proxying.  The dcc capture code will
+	also go in here somewhere.
+
+2000-11-06 16:47  Scott James Remnant <scott@netsplit.com>
+
+	* FAQ, README.dcc-via-ssh, TODO: Documentation updates
+
+2000-11-02 16:48  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_server.c: Dropped the DCC code in wholesale, and it
+	worked, whoo!
+
+2000-11-02 16:39  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_string.c: Whoa, irc_strupr actually tolower()d things
+
+2000-11-02 16:36  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_prot.c: Upper case the DCC command name according to IRC
+	rules
+
+2000-11-02 16:36  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: Twiddling
+
+2000-11-02 16:15  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_server.c: Really cleaned this up by using msg.src.orig
+	all over the place instead of trying to build it manually each
+	time.  Also made sure we never use msg.src without checking its
+	there, and if not always use p->servername instead.
+
+2000-11-02 16:14  Scott James Remnant <scott@netsplit.com>
+
+	* src/: irc_prot.c, irc_prot.h: Keep the original prefix so we
+	don't have to rebuild it each time
+
+2000-11-02 16:13  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: Cleaned up CTCP handling a fair bit, making it
+	less indented and more streamlined
+
+2000-11-02 16:13  Scott James Remnant <scott@netsplit.com>
+
+	* src/dcc_net.c: Slightly more useful debug information
+
+2000-11-02 16:12  Scott James Remnant <scott@netsplit.com>
+
+	* src/dcc_chat.c: Was hooking the wrong socket (erk) and also need
+	to check that the other side is connected before sending the data
+	to it.
+
+2000-11-02 13:29  Scott James Remnant <scott@netsplit.com>
+
+	* src/: dcc_chat.c, dcc_chat.h, dcc_net.c: Slight tidying to give a
+	bit more response to the user.
+
+2000-11-01 17:58  Scott James Remnant <scott@netsplit.com>
+
+	* src/dcc_chat.c: Changed the debug direction indicators to make it
+	clear this is dcc
+
+2000-11-01 17:57  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_prot.c: Don't dequote until we actually parse the CTCP
+	message.  This is so s->str can be guaranteed to be within \001's
+	inside the msg.orig
+
+2000-11-01 15:04  Scott James Remnant <scott@netsplit.com>
+
+	* src/: Makefile.am, main.c: Intergrated DCC chat stuff so its all
+	cleaned up.  Still need to actually do it though :o)
+
+2000-11-01 15:03  Scott James Remnant <scott@netsplit.com>
+
+	* src/: dcc_chat.c, dcc_chat.h, dcc_net.c, dcc_net.h: Got a bit
+	enthusiastic and wrote all the code necessary to do a dcc chat
+	proxying.  Well, still a bit to do (listen_port ranges and stuff
+	for example) plus it could do with being a LOT cleaner - but hey! 
+	its getting there
+
+2000-11-01 15:02  Scott James Remnant <scott@netsplit.com>
+
+	* src/net.c: If net_read() is called with a len of 0 just return
+	how much data is in the buffer
+
+2000-11-01 15:01  Scott James Remnant <scott@netsplit.com>
+
+	* src/: irc_client.c, irc_net.c, irc_server.c, net.h: new
+	_FUNCTION() macros for the net stuff, made the code use these. 
+	Also cleaned up the CTCP stuff and made server work properly
+
+2000-11-01 14:59  Scott James Remnant <scott@netsplit.com>
+
+	* src/: irc_log.c, irc_log.h: CTCP logging needs to be done a
+	little differently to make sure the timestamp is fully inside the
+	CTCP and after the command.  New irclog_ctcp function to do this.
+
+2000-10-31 13:11  Scott James Remnant <scott@netsplit.com>
+
+	* TODO, conf/dircproxyrc, doc/dircproxy.1, src/cfgfile.c,
+	src/dircproxy.h, src/irc_client.c, src/irc_log.c, src/irc_net.h,
+	src/irc_prot.c, src/irc_prot.h, src/irc_server.c: time_offset
+	changed to log_timeoffset because of new log_events option that
+	sits quite nicely with it in the config file.  Lots more logging,
+	which is done according to how log_events is set.  We also now
+	strip CTCP out of messages sensibly and are able to parse and act
+	on the CTCP's we get out including logging them, or logging
+	ACTION's now (yay!) and even in future doing DCC stuff.
+	
+	Also fixed: when kicked, channel wouldn't get deleted properly,
+	join option in config file didn't like ",," or ", #chan" -
+	appropriate errors added
+
+2000-10-30 13:44  Scott James Remnant <scott@netsplit.com>
+
+	* FAQ, conf/dircproxyrc, doc/dircproxy.1, src/cfgfile.c,
+	src/dircproxy.h, src/irc_client.c, src/irc_log.c, src/irc_log.h,
+	src/irc_net.c, src/irc_net.h: Quite a large change to the way
+	logging code works now.  Made it a hell of a lot neater in the
+	process too.  The idea is that all dircproxy logs always end up in
+	/tmp, and you can use the new _log_copydir (replacing the old
+	_log_dir) option to specify a place to store ALL text logged, or
+	the program to do stuff with it.
+
+2000-10-30 13:42  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_server.c: Don't need to send a NICK command to the client
+	on receipt of a bad nickname numeric, they'll respond to it anyway.
+
+2000-10-30 13:41  Scott James Remnant <scott@netsplit.com>
+
+	* src/main.c: Prettied up the error/warning output a bit
+
+2000-10-27 13:12  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_net.c: Should probably set c->key to 0 after freeing it
+
+2000-10-27 13:11  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_server.c: Didn't bother to check whether p->modes was set
+	or refuse_mode itself was set before doing a strcspn()...   I must
+	have written THAT at 4am!
+
+2000-10-23 12:47  Scott James Remnant <scott@netsplit.com>
+
+	* src/net.c: Sockets with data to write now write that data before
+	they close, and have a few seconds to write it during a shutdown as
+	well.  Fixed a few bugs here as well.
+
+2000-10-23 12:39  Scott James Remnant <scott@netsplit.com>
+
+	* src/net.h: Added the net_closeall() prototype
+
+2000-10-23 12:33  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: Made sure we don't net_gets() on a closed
+	socket, tested and fixed the nickname generation so its much nicer
+	now, fixed up the QUIT messages to try and get more irc clients to
+	show them and finally modified to use the new dns/timer syntax
+
+2000-10-23 12:32  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_server.c: Fixed KICK without a source bug, made sure we
+	don't net_gets() a closed socket and modified the rest to use the
+	new dns/timer syntax
+
+2000-10-23 12:30  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_net.c: Modified the use of dns and timers
+
+2000-10-23 12:29  Scott James Remnant <scott@netsplit.com>
+
+	* src/main.c: Bit of cleanup of the stop stuff, made errors more
+	obvious in debug mode and calling net_closeall()
+
+2000-10-23 12:26  Scott James Remnant <scott@netsplit.com>
+
+	* src/memdebug.c: Added some code to produce pretty statistics of
+	which .c files are doing the most malloc()s.  Also made it so if
+	file is 0 it doesn't count it (but still checks it) so I can hide
+	debug() mallocs
+
+2000-10-23 12:19  Scott James Remnant <scott@netsplit.com>
+
+	* src/dircproxy.h: Added new define for net linger time
+
+2000-10-23 12:03  Scott James Remnant <scott@netsplit.com>
+
+	* src/: timers.c, timers.h: Made it so that timers don't depend on
+	a struct ircproxy, just a random void pointer
+
+2000-10-23 12:03  Scott James Remnant <scott@netsplit.com>
+
+	* src/: dns.c, dns.h: Made it so that the DNS stuff doesn't rely on
+	a struct ircproxy, just any random void pointer.
+
+2000-10-23 11:56  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in: Allow poll() and select() to be disabled through
+	configure
+
+2000-10-23 11:55  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: Another bug to fix :(
+
+2000-10-23 11:55  Scott James Remnant <scott@netsplit.com>
+
+	* FAQ, conf/dircproxyrc, doc/dircproxy.1: Lots of documentation
+	improvements and documented the new dircproxy-crypt program too
+
+2000-10-23 11:53  Scott James Remnant <scott@netsplit.com>
+
+	* doc/Makefile.am: Install the dircproxy man page
+
+2000-10-23 11:53  Scott James Remnant <scott@netsplit.com>
+
+	* doc/dircproxy-crypt.1, contrib/.cvsignore, contrib/Makefile.am:
+	Made the 'crypt' program into something called 'dircproxy-crypt'
+	that gets installed with dircproxy and even has a man page too!
+
+2000-10-20 12:44  Scott James Remnant <scott@netsplit.com>
+
+	* TODO, conf/dircproxyrc, doc/dircproxy.1, src/cfgfile.c,
+	src/dircproxy.h, src/irc_log.c, src/irc_net.h: Added fancy new log
+	timestamping and time offset code.
+
+2000-10-20 11:03  Scott James Remnant <scott@netsplit.com>
+
+	* TODO, conf/dircproxyrc, doc/dircproxy.1, src/cfgfile.c,
+	src/dircproxy.h, src/irc_client.c, src/irc_log.c, src/irc_net.c,
+	src/irc_net.h, src/irc_server.c, src/irc_server.h, src/main.c,
+	src/net.c, src/net.h: Completely moved over to new socket code now,
+	so its all non-blocking and sexy.  Also throttling of server
+	sockets and appropriate server_throttle configuration file option.
+
+2000-10-20 11:00  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in: Check for poll.h,sys/poll.h and poll() itself
+
+2000-10-18 17:23  Scott James Remnant <scott@netsplit.com>
+
+	* src/net.c: More static functions
+
+2000-10-18 13:26  Scott James Remnant <scott@netsplit.com>
+
+	* TODO, src/Makefile.am, src/net.c, src/net.h, src/sock.c,
+	src/sock.h: Replacing sock.c/sock.h with a new net.c/net.h which is
+	much more advanced, and will also do things like the poll() /
+	select() loop.
+
+2000-10-16 12:48  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_server.c: Still need to check whether username/hostname
+	are actually set, even if we're IRC_USER
+
+2000-10-16 11:26  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_net.c: Code to do channel keys (yay!)
+
+2000-10-16 11:23  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_server.c: Code to send and check MODE's for channel keys
+	now added
+
+2000-10-16 11:17  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_server.c: Couple of bugs with the privmsg/notice code,
+	including a %s%s%s vulnerability These have been fixed
+
+2000-10-16 10:59  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_server.c: Changed to use irc_strcasecmp for the commands,
+	won't make any difference but its nicer
+
+2000-10-16 10:52  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: Changed to use irc_strcasecmp for the commands,
+	won't make any difference but its nicer
+
+2000-10-16 10:51  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: Updated dircproxy persist docs
+
+2000-10-16 10:49  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: Made sure you can't /DIRCPROXY PERSIST (and
+	kill off any other possible users) if die_on_close is 1 because of
+	the config file.  If it is because of the config file, then just
+	set die_on_close to 0 and announce that they can persist.
+
+2000-10-16 10:46  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_net.h: Added header code for the new channel mode
+	monitoring stuff, this means that irc_net.h will need irc_prot.h
+
+2000-10-16 10:45  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_prot.c: Make sure that IRC_USER is only set if there's
+	definitly a nickname, username and hostname
+
+2000-10-16 10:45  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: *sigh* Updates to the TODO file
+
+2000-10-16 10:44  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxyrc, doc/dircproxy.1: Added a bit of extra text to
+	try to explain that you shouldn't set chan_log_dir/other_log_dir
+	unless you really want that
+
+2000-10-16 10:43  Scott James Remnant <scott@netsplit.com>
+
+	* src/sprintf.h: Clive D.W. Feather himself came up with the
+	prettiest suggestion for my sprintf() trick, so his gets to be in
+	the code :)
+
+2000-10-16 10:42  Scott James Remnant <scott@netsplit.com>
+
+	* src/help.h: Fixed the /DIRCPROXY PERSIST documentation so its a
+	little more helpful
+
+2000-10-16 10:42  Scott James Remnant <scott@netsplit.com>
+
+	* Makefile.am: Need to include the dcc-via-ssh docs with the
+	distribution too
+
+2000-10-16 10:41  Scott James Remnant <scott@netsplit.com>
+
+	* Makefile.am: The FAQ goes with the distribution
+
+2000-10-16 10:41  Scott James Remnant <scott@netsplit.com>
+
+	* FAQ: Put some frequently questioned answers in
+
+2000-10-13 17:02  Scott James Remnant <scott@netsplit.com>
+
+	* src/: sprintf.c, sprintf.h: Yay, thanks to l33t Demon staff, they
+	dug out a new C99 syntax feature that GCC supports that lets you do
+	variable argument macros.  Because this is debug mode I'm happy to
+	put this C99 stuff in :)
+
+2000-10-13 14:33  Scott James Remnant <scott@netsplit.com>
+
+	* INSTALL: Got word that dircproxy 0.7.3 compiles under Windows NT
+	without any modification, so added that to the list.
+
+2000-10-13 13:56  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: Traditional update to the TODO file
+
+2000-10-13 13:55  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxyrc, doc/dircproxy.1, src/cfgfile.c,
+	src/irc_client.c, src/irc_net.c, src/irc_net.h, src/irc_server.c:
+	Channels can have keys locking them, so we should do our best to
+	find out what these are and remember them so we can join channels
+	and provide the right key.  First step: Allowing the "join" config
+	option to have keys in it '#chan key,#chan key' etc.
+
+2000-10-13 13:50  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxyrc, doc/dircproxy.1, src/cfgfile.c,
+	src/dircproxy.h, src/irc_client.c, src/irc_net.c, src/irc_net.h:
+	Another new config option, detach_nickname - changes your nickname
+	for you when you detach
+
+2000-10-13 13:42  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxyrc, doc/dircproxy.1, src/cfgfile.c,
+	src/dircproxy.h, src/irc_server.c: Removed the server_dnsretry
+	config option.	Now that we have non-blocking DNS, there's no real
+	need to wait longer after a DNS retry - especially as it'll
+	probably try another server anyway!
+
+2000-10-13 13:36  Scott James Remnant <scott@netsplit.com>
+
+	* src/main.c: Oops, mucked up a sync patch somewhere
+
+2000-10-13 13:35  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxyrc, doc/dircproxy.1, src/cfgfile.c, src/cfgfile.h,
+	src/dircproxy.h, src/dns.c, src/irc_client.c, src/main.c: Instead
+	of a few #define's which aren't easy to change for timeouts I've
+	moved them into a new "globalvars" structure which is passed to
+	cfg_read and be accessed everywhere as g.<var> - this means these
+	variables can now be altered inside the config file
+
+2000-10-13 13:27  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: Improved the /DIRCPROXY HELP command so the
+	command list gives a quick idea what the command does
+
+2000-10-13 13:24  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxyrc, doc/dircproxy.1, src/cfgfile.c,
+	src/dircproxy.h, src/help.h, src/irc_client.c, src/irc_net.h: Added
+	in a new /DIRCPROXY DIE command and the appropriate allow_die
+	config option (no by default!)
+
+2000-10-13 13:17  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_server.c: Make sure the server_recon timer is deleted
+	just in case they jump or quit during a reconnection phase
+
+2000-10-13 13:15  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_server.c: Better feedback during server connections
+
+2000-10-13 13:13  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: Included the code to actually make the new
+	quit_message config actually do something
+
+2000-10-13 13:06  Scott James Remnant <scott@netsplit.com>
+
+	* doc/dircproxy.1: Improved the documentation a bit
+
+2000-10-13 13:02  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxyrc: Improved the documentation and general layout
+	of dircproxyrc
+
+2000-10-13 12:53  Scott James Remnant <scott@netsplit.com>
+
+	* src/: sprintf.c, sprintf.h: x_strdup() and x_sprintf() are now
+	specially designed so that when DEBUG_MEMORY is enabled they talk
+	to the memdebug layer directly and are able to tell you where
+	x_strdup() was called instead of just the line inside x_strdup()
+	that did the malloc().	Will make debugging a LOT easier.
+
+2000-10-13 12:50  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_server.c: Improved the documentation
+
+2000-10-13 12:47  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: Added more info to the top
+
+2000-10-13 12:46  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_net.c: Fixed up the documentation
+
+2000-10-13 12:44  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_log.c: Improved the top description
+
+2000-10-13 12:43  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_prot.c: Better description at the top.
+
+2000-10-13 12:43  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_string.c: Better described this
+
+2000-10-13 12:32  Scott James Remnant <scott@netsplit.com>
+
+	* src/dns.c: Forgot to check whether the child returned a status of
+	0 (everything ok) if it doesn't then its probably timeout or system
+	failure
+
+2000-10-13 12:31  Scott James Remnant <scott@netsplit.com>
+
+	* src/dns.c: Improved the top comments so they describe this file
+	better now.
+
+2000-10-13 12:29  Scott James Remnant <scott@netsplit.com>
+
+	* src/dircproxy.h: Added prototype for new stop() function
+
+2000-10-13 12:26  Scott James Remnant <scott@netsplit.com>
+
+	* src/main.c: Added a function that can be called to end the main
+	loop
+
+2000-10-13 12:23  Scott James Remnant <scott@netsplit.com>
+
+	* src/main.c: More fully described what this does.
+
+2000-10-13 12:22  Scott James Remnant <scott@netsplit.com>
+
+	* src/memdebug.h: Being picky and marked the #endif with a comment
+
+2000-10-13 12:21  Scott James Remnant <scott@netsplit.com>
+
+	* src/sock.c: Fixed some comments.  If we're gonna have output
+	buffers I want to not confuse them with the input buffers.
+
+2000-10-12 16:24  Scott James Remnant <scott@netsplit.com>
+
+	* doc/dircproxy.1, src/cfgfile.c, src/dircproxy.h, src/irc_net.c,
+	src/irc_net.h: Added support for default /QUIT messages
+
+2000-10-12 16:12  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: New ideas
+
+2000-10-12 16:10  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxyrc: Added support for default QUIT messages
+
+2000-10-12 16:05  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: Recall the other_log file *after* channels, so
+	private messages appear last in the window
+
+2000-10-12 16:04  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: Non-blocking DNS done
+
+2000-10-12 16:02  Scott James Remnant <scott@netsplit.com>
+
+	* src/: irc_client.c, irc_net.c, irc_server.c: Changes to
+	accomodate the new DNS system
+
+2000-10-12 16:02  Scott James Remnant <scott@netsplit.com>
+
+	* src/main.c: Handle DNS children in the SIGCHLD handler, and also
+	clear up any DNS child processes
+
+2000-10-12 16:01  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_net.h: To accomodate two-stage DNS lookups we need an
+	extra server status that indicates the server is connected (so
+	don't check for connection) but we haven't yet been introduced to
+	it.
+
+2000-10-12 16:00  Scott James Remnant <scott@netsplit.com>
+
+	* src/: dns.c, dns.h: Almost total rewrite of the DNS code.  Now
+	you have to request a DNS and provide a function to run once the
+	DNS lookup is complete.  The code will then fork() off to do the
+	lookup and continue with normal execution of the program.  When the
+	client exits, the result is on a pipe, and once read execution is
+	continued from the function you give it.
+	
+	(ie non-blocking DNS :o)
+
+2000-10-12 15:59  Scott James Remnant <scott@netsplit.com>
+
+	* src/dircproxy.h: Added a #define to set the DNS timeout
+
+2000-10-11 16:33  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: More things
+
+2000-10-11 16:07  Scott James Remnant <scott@netsplit.com>
+
+	* README, TODO: Don't need contrib scripts, clients should just
+	pass /dircproxy to us
+
+2000-10-11 16:05  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: Made /DIRCPROXY QUIT and DETACH just use every
+	paramter joined together rather than the last one (removing the
+	need for quoting!)
+
+2000-10-11 16:02  Scott James Remnant <scott@netsplit.com>
+
+	* src/: irc_prot.c, irc_prot.h: Also record where in the msg.orig
+	string a paramter started, so we can just copy the whole lot to
+	things like quit messages etc.
+
+2000-10-11 15:48  Scott James Remnant <scott@netsplit.com>
+
+	* CTCPSPEC, DCCSPEC: Added the DCC and CTCP specifications for
+	reference.  Not needed in the distribution, just handy to have
+	around for the CVS developer (me).
+
+2000-10-10 13:08  Scott James Remnant <scott@netsplit.com>
+
+	* TODO, conf/dircproxyrc, doc/dircproxy.1, src/cfgfile.c,
+	src/dircproxy.h, src/help.h, src/irc_client.c, src/irc_log.c,
+	src/irc_net.c, src/irc_net.h, src/irc_server.c, src/irc_server.h,
+	src/main.c, src/timers.c: Been working on dircproxy for a week
+	while on holiday, so this is gonna be a VERY big patch (only
+	problem with sourceforge really, you can't take the CVS offline :(
+	)
+	
+	New options:	server_autoconnect	channel_leave_on_detach    
+	    channel_rejoin_on_attach	    refuse_modes   
+	chan_log_enabled	chan_log_program	other_log_enabled  
+	    other_log_program	    motd_file	    allow_jump	   
+	allow_jump_new	allow_host	join (for connection class)
+	
+	Changed options:	Any option that accepted "none" also
+	accepts ""
+	
+	New commands:	/DIRCPROXY SERVERS	/DIRCPROXY JUMP        
+	/DIRCPROXY HOST 	/DIRCPROXY MOTD
+	
+	New features not mentioned:	Timeouts for client authorization
+	and connection to a server    Unjoined channels (channels we are
+	on, but won't join until a client	     attaches)	     Only
+	does certain things for joined + active channels   Instead of
+	ignoring everything (including disconnect) from clients 	   
+	 until we have a server connection, we simply return a		
+	RPL_TRYAGAIN for everything but the /DIRCPROXY command if	   
+	    we don't have a server connection.	This means dircproxy	   
+		will notice things like disconnects finally (yay!)     
+	Cleaned up quit messages to make them a bit more amusing       
+	Made sure ERRORs are sent for any non-user-requested client	   
+	    disconnection   Cleaned up motd stuff and moved to seperate
+	function etc.  Looks		    a lot nicer and works nicer now
+	too.	Debug code added so you can see what dircproxy sends extra
+	to that 	     which it proxies	     Spaced out irc_net.h
+	into the same groups as the config file    SERVER_READY does not
+	necessarily mean SERVER_SEEN (this gets set		  on a 001)
+	- so if a server denies our connection we treat 	      it as
+	still in the "initial" phase.	  New function to drop+restore
+	server connection (treating it as		   new initial
+	connection)	    Send PARTs when server connection is lost,
+	JOINs are sent again		     on restoration of service (to
+	prevent client from getting		  baffled).	  Made sure
+	we never send stuff in timers without checking the	     
+	server is ready 	Child reaping	Timer debugging
+	
+	Bugs fixed:	The pesky "+i No such channel" bug.. gonna fix this
+	in 0.7 too
+
+2000-10-10 12:39  Scott James Remnant <scott@netsplit.com>
+
+	* contrib/log.pl: Added a nice script to demonstrate the new
+	{chan,other}_log_program options that are to be added.
+
+2000-09-29 16:08  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: Slight bug - didn't check that idle_maxtime was
+	set when resetting idle time - so it actually did this with a timer
+	of 0
+
+2000-09-29 15:55  Scott James Remnant <scott@netsplit.com>
+
+	* TODO, conf/dircproxyrc, doc/dircproxy.1: Added documentation for
+	allow_persist, attach_message and detach_message
+
+2000-09-29 15:55  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: Fixed a bug - was using p not tmp_p (bad!)
+
+2000-09-29 15:51  Scott James Remnant <scott@netsplit.com>
+
+	* src/: cfgfile.c, dircproxy.h, irc_client.c, irc_net.c, irc_net.h:
+	Added the code to do attach_message and detach_message stuff
+
+2000-09-29 12:43  Scott James Remnant <scott@netsplit.com>
+
+	* TODO, src/cfgfile.c, src/dircproxy.h, src/help.h,
+	src/irc_client.c, src/irc_net.h: Changed the config file code so
+	that it uses a struct ircconnclass to store the globals in rather
+	than a million ickle variables - makes it much neater.
+	
+	Added the allow_persist option, and adjusted the help code
+	accordingly to make sure that it doesn't show PERSIST in the help
+	unless its on.
+
+2000-09-28 12:32  Scott James Remnant <scott@netsplit.com>
+
+	* README, README.dcc-via-ssh, TODO: Added DCC-via-SSH
+	documentation, and cleaned up the README itself.
+
+2000-09-28 10:37  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: More TODO updates
+
+2000-09-28 10:37  Scott James Remnant <scott@netsplit.com>
+
+	* src/: irc_client.c, irc_net.h, irc_server.c, irc_server.h: Added
+	code to prevent idling - uses a timer which is set to be
+	idle_maxtime seconds after the last privmsg/notice.  Sends an empty
+	PRIVMSG which generates a 411 error, so need to have a setting to
+	squelch this when we've sent it.
+	
+	(note: doesn't use allow_411 type syntax, because its a single
+	response that  we can't tell whether will be generated or not.)
+
+2000-09-28 10:35  Scott James Remnant <scott@netsplit.com>
+
+	* src/: cfgfile.c, dircproxy.h: Added config code for new
+	idle_maxtime option
+
+2000-09-28 10:34  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxyrc, doc/dircproxy.1: Added config option and
+	documentation for new idle_maxtime option
+
+2000-09-28 10:33  Scott James Remnant <scott@netsplit.com>
+
+	* README: Added documentation for /dircproxy command
+
+2000-09-27 17:12  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in: Development of 0.8 now beginning, any changes to
+	0.7 will be done on a branch off 0.7.3.
+	
+	CVS version now 0.8.0
+
+2000-09-27 16:56  Scott James Remnant <scott@netsplit.com>
+
+	* ChangeLog, NEWS, TODO: Version 0.7.3 released.
+
 2000-09-27 16:45  Scott James Remnant <scott@netsplit.com>
 
 	* conf/dircproxyrc, doc/dircproxy.1, src/irc_client.c,
@@ -1231,30 +2100,21 @@
 
 2000-05-13 02:13  Scott James Remnant <scott@netsplit.com>
 
-	* AUTHORS, ChangeLog, FILES.autoconf, Makefile.am, NEWS, PROTOCOL,
-	README, TODO, acconfig.h, autogen.sh, README.inetd, configure.in,
-	src/Makefile.am, src/dircproxy.h, src/dns.c, src/dns.h, src/sock.c,
-	src/irc_prot.c, src/main.c, src/match.c, src/match.h, src/sock.h,
-	src/sprintf.c, src/sprintf.h, src/irc_string.c, src/stringex.h,
-	src/irc_net.c, src/memdebug.h, src/irc_prot.h, src/irc_string.h,
-	src/stringex.c, src/irc_log.c, src/irc_log.h, src/irc_net.h,
-	src/irc_client.c, src/irc_client.h, src/irc_server.h,
-	src/memdebug.c, src/irc_server.c, src/timers.c, src/timers.h,
-	src/getopt.c, src/getopt.h, src/getopt1.c: Imported version 0.5.2
-	into the CVS tree.  Its in a CLEAN state that requires autoconf and
-	automake (run autogen.sh) to build.
+	* acconfig.h, autogen.sh, src/match.h, src/stringex.h,
+	src/irc_string.h, src/stringex.c: Imported version 0.5.2 into the
+	CVS tree.  Its in a CLEAN state that requires autoconf and automake
+	(run autogen.sh) to build.
         
 
 2000-05-13 02:13  Scott James Remnant <scott@netsplit.com>
 
 	* AUTHORS, ChangeLog, FILES.autoconf, Makefile.am, NEWS, PROTOCOL,
-	README, TODO, acconfig.h, autogen.sh, README.inetd, configure.in,
-	src/Makefile.am, src/dircproxy.h, src/dns.c, src/dns.h, src/sock.c,
-	src/irc_prot.c, src/main.c, src/match.c, src/match.h, src/sock.h,
-	src/sprintf.c, src/sprintf.h, src/irc_string.c, src/stringex.h,
-	src/irc_net.c, src/memdebug.h, src/irc_prot.h, src/irc_string.h,
-	src/stringex.c, src/irc_log.c, src/irc_log.h, src/irc_net.h,
-	src/irc_client.c, src/irc_client.h, src/irc_server.h,
-	src/memdebug.c, src/irc_server.c, src/timers.c, src/timers.h,
-	src/getopt.c, src/getopt.h, src/getopt1.c: Initial revision
+	README, TODO, README.inetd, configure.in, src/Makefile.am,
+	src/dircproxy.h, src/dns.c, src/dns.h, src/sock.c, src/irc_prot.c,
+	src/main.c, src/match.c, src/sock.h, src/sprintf.c, src/sprintf.h,
+	src/irc_string.c, src/irc_net.c, src/memdebug.h, src/irc_prot.h,
+	src/irc_log.c, src/irc_log.h, src/irc_net.h, src/irc_client.c,
+	src/irc_client.h, src/irc_server.h, src/memdebug.c,
+	src/irc_server.c, src/timers.c, src/timers.h, src/getopt.c,
+	src/getopt.h, src/getopt1.c: Initial revision
 
