@@ -10,7 +10,7 @@
  *  - functions to retrieve data from buffers up to delimiters (newlines?)
  *  - main poll()/select() function
  * --
- * @(#) $Id: net.c,v 1.4 2000/10/23 12:47:54 keybuk Exp $
+ * @(#) $Id: net.c,v 1.5 2000/11/01 15:02:24 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -529,8 +529,9 @@ int net_read(int sock, void *dest, int len) {
     if (sockinfo->in_buff) {
       void *get;
 
+      /* Omitting len means we want to know how much data is in the buffer */
       if (!len)
-        len = sockinfo->in_buff->len;
+        return sockinfo->in_buff->len;
 
       get = malloc(len);
       if (!_net_unbuffer(sockinfo, SB_IN, get, len)) {
