@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.18 2000/09/29 12:43:36 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.19 2000/09/29 15:51:35 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -66,6 +66,10 @@ int cfg_read(const char *filename, char **listen_port) {
                         ? x_strdup(DEFAULT_LOCAL_ADDRESS) : 0);
   def->away_message = (DEFAULT_AWAY_MESSAGE
                        ? x_strdup(DEFAULT_AWAY_MESSAGE) : 0);
+  def->attach_message = (DEFAULT_ATTACH_MESSAGE
+                         ? x_strdup(DEFAULT_ATTACH_MESSAGE) : 0);
+  def->detach_message = (DEFAULT_DETACH_MESSAGE
+                         ? x_strdup(DEFAULT_DETACH_MESSAGE) : 0);
   def->chan_log_dir = (DEFAULT_CHAN_LOG_DIR
                        ? x_strdup(DEFAULT_CHAN_LOG_DIR) : 0);
   def->chan_log_always = DEFAULT_CHAN_LOG_ALWAYS;
@@ -245,6 +249,40 @@ int cfg_read(const char *filename, char **listen_port) {
         free((class ? class : def)->away_message);
         (class ? class : def)->away_message = str;
         
+      } else if (!strcasecmp(key, "attach_message")) {
+        /* attach_message none
+         * attach_message "I'm back!"
+         * attach_message "/me returns" */
+        char *str;
+
+        if (_cfg_read_string(&buf, &str))
+          UNMATCHED_QUOTE;
+
+        if (!strcasecmp(str, "none")) {
+          free(str);
+          str = 0;
+        }
+
+        free((class ? class : def)->attach_message);
+        (class ? class : def)->attach_message = str;
+
+      } else if (!strcasecmp(key, "detach_message")) {
+        /* detach_message none
+         * detach_message "I'm gone!"
+         * detach_message "/me vanishes" */
+        char *str;
+
+        if (_cfg_read_string(&buf, &str))
+          UNMATCHED_QUOTE;
+
+        if (!strcasecmp(str, "none")) {
+          free(str);
+          str = 0;
+        }
+
+        free((class ? class : def)->detach_message);
+        (class ? class : def)->detach_message = str;
+
       } else if (!strcasecmp(key, "chan_log_dir")) {
         /* chan_log_dir none
            chan_log_dir "/log"
@@ -394,6 +432,10 @@ int cfg_read(const char *filename, char **listen_port) {
                                 ? x_strdup(def->local_address) : 0);
         class->away_message = (def->away_message
                                ? x_strdup(def->away_message) : 0);
+        class->attach_message = (def->attach_message
+                                 ? x_strdup(def->attach_message) : 0);
+        class->detach_message = (def->detach_message
+                                 ? x_strdup(def->detach_message) : 0);
         class->chan_log_dir = (def->chan_log_dir
                                ? x_strdup(def->chan_log_dir) : 0);
         class->other_log_dir = (def->other_log_dir
@@ -522,6 +564,8 @@ int cfg_read(const char *filename, char **listen_port) {
   free(def->drop_modes);
   free(def->local_address);
   free(def->away_message);
+  free(def->attach_message);
+  free(def->detach_message);
   free(def->chan_log_dir);
   free(def->other_log_dir);
   return (valid ? 0 : -1);

@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.42 2000/09/29 12:43:36 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.43 2000/09/29 15:51:35 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -120,15 +120,31 @@ static int _ircclient_detach(struct ircproxy *p, const char *message) {
     if (p->client_status == IRC_CLIENT_ACTIVE)
       irclog_notice(p, 0, PACKAGE, "You disconnected");
 
-    /* Send detach message */
+    /* Send detach message to all channels we're on */
     if ((p->server_status == IRC_SERVER_ACTIVE)
         && (p->client_status == IRC_CLIENT_ACTIVE)) {
       if (p->conn_class->detach_message) {
         struct ircchannel *c;
-        int 
+        int slashme;
+        char *msg;
+
+        msg = p->conn_class->detach_message;
+        if ((strlen(msg) >= 5) && !strncasecmp(msg, "/me ", 4)) {
+          /* Starts with /me */
+          slashme = 1;
+          msg += 4;
+        } else {
+          slashme = 0;
+        }
 
         c = p->channels;
         while (c) {
+          if (slashme) {
+            ircserver_send_command(p, "PRIVMSG", "%s :%cACTION %s%c",
+                                   c->name, 0x01, msg, 0x01);
+          } else {
+            ircserver_send_command(p, "PRIVMSG", "%s :%s", c->name, msg);
+          }
           c = c->next;
         }
       }
@@ -622,6 +638,35 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
           && tmp_p->conn_class->away_message)
         ircserver_send_command(tmp_p, "AWAY", "");
 
+      /* Send detach message to all channels we're on */
+      if (tmp_p->server_status == IRC_SERVER_ACTIVE) {
+        if (tmp_p->conn_class->attach_message) {
+          struct ircchannel *c;
+          int slashme;
+          char *msg;
+
+          msg = p->conn_class->attach_message;
+          if ((strlen(msg) >= 5) && !strncasecmp(msg, "/me ", 4)) {
+            /* Starts with /me */
+            slashme = 1;
+            msg += 4;
+          } else {
+            slashme = 0;
+          }
+
+          c = p->channels;
+          while (c) {
+            if (slashme) {
+              ircserver_send_command(p, "PRIVMSG", "%s :%cACTION %s%c",
+                                     c->name, 0x01, msg, 0x01);
+            } else {
+              ircserver_send_command(p, "PRIVMSG", "%s :%s", c->name, msg);
+            }
+            c = c->next;
+          }
+        }
+      }
+ 
       p->client_status = IRC_CLIENT_NONE;
       p->client_sock = -1;
       p->dead = 1;

@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.24 2000/09/29 12:43:36 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.25 2000/09/29 15:51:35 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -176,6 +176,22 @@
  * 0 = don't do this
  */
 #define DEFAULT_AWAY_MESSAGE "Not available, messages are logged"
+
+/* DEFAULT_ATTACH_MESSAGE
+ * When the client attaches again, it will send this to each channel they
+ * are on.  If it started with "/me " it will be sent as an ACTION ctcp
+ * instead.
+ * 0 = don't do this
+ */
+#define DEFAULT_ATTACH_MESSAGE 0
+
+/* DEFAULT_DETACH_MESSAGE
+ * When the client detaches, it will send this to each channel they
+ * are on.  If it started with "/me " it will be sent as an ACTION ctcp
+ * instead.
+ * 0 = don't do this
+ */
+#define DEFAULT_DETACH_MESSAGE 0
 
 /* DEFAULT_CHAN_LOG_DIR
  * Default directory to log channel text to.
