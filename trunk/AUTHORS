@@ -1,12 +1,16 @@
-dircproxy
-Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
-All Rights Reserved.
+Authors and Acknowledgements
+----------------------------
 
-Most of the code in this program is written by me, some if it
-is taken from "davinci" which was also written by me.
+Most of dircproxy is written by Scott James Remnant <scott@netsplit.com>,
+with the occasional patch from the odd random individual.
 
-A big thanks to Stephen Cope <kimihia@writeme.com> for doing the
+If you have contributed any major patches or enhancements, and you want
+to be credited for it, then just nag me to add you to this file.
+
+
+Also, a big thanks to Stephen Cope <kimihia@writeme.com> for doing the
 original documentation for dircproxy.
 
-If you have contributed any major patches or enhancements, remind
-me to add you here.
+
+Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
+All Rights Reserved.
