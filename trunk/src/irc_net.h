@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.16 2000/08/30 10:53:22 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.17 2000/08/30 10:54:53 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -19,6 +19,7 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <time.h>
 
 #include "stringex.h"
 
@@ -77,6 +78,7 @@ struct ircproxy {
   int dead;
   struct ircconnclass *conn_class;
   int die_on_close;
+  time_t start;
 
   int client_sock;
   int client_status;
