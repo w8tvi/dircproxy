@@ -11,6 +11,7 @@ of system:
         Linux 2.4+ on ia64
         FreeBSD
         Solaris 2.7
+	Windows NT (with cygwin compiler)
 
 If (and you should) get it to work on any other type of system,
 please e-mail me so I can it to this list.
