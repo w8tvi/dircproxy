@@ -8,7 +8,7 @@
  *  - The list of currently active DCC proxies
  *  - Miscellaneous DCC functions
  * --
- * @(#) $Id: dcc_net.c,v 1.3 2000/11/02 16:13:10 keybuk Exp $
+ * @(#) $Id: dcc_net.c,v 1.4 2000/11/06 16:56:29 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -33,11 +33,13 @@
 #include "sprintf.h"
 #include "stringex.h"
 #include "dcc_chat.h"
+#include "dcc_send.h"
 #include "dcc_net.h"
 
 /* forward declarations */
-static int _dccnet_listen(struct dccproxy *, void *, short *);
-static int _dccnet_connect(struct dccproxy *, struct in_addr, short);
+static int _dccnet_listen(struct dccproxy *, int *, size_t, int *);
+static int _dccnet_connect(struct dccproxy *, struct in_addr, int);
+static void _dccnet_timedout(struct dccproxy *, void *);
 static void _dccnet_accept(struct dccproxy *, int);
 static void _dccnet_free(struct dccproxy *);
 
@@ -45,15 +47,15 @@ static void _dccnet_free(struct dccproxy *);
 static struct dccproxy *proxies = 0;
 
 /* Create a new DCC connection */
-int dccnet_new(int type, void *range, short *lport,
-               struct in_addr addr, short port) {
+int dccnet_new(int type, long timeout, int *range, size_t range_sz,
+               int *lport, struct in_addr addr, int port) {
   struct dccproxy *p;
 
   p = (struct dccproxy *)malloc(sizeof(struct dccproxy));
   memset(p, 0, sizeof(struct dccproxy));
   p->type = type;
 
-  if (_dccnet_listen(p, range, lport)) {
+  if (_dccnet_listen(p, range, range_sz, lport)) {
     free(p);
     return -1;
   }
@@ -67,27 +69,61 @@ int dccnet_new(int type, void *range, short *lport,
   p->next = proxies;
   proxies = p;
 
+  timer_new((void *)p, "timeout", timeout, TIMER_FUNCTION(_dccnet_timedout), 0);
+
   return 0;
 }
 
 /* Create socket to listen on */
-static int _dccnet_listen(struct dccproxy *p, void *range, short *port) {
+static int _dccnet_listen(struct dccproxy *p, int *range, size_t range_sz,
+                          int *port) {
   struct sockaddr_in local_addr;
   int len;
-
-  local_addr.sin_family = AF_INET;
-  local_addr.sin_addr.s_addr = INADDR_ANY;
-  local_addr.sin_port = 0;
 
   p->sendee_sock = net_socket();
   if (p->sendee_sock == -1)
     return -1;
 
-  if (bind(p->sendee_sock, (struct sockaddr *)&local_addr,
-           sizeof(struct sockaddr_in))) {
-    syscall_fail("bind", "dcc_listen", 0);
-    net_close(p->sendee_sock);
-    return -1;
+  local_addr.sin_family = AF_INET;
+  local_addr.sin_addr.s_addr = INADDR_ANY;
+
+  if (range) {
+    int bound = 0;
+    size_t i;
+    int j;
+
+    for (i = 0; i < range_sz; i += 2) {
+      for (j = range[i]; j <= range[i + 1]; j++) {
+        debug("Trying to bind DCC to port %d", j);
+        local_addr.sin_port = htons(j);
+
+        if (!bind(p->sendee_sock, (struct sockaddr *)&local_addr,
+                  sizeof(struct sockaddr_in))) {
+          bound = 1;
+          break;
+        }
+      }
+
+      if (bound)
+        break;
+    }
+
+    if (!bound) {
+      debug("No free ports to bind DCC to");
+      net_close(p->sendee_sock);
+      return -1;
+    }
+ 
+  } else {
+    debug("Binding DCC to random port");
+    local_addr.sin_port = 0;
+
+    if (bind(p->sendee_sock, (struct sockaddr *)&local_addr,
+             sizeof(struct sockaddr_in))) {
+      syscall_fail("bind", "dcc_listen", 0);
+      net_close(p->sendee_sock);
+      return -1;
+    }
   }
 
   len = sizeof(struct sockaddr_in);
@@ -113,8 +149,7 @@ static int _dccnet_listen(struct dccproxy *p, void *range, short *port) {
 }
 
 /* Connect to remote user */
-static int _dccnet_connect(struct dccproxy *p,
-                           struct in_addr addr, short port) {
+static int _dccnet_connect(struct dccproxy *p, struct in_addr addr, int port) {
   p->sender_addr.sin_family = AF_INET;
   p->sender_addr.sin_addr.s_addr = htonl(addr.s_addr);
   p->sender_addr.sin_port = htons(port);
@@ -135,16 +170,37 @@ static int _dccnet_connect(struct dccproxy *p,
 
   p->sender_status |= DCC_SENDER_CREATED;
 
-  if (p->type == DCC_SEND) {
-    debug("DCC_SEND unimplemented");
-    net_hook(p->sender_sock, SOCK_CONNECTING, 0, 0, 0);
-  } else if (p->type == DCC_CHAT) {
+  if (p->type & DCC_SEND) {
+    net_hook(p->sender_sock, SOCK_CONNECTING, (void *)p,
+             ACTIVITY_FUNCTION(dccsend_connected),
+             ERROR_FUNCTION(dccsend_connectfailed));
+  } else if (p->type & DCC_CHAT) {
     net_hook(p->sender_sock, SOCK_CONNECTING, (void *)p,
              ACTIVITY_FUNCTION(dccchat_connected),
              ERROR_FUNCTION(dccchat_connectfailed));
   }
 
   return 0;
+}
+
+/* Timer hook to check if we've timed out */
+static void _dccnet_timedout(struct dccproxy *p, void *data) {
+  if (p->sender_status != DCC_SENDER_ACTIVE) {
+    if (p->type & DCC_CHAT)
+      net_send(p->sendee_sock, "--(%s)-- Connection to remote peer timed out\n",
+               PACKAGE);
+
+  } else if (p->sendee_status != DCC_SENDEE_ACTIVE) {
+    if (p->type & DCC_CHAT)
+      net_send(p->sender_sock, "--(%s)-- Timed out awaiting connection from "
+                               "remote peer\n", PACKAGE);
+
+  } else {
+    debug("They are talking");
+    return;
+  }
+
+  p->dead = 1;
 }
 
 /* Accept a sendee connection */
@@ -170,10 +226,9 @@ static void _dccnet_accept(struct dccproxy *p, int sock) {
   if (p->sendee_sock != -1) {
     p->sendee_status |= DCC_SENDEE_CONNECTED;
 
-    if (p->type == DCC_SEND) {
-      debug("DCC_SEND unimplemented");
-      net_hook(p->sendee_sock, SOCK_NORMAL, 0, 0, 0);
-    } else if (p->type == DCC_CHAT) {
+    if (p->type & DCC_SEND) {
+      dccsend_accepted(p);
+    } else if (p->type & DCC_CHAT) {
       dccchat_accepted(p);
     }
 
