@@ -6,7 +6,7 @@
  *  - Handling of log programs
  *  - Recalling from log files
  * --
- * $Id: irc_log.c,v 1.46 2003/03/03 18:06:29 scott Exp $
+ * $Id: irc_log.c,v 1.47 2003/11/25 20:49:21 bear Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -442,7 +442,7 @@ _open_user_log(IRCProxy *p, const char *to)
 
 	/* Open the file for appending */
 	if (!(log = fopen(userfile, "a")))
-		syscall_fail("fopen", uerfile, 0);
+		syscall_fail("fopen", userfile, 0);
 	free(userfile);
 
 	return log;
@@ -598,12 +598,12 @@ _log_pipe(IRCProxy *p, int event, const char *to, const char *from,
 		close(pfd[1]);
 
 		/* Copy read end to STDIN */
-		if (dup2(pi[0], STDIN_FILENO) != STDIN_FILENO) {
+		if (dup2(pfd[0], STDIN_FILENO) != STDIN_FILENO) {
 			syscall_fail("dup2", 0, 0);
-			close(pi[0]);
+			close(pfd[0]);
 			return 1;
 		}
-		close(pi[0]);
+		close(pfd[0]);
 		
 		/* Run the log program with the appropriate arguments.
 		 * Use current environment and search the PATH if necessary.
@@ -624,7 +624,7 @@ _log_pipe(IRCProxy *p, int event, const char *to, const char *from,
 		/* Open the write end as a FILE * */
 		if (!(fd = fdopen(pfd[1], "w"))) {
 			syscall_fail("fdopen", 0, 0);
-			close(pi[1]);
+			close(pfd[1]);
 			return -1;
 		}
 
@@ -1020,7 +1020,7 @@ irclog_strtoflag(const char *str)
 {
 	FlagInfo *fi;
 
-	for (fi = flagtable; fi->name != NULL; fi++) {
+	for (fi = flag_table; fi->name != NULL; fi++) {
 		if (!strcasecmp(str, fi->name))
 			return fi->value;
 	}
@@ -1037,7 +1037,7 @@ irclog_flagtostr(int flag)
 {
 	FlagInfo *fi;
 
-	for (fi = flagtable; fi->name != NULL; fi++) {
+	for (fi = flag_table; fi->name != NULL; fi++) {
 		if (fi->value == flag)
 			return fi->name;
 	}
