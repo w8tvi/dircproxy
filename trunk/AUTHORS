@@ -1,15 +1,21 @@
 Authors and Acknowledgments
 ----------------------------
 
-dircproxy is written by Scott James Remnant <scott@netsplit.com>,
+dircproxy is currently maintained by Francois Harvey <fharvey@securiweb.net>
+and Mike Taylor <bear@code-bear.com>.
+
+dircproxy was originally written by Scott James Remnant <scott@netsplit.com>,
 with the occasional patch from the odd random individual.
+
+Thanks to all contributor : 
+Gabor Nyeki  - 005 initial support (IRCNET Bounce)
+van Heusden  - binding to local port
+Ryan Tolboom - DCC Resume in capture mode.
+Stephen Cope - Original Documentation
+acklen, W8TVI and the folks on #dircproxy - User support
 
 If you have contributed any major patches or enhancements, and you
 want to be credited for it, then just nag me to add you to this file.
 
-
-Also, a big thanks to Stephen Cope <kimihia@writeme.com> for doing
-the original documentation for dircproxy.
-
-
+Copyright (C) 2004 Francois Harvey and Mike Taylor <bear@code-bear.com>
 Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
