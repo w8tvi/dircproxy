@@ -11,6 +11,8 @@ New features for 0.8.0:
 	  the /join's from the client, or could store channel_key in the
 	  config file
 
+	* /DIRCPROXY DIE
+
 
     IDENT
 
