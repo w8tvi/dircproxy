@@ -4,7 +4,7 @@
  *
  * help.h
  * --
- * @(#) $Id: help.h,v 1.1 2000/08/31 15:26:54 keybuk Exp $
+ * @(#) $Id: help.h,v 1.2 2000/09/29 12:43:36 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -22,9 +22,9 @@ static char *help_index[] = {
   "command chosen.",
   "",
   "Valid commands:",
-  "        HELP            QUIT",
-  "        DETACH          RECALL",
-  "        PERSIST",
+  0
+};
+static char *help_index_end[] = {
   "",
   "For more information on a command, use /DIRCPROXY HELP",
   "followed by the command",

@@ -2,10 +2,6 @@ New features for 0.8.0:
 
     EASY
 
-	* Adjust cfgfile.c so instead of having lots of variables, it just
-	  has a template connclass class.  It'd still need to strdup the
-	  strings though.  _cfg_dupconclass()
-
 	* Announce attachment and detachment to channels the user is on.
 	  If this starts with /me then an action is sent, otherwise a
 	  notice is sent.
@@ -21,10 +17,6 @@ New features for 0.8.0:
 	  (results in disconnection and cycling)
 
 	    server_refusemodes "r"
-
-	* Restrictions on /dircproxy commands
-
-	    allow_persist YES/no
 
 	* Internal timeout timers for authentication and connection
 

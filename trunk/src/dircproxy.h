@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.23 2000/09/28 10:35:10 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.24 2000/09/29 12:43:36 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -264,6 +264,14 @@
  *  0 = Don't display it
  */
 #define DEFAULT_MOTD_STATS 1
+
+/* DEFAULT_ALLOW_PERSIST
+ * Whether the /DIRCPROXY PERSIST command can be used.
+ *  1 = Enabled
+ *  0 = Disabled
+ */
+#define DEFAULT_ALLOW_PERSIST 1
+
 
 /* functions in main.c */
 extern int syscall_fail(const char *, const char *, const char *);
