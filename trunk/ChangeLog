@@ -1,3 +1,33 @@
+2000-11-24 13:44  Scott James Remnant <scott@netsplit.com>
+
+	* src/: irc_client.c, irc_net.c, irc_net.h, irc_server.c: Grab a
+	hostname from the one we lookup until we get something better.
+	
+	Accept any number of PASS/NICK/USER in any variation until we have
+	all three *then* authenticate them.  This mean't restructuring the
+	login sequence a bit - but it means its a lot more server-like now
+	and actually probably a bit easier to figure out new things with.
+	
+	Fixed the nickname desync problems by always using change_nick
+	everywhere and forcing a NICK command back to the user if we get a
+	433 or something similar.  Also instead of "forgetting" the
+	nickname when its juped during server reconnect while client
+	connected - we keep it, but simply ask for a new one.  That way we
+	can generate the required back NICK command.
+	
+	QUIT's and NICK's are only logged to the private message log - not
+	all of them!
+	
+	Made sure connection loss while not online is logged.
+
+2000-11-23 12:33  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in: CVS version now 0.8.3.
+
+2000-11-23 12:19  Scott James Remnant <scott@netsplit.com>
+
+	* ChangeLog, NEWS: Version 0.8.2 released.
+
 2000-11-21 13:50  Scott James Remnant <scott@netsplit.com>
 
 	* README.dcc-via-ssh: Bit of clarification on when you actually
