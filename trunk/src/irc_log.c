@@ -5,7 +5,7 @@
  * irc_log.c
  *  - Handling of log files
  * --
- * @(#) $Id: irc_log.c,v 1.3 2000/05/13 04:41:55 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.4 2000/05/13 04:43:26 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -129,7 +129,7 @@ int irclog_open(struct ircproxy *p, const char *filename, struct logfile *log) {
     return -1;
   }
 
-  if (fchmod(log->file, 0600))
+  if (chmod(log->filename, 0600))
     DEBUG_SYSCALL_FAIL("fchmod");
 
   log->open = 1;
