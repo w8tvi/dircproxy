@@ -2,8 +2,6 @@ New features for 0.8.0:
 
     MISC
     
-	* Make a number of /dircproxy contrib scripts
-
 	* New net routine to replace irc_net.c ...  needs to be a bit
 	  more generic so it can be used for dcc_send.c and dcc_fserve.c
 	  etc.
