@@ -8,7 +8,7 @@
  *  - CTCP stripping
  *  - Username sanitisation
  * --
- * @(#) $Id: irc_prot.c,v 1.7 2000/10/13 12:43:59 keybuk Exp $
+ * @(#) $Id: irc_prot.c,v 1.8 2000/10/16 10:45:58 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -131,6 +131,8 @@ static int _ircprot_parse_prefix(char *prefix, struct ircsource *source) {
       str = ptr + 1;
 
       source->hostname = x_strdup(str);
+    } else {
+      source->type = IRC_EITHER;
     }
   } else {
     source->type = IRC_EITHER;
