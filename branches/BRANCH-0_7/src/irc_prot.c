@@ -6,7 +6,7 @@
  *  - IRC protocol message parsing
  *  - IRC x!y@z parsing
  * --
- * @(#) $Id: irc_prot.c,v 1.5 2000/05/24 18:05:43 keybuk Exp $
+ * @(#) $Id: irc_prot.c,v 1.5.2.1 2000/10/16 11:21:00 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -126,6 +126,8 @@ static int _ircprot_parse_prefix(char *prefix, struct ircsource *source) {
       str = ptr + 1;
 
       source->hostname = x_strdup(str);
+    } else {
+      source->type = IRC_EITHER;
     }
   } else {
     source->type = IRC_EITHER;
