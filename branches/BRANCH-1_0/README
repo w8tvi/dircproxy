@@ -73,7 +73,7 @@ Features
    the admin can enable and disable any command on
    a user-by-user basis.
  o Host and password based security.
- o Easy to configure and get
+ o Easy to configure and get running.
 
 All of dircproxy's features are completely configurable and can be
 enabled, disabled and adjusted through the configuration file.
@@ -142,8 +142,7 @@ Please submit bug reports at:
 
 	http://bugzilla.dircproxy.net/
 
-Also join us on the #dircproxy IRC channel on irc.openprojects.net and
-irc.linux.com.
+Also join us on the #dircproxy IRC channel on irc.openprojects.net.
 
 
 dircproxy is distributed according to the GNU General Public License.
