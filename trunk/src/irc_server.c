@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.45 2000/11/20 15:25:54 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.46 2000/11/24 13:44:40 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -564,18 +564,13 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
              || !irc_strcasecmp(msg.cmd, "438")) {
     /* Our nickname got rejected */
     if (msg.numparams >= 2) {
-      free(p->nickname);
-
       /* Fall back on our original if we can */
       if (strlen(msg.params[0]) && strcmp(msg.params[0], "*")) {
-        p->nickname = x_strdup(msg.params[0]);
-
+        if (p->client_status == IRC_CLIENT_ACTIVE)
+          ircclient_send_selfcmd(p, "NICK", ":%s", msg.params[0]);
+        ircclient_change_nick(p, msg.params[0]);
         squelch = 0;
       } else {
-        /* Forget the nickname... */
-        p->nickname = 0;
-        p->client_status &= ~(IRC_CLIENT_GOTNICK);
-
         /* If we don't have a client connected, then we have to regenerate
            a new nickname ourselves... Otherwise we can just let the client
            do it */
@@ -583,7 +578,10 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
           ircclient_generate_nick(p, msg.params[1]);
           ircserver_send_peercmd(p, "NICK", ":%s", p->nickname);
         } else {
-          /* Have to do anti-squelch manually */
+          /* Forget we've got a nickname (but keep it) */
+          p->client_status &= ~(IRC_CLIENT_GOTNICK);
+
+          /* Have to anti-squelch this manually */
           net_send(p->client_sock, "%s\r\n", msg.orig);
         }
       }
@@ -783,7 +781,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       /* Someone changing their nickname */
       if (msg.numparams >= 1) {
         if (p->conn_class->log_events & IRC_LOG_NICK)
-          irclog_notice(p, 0, p->servername, "%s changed nickname to %s",
+          irclog_notice(p, p->nickname, p->servername,
+                        "%s changed nickname to %s",
                         msg.src.fullname, msg.params[0]);
       }
       squelch = 0;
@@ -964,10 +963,10 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     /* Somebody left IRC */
     if (p->conn_class->log_events & IRC_LOG_QUIT) {
       if (msg.numparams >= 1) {
-        irclog_notice(p, 0, p->servername, "%s quit from IRC: %s",
+        irclog_notice(p, p->nickname, p->servername, "%s quit from IRC: %s",
                       msg.src.fullname, msg.params[0]);
       } else {
-        irclog_notice(p, 0, p->servername, "%s quit from IRC",
+        irclog_notice(p, p->nickname, p->servername, "%s quit from IRC",
                       msg.src.fullname);
       }
     }
@@ -1292,11 +1291,12 @@ static int _ircserver_close(struct ircproxy *p) {
 
   if (IS_CLIENT_READY(p)) {
     ircclient_send_notice(p, "Lost connection to server");
-    if (p->conn_class->log_events & IRC_LOG_SERVER)
-      irclog_notice(p, p->nickname, PACKAGE, "Lost connection to server: %s",
-                    p->servername);
     _ircserver_lost(p);
   }
+
+  if (p->conn_class->log_events & IRC_LOG_SERVER)
+    irclog_notice(p, p->nickname, PACKAGE, "Lost connection to server: %s",
+                  p->servername);
 
   timer_new((void *)p, "server_recon", p->conn_class->server_retry,
             TIMER_FUNCTION(_ircserver_reconnect), (void *)0);
