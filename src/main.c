@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.6 2000/05/24 17:39:35 keybuk Exp $
+ * @(#) $Id: main.c,v 1.7 2000/05/24 17:42:48 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+#include <pwd.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -47,7 +48,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.6 2000/05/24 17:39:35 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.7 2000/05/24 17:42:48 keybuk Exp $";
 
 /* The name of the program */
 char *progname;
@@ -69,23 +70,21 @@ static int stop_poll = 0;
 struct option long_opts[] = {
   { "help", 0, NULL, 'h' },
   { "version", 0, NULL, 'v' },
-  { "inetd", 0, NULL, 'I' },
   { "no-daemon", 0, NULL, 'D' },
-  { "config-file", 0, NULL, 'f' },
-  { "password", 0, NULL, 'p' },
-  { "server", 0, NULL, 's' },
-  { "bind-host", 0, NULL, 'H' },
-  { "from-mask", 0, NULL, 'm' },
-  { "listen-port", 0, NULL, 'P' }
+  { "inetd", 0, NULL, 'I' },
+  { "no-global-config", 0, NULL, 'G' },
+  { "listen-port", 0, NULL, 'P' },
+  { "config-file", 0, NULL, 'f' }
 };
 
 /* Options */
-#define GETOPTIONS "hvIDf:p:s:H:m:P:"
+#define GETOPTIONS "hvDIGP:f:"
 
 /* We need this */
 int main(int argc, char *argv[]) {
   int optc, show_help, show_version, show_usage;
-  int inetd_mode, no_daemon;
+  int inetd_mode, no_daemon, no_global_config;
+  char *local_file;
 
   /* Set up some globals */
   progname = argv[0];
@@ -97,7 +96,8 @@ int main(int argc, char *argv[]) {
 #else /* DEBUG */
   no_daemon = 1;
 #endif
-  show_help = show_version = show_usage = inetd_mode = 0;
+  local_file = 0;
+  show_help = show_version = show_usage = inetd_mode = no_global_config = 0;
   while ((optc = getopt_long(argc, argv, GETOPTIONS, long_opts, NULL)) != -1) {
     switch (optc) {
       case 'h':
@@ -106,11 +106,22 @@ int main(int argc, char *argv[]) {
       case 'v':
         show_version = 1;
         break;
+      case 'D':
+        no_daemon = 1;
+        break;
       case 'I':
         inetd_mode = 1;
         break;
-      case 'D':
-        no_daemon = 1;
+      case 'G':
+        no_global_config = 1;
+        break;
+      case 'P':
+        free(listen_port);
+        listen_port = x_strdup(optarg);
+        break;
+      case 'f':
+        free(local_file);
+        local_file = x_strdup(optarg);
         break;
       default:
         show_usage = 1;
@@ -249,10 +260,16 @@ static int _print_help(void) {
   fprintf(stderr, "If a long option shows an argument as mandatory, then "
                   "it is mandatory\nfor the equivalent short option also.  "
                   "Similarly for optional arguments.\n\n");
-  fprintf(stderr, "  -h, --help       Print a summary of the options\n");
-  fprintf(stderr, "  -v, --version    Print the version number\n");
-  fprintf(stderr, "  -D, --no-daemon  Remain in the foreground\n");
-  fprintf(stderr, "  -I, --inetd      Being run from inetd (implies -D)\n\n");
+  fprintf(stderr, "  -h, --help              Print a summary of the options\n");
+  fprintf(stderr, "  -v, --version           Print the version number\n");
+  fprintf(stderr, "  -D, --no-daemon         Remain in the foreground\n");
+  fprintf(stderr, "  -I, --inetd             Being run from inetd "
+                                            "(implies -D)\n");
+  fprintf(stderr, "  -G, --no-global-config  Do not read the global "
+                                            "configuration file\n");
+  fprintf(stderr, "  -P, --listen-port=PORT  Port to listen for clients on\n");
+  fprintf(stderr, "  -f, --config-file=FILE  Use this file instead of "
+                                            "~/%s\n\n", USER_CONFIG_FILENAME);
 
   return 0;
 }
