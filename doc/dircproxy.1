@@ -2,7 +2,7 @@
 .\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.30 2000/12/21 13:21:05 keybuk Exp $
+.\" @(#) $Id: dircproxy.1,v 1.31 2000/12/26 17:26:29 keybuk Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -324,6 +324,14 @@ get it back if it is lost.
 
  yes = try to keep my nickname
  no = if it changes, leave it
+
+.TP
+.B ctcp_replies
+Whether \fBdircproxy\fR should reply to the standard set of CTCP messages
+while the client is detached.
+
+ yes = reply to ctcp messages while client is detached
+ no = nothing but silence
 
 .TP
 .B chan_log_enabled

@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.43 2000/12/21 13:21:05 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.44 2000/12/26 17:26:29 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -295,6 +295,13 @@
  * 0 = No
  */
 #define DEFAULT_NICK_KEEP 1
+
+/* DEFAULT_CTCP_REPLIES
+ * Whether to reply to ctcp messages while client is detatched
+ * 1 = Yes
+ * 0 = No
+ */
+#define DEFAULT_CTCP_REPLIES 1
 
 /* DEFAULT_CHAN_LOG_ENABLED
  * Whether to log channel text
