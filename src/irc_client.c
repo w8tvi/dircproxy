@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.56 2000/10/13 13:55:13 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.57 2000/10/16 10:49:28 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -522,7 +522,12 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
                    && !strcasecmp(msg.params[0], "PERSIST")) {
           /* User wants a die_on_close proxy to persist */
           if (p->die_on_close) {
-            if (!ircnet_dedicate(p)) {
+            if (p->conn_class->disconnect_on_detach) {
+              /* Its die_on_close because of configuration, can't dedicate! */
+              p->die_on_close = 0;
+              ircnet_announce_dedicated(p);
+            } else if (!ircnet_dedicate(p)) {
+              /* Okay, it was inetd - we can dedicate this */
               p->die_on_close = 0;
             } else {
               ircclient_send_notice(p, "Could not persist");
