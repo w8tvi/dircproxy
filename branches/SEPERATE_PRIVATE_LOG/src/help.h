@@ -4,7 +4,7 @@
  *
  * help.h
  * --
- * @(#) $Id: help.h,v 1.10 2002/02/06 10:08:50 scott Exp $
+ * @(#) $Id: help.h,v 1.10.2.1 2002/08/17 19:08:41 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -67,17 +67,24 @@ static char *help_detach[] = {
 static char *help_recall[] = {
   "/DIRCPROXY RECALL [from] <lines>",
   "/DIRCPROXY RECALL ALL",
-  "recalls log messages from the server/private message log",
+  "recalls log messages from the private message log",
   "file.  You can specify the number of lines to recall, and",
   "a starting point in the file, or you can specify ALL to",
   "recall all log messages",
   "",
   "/DIRCPROXY RECALL <nickname> [from] lines>",
   "/DIRCPROXY RECALL <nickname> ALL",
-  "recalls log messages from the server/private message log",
+  "recalls log messages from the private message log file",
   "that were sent by the nickname given.  You can specify",
   "the number of lines to recall and an optional starting",
   "point (in the full log file).  You may also specify ALL.",
+  "",
+  "/DIRCPROXY RECALL SERVER <lines>",
+  "/DIRCPROXY RECALL SERVER ALL",
+  "recalls log messages from the server message log",
+  "file.  You can specify the number of lines to recall, and",
+  "a starting point in the file, or you can specify ALL to",
+  "recall all log messages",
   "",
   "/DIRCPROXY RECALL <channel> [from] <lines>",
   "/DIRCPROXY RECALL <channel> ALL",

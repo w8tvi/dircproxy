@@ -8,7 +8,7 @@
  *  - The list of currently active proxies
  *  - Miscellaneous IRC functions
  * --
- * @(#) $Id: irc_net.c,v 1.45 2001/12/21 20:15:55 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.45.2.1 2002/08/17 19:08:41 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -404,6 +404,7 @@ static void _ircnet_freeproxy(struct ircproxy *p) {
   }
 
   irclog_free(&(p->other_log));
+  irclog_free(&(p->private_log));
   irclog_closetempdir(p);
   free(p);
 }

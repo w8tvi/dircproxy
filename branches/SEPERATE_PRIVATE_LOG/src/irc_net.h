@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.46 2002/02/06 10:07:42 scott Exp $
+ * @(#) $Id: irc_net.h,v 1.46.2.1 2002/08/17 19:08:41 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -93,6 +93,15 @@ struct ircconnclass {
   int other_log_relativetime;
   char *other_log_copydir;
   char *other_log_program;
+
+  int private_log_enabled;
+  int private_log_always;
+  long private_log_maxsize;
+  long private_log_recall;
+  int private_log_timestamp;
+  int private_log_relativetime;
+  char *private_log_copydir;
+  char *private_log_program;
 
   long log_timeoffset;
   int log_events;
@@ -197,7 +206,7 @@ struct ircproxy {
   struct ircchannel *channels;
 
   char *temp_logdir;
-  struct logfile other_log;
+  struct logfile other_log, private_log;
 
   struct ircproxy *next;
 };

@@ -7,7 +7,7 @@
  *  - Handling of log programs
  *  - Recalling from log files
  * --
- * @(#) $Id: irc_log.c,v 1.36 2002/08/13 14:56:54 scott Exp $
+ * @(#) $Id: irc_log.c,v 1.36.2.1 2002/08/17 19:08:41 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -136,6 +136,7 @@ int irclog_init(struct ircproxy *p, const char *to) {
 
   /* Store the config */
   if (log == &(p->other_log)) {
+    debug("Initialising other log file");
     ptr = filename = x_strdup("other");
     log->maxlines = p->conn_class->other_log_maxsize;
     log->always = p->conn_class->other_log_always;
@@ -145,7 +146,21 @@ int irclog_init(struct ircproxy *p, const char *to) {
                     ? x_strdup(p->conn_class->other_log_program) : 0);
     copydir = (p->conn_class->other_log_copydir
                ? p->conn_class->other_log_copydir : 0);
+
+  } else if (log == &(p->private_log)) {
+    debug("Initialising private log file");
+    ptr = filename = x_strdup("private");
+    log->maxlines = p->conn_class->private_log_maxsize;
+    log->always = p->conn_class->private_log_always;
+    log->timestamp = p->conn_class->private_log_timestamp;
+    log->relativetime = p->conn_class->private_log_relativetime;
+    log->program = (p->conn_class->private_log_program
+                    ? x_strdup(p->conn_class->private_log_program) : 0);
+    copydir = (p->conn_class->private_log_copydir
+               ? p->conn_class->private_log_copydir : 0);
+
   } else {
+    debug("Initialising channel log file for %s", to);
     ptr = filename = x_strdup(to);
     irc_strlwr(filename);
     log->maxlines = p->conn_class->chan_log_maxsize;
@@ -315,13 +330,14 @@ static void _irclog_close(struct logfile *log) {
 /* Get a log file structure out of an ircproxy */
 static struct logfile *_irclog_getlog(struct ircproxy *p, const char *to) {
   struct ircchannel *c;
-  
-  if (!to)
-    return 0;
 
-  c = ircnet_fetchchannel(p, to);
-  if (c) {
-    return &(c->log);
+  if (to) {
+    c = ircnet_fetchchannel(p, to);
+    if (c) {
+      return &(c->log);
+    } else {
+      return &(p->private_log);
+    }
   } else {
     return &(p->other_log);
   }
@@ -581,7 +597,7 @@ static int _irclog_writetext(struct ircproxy *p, struct logfile *log,
 /* Write some text to log file(s) */
 static int _irclog_text(struct ircproxy *p, const char *to, const char *from,
                         const char *text) {
-  if (to) {
+  if (to != IRC_LOG_ALL) {
     struct logfile *log;
     
     /* Write to one file */
@@ -593,7 +609,7 @@ static int _irclog_text(struct ircproxy *p, const char *to, const char *from,
   } else {
     struct ircchannel *c;
 
-    /* Write to all files */
+    /* Write to all files except the private one */
     _irclog_writetext(p, &(p->other_log), (p->nickname ? p->nickname : ""),
                       from, text);
     c = p->channels;
@@ -617,6 +633,8 @@ int irclog_autorecall(struct ircproxy *p, const char *to) {
 
   if (log == &(p->other_log)) {
     recall = p->conn_class->other_log_recall;
+  } else if (log == &(p->private_log)) {
+    recall = p->conn_class->private_log_recall;
   } else {
     recall = p->conn_class->chan_log_recall;
   }
@@ -681,6 +699,11 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
   } else {
     return -1;
   }
+
+  /* If to is 0, then we're recalling from the other_log, and need to send
+   * it to the nickname */
+  if (!to)
+    to = p->nickname ? p->nickname : FALLBACK_NICKNAME;
 
   /* Jump to the beginning */
   fseek(file, 0, SEEK_SET);

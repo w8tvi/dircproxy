@@ -4,7 +4,7 @@
  *
  * irc_log.h
  * --
- * @(#) $Id: irc_log.h,v 1.9 2001/12/21 20:15:55 keybuk Exp $
+ * @(#) $Id: irc_log.h,v 1.9.2.1 2002/08/17 19:08:41 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -17,6 +17,9 @@
 /* required includes */
 #include <stdio.h>
 #include "irc_net.h"
+
+/* special log to everything parameter */
+#define IRC_LOG_ALL ((char *)-1)
 
 /* functions */
 extern int irclog_maketempdir(struct ircproxy *);
