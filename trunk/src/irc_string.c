@@ -4,8 +4,9 @@
  *
  * irc_string.c
  *  - Case conversion functions for IRC protocol
+ *  - Comparison and match functions for IRC protocol
  * --
- * @(#) $Id: irc_string.c,v 1.3 2000/05/13 05:25:04 keybuk Exp $
+ * @(#) $Id: irc_string.c,v 1.4 2000/10/13 12:43:39 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
