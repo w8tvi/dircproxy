@@ -4,7 +4,7 @@
  *
  * dns.h
  * --
- * @(#) $Id: dns.h,v 1.2 2000/10/12 16:00:39 keybuk Exp $
+ * @(#) $Id: dns.h,v 1.3 2000/10/23 12:03:08 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -19,22 +19,23 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include "irc_net.h"
-
+/* handy defines */
+#define DNS_FUNCTION(_FUNC) ((void (*)(void *, void *, struct in_addr *, \
+                                       const char *)) _FUNC)
 
 /* functions */
 extern int dns_endrequest(pid_t, int);
-extern int dns_delall(struct ircproxy *);
+extern int dns_delall(void *);
 extern void dns_flush(void);
-extern int dns_addrfromhost(struct ircproxy *, void *, const char *,
-                         void (*)(struct ircproxy *, void *,
-                                  struct in_addr *, const char *));
-extern int dns_hostfromaddr(struct ircproxy *, void *, struct in_addr,
-                         void (*)(struct ircproxy *, void *,
-                                  struct in_addr *, const char *));
-extern int dns_filladdr(struct ircproxy *, const char *, const char *, int,
+extern int dns_addrfromhost(void *, void *, const char *,
+                            void (*)(void *, void *,
+                                     struct in_addr *, const char *));
+extern int dns_hostfromaddr(void *, void *, struct in_addr,
+                            void (*)(void *, void *,
+                                     struct in_addr *, const char *));
+extern int dns_filladdr(void *, const char *, const char *, int,
                         struct sockaddr_in *,
-                        void (*)(struct ircproxy *, void *,
+                        void (*)(void *, void *,
                                  struct in_addr *, const char *),
                         void *);
 extern short dns_portfromserv(const char *);

@@ -11,7 +11,7 @@
  * of a DNS request is notified by the child death signal, so it will
  * interrupt the main loop to continue where you left off.
  * --
- * @(#) $Id: dns.c,v 1.8 2000/10/13 13:35:42 keybuk Exp $
+ * @(#) $Id: dns.c,v 1.9 2000/10/23 12:03:08 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -31,7 +31,6 @@
 
 #include <dircproxy.h>
 #include "sprintf.h"
-#include "irc_net.h"
 #include "dns.h"
 
 /* Structure used to hold information about a dns child */
@@ -39,8 +38,8 @@ struct dnschild {
   pid_t pid;
   int pipe;
   
-  struct ircproxy *proxy;
-  void (*function)(struct ircproxy *, void *, struct in_addr *, const char *);
+  void (*function)(void *, void *, struct in_addr *, const char *);
+  void *boundto;
   void *data;
 
   struct dnschild *next;
@@ -55,9 +54,8 @@ struct dnsresult {
 
 /* forward declarations */
 static struct dnsresult _dns_lookup(const char *, struct in_addr *);
-static int _dns_startrequest(struct ircproxy *,
-                             void (*)(struct ircproxy *, void *,
-                                     struct in_addr *, const char *),
+static int _dns_startrequest(void *, void (*)(void *, void *,
+                                              struct in_addr *, const char *),
                              void *, struct in_addr *, const char *);
 
 /* Children */
@@ -100,8 +98,8 @@ static struct dnsresult _dns_lookup(const char *name, struct in_addr *addr) {
 }
 
 /* Function that starts a non-blocking DNS request. */
-static int _dns_startrequest(struct ircproxy *proxy,
-                             void (*function)(struct ircproxy *, void *,
+static int _dns_startrequest(void *boundto,
+                             void (*function)(void *, void *,
                                               struct in_addr *, const char *),
                              void *data, struct in_addr *addr, const char *name)
 {
@@ -111,15 +109,15 @@ static int _dns_startrequest(struct ircproxy *proxy,
   /* Pipe where the result will be placed on success */
   if (pipe(p)) {
     syscall_fail("pipe", 0, 0);
-    function(proxy, data, 0, 0);
+    function(boundto, data, 0, 0);
     return -1;
   }
 
   /* Allocate and place the child on the list now, to avoid race conditions */
   child = (struct dnschild *)malloc(sizeof(struct dnschild));
   child->pipe = p[0];
-  child->proxy = proxy;
   child->function = function;
+  child->boundto = boundto;
   child->data = data;
   child->next = dnschildren;
   dnschildren = child;
@@ -133,7 +131,7 @@ static int _dns_startrequest(struct ircproxy *proxy,
     close(p[1]);
     close(p[0]);
     free(child);
-    function(proxy, data, 0, 0);
+    function(boundto, data, 0, 0);
     return -1;
     
   } else if (child->pid) {
@@ -224,7 +222,7 @@ int dns_endrequest(pid_t pid, int status) {
   }
 
   /* Call the function */
-  child->function(child->proxy, child->data, addr, name);
+  child->function(child->boundto, child->data, addr, name);
 
   /* Clean up */
   close(child->pipe);
@@ -234,7 +232,7 @@ int dns_endrequest(pid_t pid, int status) {
 }
 
 /* Kill off any children associated with an ircproxy */
-int dns_delall(struct ircproxy *p) {
+int dns_delall(void *b) {
   struct dnschild *c, *l;
   int numdone;
 
@@ -243,7 +241,7 @@ int dns_delall(struct ircproxy *p) {
   numdone = 0;
   
   while (c) {
-    if (c->proxy == p) {
+    if (c->boundto == b) {
       struct dnschild *n;
 
       n = c->next;
@@ -286,24 +284,24 @@ void dns_flush(void) {
 }
 
 /* Returns the IP address of a hostname */
-int dns_addrfromhost(struct ircproxy *proxy, void *data, const char *name,
-                     void (*function)(struct ircproxy *, void *,
+int dns_addrfromhost(void *boundto, void *data, const char *name,
+                     void (*function)(void *, void *,
                                       struct in_addr *, const char *)) {
-  return _dns_startrequest(proxy, function, data, 0, name);
+  return _dns_startrequest(boundto, function, data, 0, name);
 }
 
 /* Returns the hostname of an IP address */
-int dns_hostfromaddr(struct ircproxy *proxy, void *data, struct in_addr addr,
-                     void (*function)(struct ircproxy *, void *,
+int dns_hostfromaddr(void *boundto, void *data, struct in_addr addr,
+                     void (*function)(void *, void *,
                                       struct in_addr *, const char *)) {
-  return _dns_startrequest(proxy, function, data, &addr, 0);
+  return _dns_startrequest(boundto, function, data, &addr, 0);
 }
 
 /* Fill a sockaddr_in from a hostname or hostname:port combo thing */
-int dns_filladdr(struct ircproxy *proxy, const char *name,
+int dns_filladdr(void *boundto, const char *name,
                  const char *defaultport, int allowcolon,
                  struct sockaddr_in *result,
-                 void (*function)(struct ircproxy *, void *,
+                 void (*function)(void *, void *,
                                   struct in_addr *, const char *),
                  void *data) {
   char *addr, *port;
@@ -327,7 +325,7 @@ int dns_filladdr(struct ircproxy *proxy, const char *name,
     }
   }
 
-  ret = _dns_startrequest(proxy, function, data, 0, addr);
+  ret = _dns_startrequest(boundto, function, data, 0, addr);
 
   free(addr);
   return ret;
