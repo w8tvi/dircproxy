@@ -1,6 +1,15 @@
 NEWS about changes for existing users.
 --------------------------------------
 
+Version 0.6.2 - Mon Jun 26 16:58:00 BST 2000
+
+	* Changed the logic behind how configuration files are loaded.
+	  If you supply one with -f, that is loaded.  If you don't it
+	  first tries ~/.dircproxyrc and then tries etc/dircproxy.conf.
+	  This means that the config file is no longer installed, and
+	  can be found as dircproxy.conf in share/dircproxy or the conf
+	  dir of the source.  Also the -G option is no longer valid.
+
 Version 0.6.1 - Thu May 25 15:04:00 BST 2000
 
 	* Just bug fixes.  No changes to worry about.

@@ -1,29 +1,89 @@
+2000-06-26 16:21  Scott James Remnant <scott@netsplit.com>
+
+	* conf/: Makefile.am, dircproxy.conf, dircproxyrc.example: Adjusted
+	these files so they reflect the way things now are.  this file goes
+	in share and isn't automatically installed.
+
+2000-06-20 13:41  Scott James Remnant <scott@netsplit.com>
+
+	* src/main.c: Missed a space in the help text.
+
+2000-06-20 13:40  Scott James Remnant <scott@netsplit.com>
+
+	* src/main.c: Fixed the --help which was wrong
+
+2000-06-20 13:34  Scott James Remnant <scott@netsplit.com>
+
+	* README: Added Debian to the list too
+
+2000-05-29 12:05  Scott James Remnant <scott@netsplit.com>
+
+	* AUTHORS, AUTHORS.map: Added Stephen Cope to the AUTHORS files,
+	credited for documenting this thing.
+
+2000-05-27 18:17  Scott James Remnant <scott@netsplit.com>
+
+	* README: Played with the VA compile farm, and added all the other
+	architectures it offers to this list as its compiled on them all.
+
+2000-05-27 18:02  Scott James Remnant <scott@netsplit.com>
+
+	* README: Added ia64 to the list of platforms, since I got access
+	to the ones at VA.
+
+2000-05-25 22:23  Scott James Remnant <scott@netsplit.com>
+
+	* src/main.c: Changed the logic behind the config file loading a
+	bit.  Now if one isn't explicitly specified, it'll use a
+	~/.dircproxyrc.  If that doesn't exist it will use
+	/etc/dircproxy.conf.  This removed the need for -G.
+	
+	Also fixed missing options on --config-file= and --port= and made
+	-P/--port override the config file
+
+2000-05-25 22:20  Scott James Remnant <scott@netsplit.com>
+
+	* src/cfgfile.c: Removed fopen() error message, because we don't
+	want to know!
+
+2000-05-25 18:15  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_server.c: Checking the wrong parameter of a 437... doh!
+
+2000-05-25 14:17  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in: CVS version now 0.6.2
+
+2000-05-25 14:07  Scott James Remnant <scott@netsplit.com>
+
+	* ChangeLog, NEWS: Version 0.6.1 released.
+
 2000-05-25 14:00  Scott James Remnant <scott@netsplit.com>
 
 	* src/cfgfile.c: Heh who'd have thought an extra semi-colon could
-        cause a nasty core dump.
+	cause a nasty core dump.
 
 2000-05-25 13:59  Scott James Remnant <scott@netsplit.com>
 
 	* src/: irc_client.c, memdebug.c: MIN() seems to be defined all
 	over the place on different platforms.	Just define it here, its
-        not hard.
+	not hard.
 
 2000-05-25 13:58  Scott James Remnant <scott@netsplit.com>
 
 	* README: Added Solaris 2.7 to the platforms list seeing as I have
-        an account on one now to test this on.
+	an account on one now to test this on.
 
 2000-05-24 22:21  Scott James Remnant <scott@netsplit.com>
 
 	* src/cfgfile.c: Argh! > didn't do what I expected here.  This is
 	one of those nasty "post release" bugs that causes the thing to
-        core dump
+	core dump
 
 2000-05-24 22:19  Scott James Remnant <scott@netsplit.com>
 
 	* README: Added FreeBSD 3.4 to this, because I have it running on
-        that too
+	that too
 
 2000-05-24 22:04  Scott James Remnant <scott@netsplit.com>
 
@@ -36,7 +96,7 @@
 2000-05-24 21:29  Scott James Remnant <scott@netsplit.com>
 
 	* conf/dircproxy.conf, conf/dircproxyrc.example, src/dircproxy.h:
-        Changed the default rejoin to 15 seconds
+	Changed the default rejoin to 15 seconds
 
 2000-05-24 21:29  Scott James Remnant <scott@netsplit.com>
 
@@ -49,7 +109,7 @@
 2000-05-24 21:21  Scott James Remnant <scott@netsplit.com>
 
 	* src/: irc_client.c, irc_net.c, irc_net.h: Added code so that an
-        inetd socket doesn't linger
+	inetd socket doesn't linger
 
 2000-05-24 21:08  Scott James Remnant <scott@netsplit.com>
 
@@ -66,7 +126,7 @@
 2000-05-24 21:02  Scott James Remnant <scott@netsplit.com>
 
 	* src/irc_client.c: I use notice to notify of nasty system things,
-        so I might as well make it come from dircproxy itself.
+	so I might as well make it come from dircproxy itself.
 
 2000-05-24 20:58  Scott James Remnant <scott@netsplit.com>
 
@@ -79,34 +139,34 @@
 2000-05-24 20:54  Scott James Remnant <scott@netsplit.com>
 
 	* src/cfgfile.c: Fixed it so it doesn't add the server list
-        backwards
+	backwards
 
 2000-05-24 20:53  Scott James Remnant <scott@netsplit.com>
 
 	* src/irc_net.c: Fixed the bug where you are rejoined to channels
-        in the opposite order to that which you joined them
+	in the opposite order to that which you joined them
 
 2000-05-24 20:50  Scott James Remnant <scott@netsplit.com>
 
 	* src/irc_client.c: Fixed the output so it doesn't keep repeating
-        itself
+	itself
 
 2000-05-24 20:48  Scott James Remnant <scott@netsplit.com>
 
 	* src/irc_net.c: Bit of a bug, forgot to increment l, so if you got
 	kicked the last channel you joined, it kinda forgot about the rest
-        (oops)
+	(oops)
 
 2000-05-24 20:48  Scott James Remnant <scott@netsplit.com>
 
 	* src/irc_log.c: Whoa, scary, I wasn't freeing any log memory -
-        talk about memleak! sheesh!
+	talk about memleak! sheesh!
 
 2000-05-24 20:47  Scott James Remnant <scott@netsplit.com>
 
 	* src/memdebug.c: Copied across the neatening from maestro -
 	specifically this adds a little bit of code to show what is stored
-        in the memory still allocated
+	in the memory still allocated
 
 2000-05-24 20:31  Scott James Remnant <scott@netsplit.com>
 
@@ -124,27 +184,32 @@
 
 	* src/irc_server.c: Removed the auto-rejoin code (its in irc_net.c
 	now)
+	
 	Made a special case for the 437 numeric, because it can be either
 	nickname or channel related.
+	
 	Added code so that while a client is detached, we attempt to rejoin
 	channels if its full/invite only/banned/juped
+	
 	Also on join, we can reactive a channel, and then spool the log
-        back to the client (in case of kick).
+	back to the client (in case of kick).
 
 2000-05-24 20:22  Scott James Remnant <scott@netsplit.com>
 
 	* src/irc_client.c: Make log directory on successful first auth now
 	- much better place to do it.  Also make the misclog when we loose
 	the client.
+	
 	Added code to spool stats about sizes of log files and channels
-        user was on in the message of the day
+	user was on in the message of the day
 
 2000-05-24 20:20  Scott James Remnant <scott@netsplit.com>
 
 	* src/irc_net.c: Moved the code to rejoin channels automatically to
 	here.
+	
 	Moved the misclog code about, this log only gets created when the
-        user disconnects now and then is removed when they connect.
+	user disconnects now and then is removed when they connect.
 
 2000-05-24 20:18  Scott James Remnant <scott@netsplit.com>
 
@@ -152,7 +217,7 @@
 	to 1 when we are removed from the channel while a client isn't
 	connected.  All the time this is one we attempt to rejoin the
 	channel every few seconds until the join is successfull or the
-        client comes back.
+	client comes back.
 
 2000-05-24 20:17  Scott James Remnant <scott@netsplit.com>
 
@@ -161,7 +226,7 @@
 2000-05-24 19:11  Scott James Remnant <scott@netsplit.com>
 
 	* src/sprintf.c: Need to have some memory allocated to avoid buffer
-        underruns, also need to null terminate after strncpy()
+	underruns, also need to null terminate after strncpy()
 
 2000-05-24 19:05  Scott James Remnant <scott@netsplit.com>
 
@@ -170,18 +235,19 @@
 2000-05-24 19:02  Scott James Remnant <scott@netsplit.com>
 
 	* src/sprintf.c: Added in an (almost) complete implementation of
-        vsprintf()
+	vsprintf()
 
 2000-05-24 19:01  Scott James Remnant <scott@netsplit.com>
 
 	* configure.in: When in debug mode, don't even detect vsnprintf(),
-        use our own implementation of vsprintf()
+	use our own implementation of vsprintf()
 
 2000-05-24 18:30  Scott James Remnant <scott@netsplit.com>
 
 	* configure.in: [ Bug #106153 ] compiler error, partial make fix
+	
 	Added check to see whether socket() is in -lsocket and whether
-        gethostbyname() is in -lnsl
+	gethostbyname() is in -lnsl
 
 2000-05-24 18:18  Scott James Remnant <scott@netsplit.com>
 
@@ -195,18 +261,18 @@
 
 	* src/: irc_client.c, irc_log.c, irc_prot.c, irc_server.c,
 	timers.c: Removed a lot of the printf() debug code, that which I
-        still want to see I've placed inside #ifdef DEBUG stuff
+	still want to see I've placed inside #ifdef DEBUG stuff
 
 2000-05-24 17:57  Scott James Remnant <scott@netsplit.com>
 
 	* src/: irc_client.c, irc_net.h, irc_server.c: Took out all the
 	hacky defines and replaced them with the nice sexy config file
-        variables
+	variables
 
 2000-05-24 17:52  Scott James Remnant <scott@netsplit.com>
 
 	* src/: irc_net.c, irc_net.h: Added new function to clean up a
-        connection class structure, and made expunge clean them up too
+	connection class structure, and made expunge clean them up too
 
 2000-05-24 17:45  Scott James Remnant <scott@netsplit.com>
 
@@ -223,13 +289,13 @@
 
 	* src/: dircproxy.h, main.c: Added the global variables and
 	initialise them to the values in dircproxy.h Removed those horrid
-        TODO_CFG things finally
+	TODO_CFG things finally
 
 2000-05-24 17:34  Scott James Remnant <scott@netsplit.com>
 
 	* src/main.c: Using an ALARM single to stop the main loop was
 	pretty pointless, might as well just use the TERM signal which will
-        let dircproxy clean itself up if its 'kill'd
+	let dircproxy clean itself up if its 'kill'd
 
 2000-05-24 17:31  Scott James Remnant <scott@netsplit.com>
 
@@ -238,33 +304,33 @@
 2000-05-24 17:30  Scott James Remnant <scott@netsplit.com>
 
 	* src/: Makefile.am, dircproxy.h: Added some defines to set the
-        name and locations of the configuration files
+	name and locations of the configuration files
 
 2000-05-24 17:28  Scott James Remnant <scott@netsplit.com>
 
 	* src/Makefile.am: Added the new cfgfile.c and .h files to the
-        Makefile
+	Makefile
 
 2000-05-24 17:23  Scott James Remnant <scott@netsplit.com>
 
 	* configure.in: Changing CVS version to 0.6.0 seeing as thats the
-        version I said the config file code would be in
+	version I said the config file code would be in
 
 2000-05-24 17:22  Scott James Remnant <scott@netsplit.com>
 
 	* Makefile.am, configure.in: Added the new conf directory to
-        Makefile.am and configure.in
+	Makefile.am and configure.in
 
 2000-05-24 17:18  Scott James Remnant <scott@netsplit.com>
 
 	* src/: cfgfile.c, cfgfile.h: Wrote the code to read in a
-        configuration file
+	configuration file
 
 2000-05-24 17:16  Scott James Remnant <scott@netsplit.com>
 
 	* conf/: .cvsignore, Makefile.am, dircproxy.conf,
 	dircproxyrc.example: Written the default configuration files, and
-        everything.  So adding them to CVS :o)
+	everything.  So adding them to CVS :o)
 
 2000-05-24 12:38  Scott James Remnant <scott@netsplit.com>
 
@@ -273,26 +339,26 @@
 2000-05-14 20:56  Scott James Remnant <scott@netsplit.com>
 
 	* TODO: Updated the TODO file based on user-feedback and my own
-        grudges
+	grudges
 
 2000-05-14 20:55  Scott James Remnant <scott@netsplit.com>
 
 	* README: Added a quick meme that there is no config file at the
-        moment ...
-
-Also fixed the bugs url so its not https
+	moment ...
+	
+	Also fixed the bugs url so its not https
 
 2000-05-13 17:05  Scott James Remnant <scott@netsplit.com>
 
 	* AUTHORS.map, RELEASING: Added a file detailing the steps to do a
 	new release, to make sure I do it right.  Also added the
-        AUTHORS.map file cvs2cl.pl uses.
+	AUTHORS.map file cvs2cl.pl uses.
 
 2000-05-13 16:20  Scott James Remnant <scott@netsplit.com>
 
 	* configure.in: CVS version becomes 0.5.5 (although potentially
 	might be 0.6 if no more bugs appear and I can work on the config
-        file).
+	file).
 
 2000-05-13 16:14  Scott James Remnant <scott@netsplit.com>
 
@@ -301,7 +367,7 @@ Also fixed the bugs url so its not https
 2000-05-13 16:11  Scott James Remnant <scott@netsplit.com>
 
 	* src/main.c: Logic on the -D option was wrong, should set
-        no_daemon to 1.
+	no_daemon to 1.
 
 2000-05-13 16:05  Scott James Remnant <scott@netsplit.com>
 
@@ -313,7 +379,7 @@ Also fixed the bugs url so its not https
 	actually don't want to check for strdup(), that way we are only
 	checking for vsnprintf() and the code at the top of sprintf.c isn't
 	required.  (This gets rid of all those pesky "Free of illegal
-        block" messages).
+	block" messages).
 
 2000-05-13 15:47  Scott James Remnant <scott@netsplit.com>
 
@@ -328,7 +394,7 @@ Also fixed the bugs url so its not https
 	memdebug.c something chronic.  Check for it in configure.in, and
 	use it as x_strdup() everwhere.  If it does exist, x_strdup() is
 	just a wrapper for strdup(), if it doesn't exist, or DEBUG_MEMORY
-        is defined, then it does its own malloc/strcpy.
+	is defined, then it does its own malloc/strcpy.
 
 2000-05-13 05:12  Scott James Remnant <scott@netsplit.com>
 
@@ -336,17 +402,19 @@ Also fixed the bugs url so its not https
 	main.c: Made some of the TODO_CFG macros into the proper macros
 	they will be as the defaults for the config file.  Gave them
 	documentation too.
+	
 	Also added two FALLBACK defines for those things not in the config
-        file that I/users might want to change
+	file that I/users might want to change
 
 2000-05-13 04:43  Scott James Remnant <scott@netsplit.com>
 
 	* src/.cvsignore: Added the name of the executable to the ignore
-        file
+	file
 
 2000-05-13 04:43  Scott James Remnant <scott@netsplit.com>
 
 	* src/irc_log.c: fchmod() doesn't take a FILE *, grrr.
+	
 	Changed to just chmod() the filename, seeing as we have that anyway
 
 2000-05-13 04:41  Scott James Remnant <scott@netsplit.com>
@@ -354,14 +422,15 @@ Also fixed the bugs url so its not https
 	* src/: dns.c, irc_client.c, irc_log.c, irc_net.c, irc_prot.c,
 	irc_server.c, irc_string.c, match.c, timers.c: Decided to embrace
 	the fruit that is strdup() and in the process cleaned up a lot of
-        code (yay!)
+	code (yay!)
 
 2000-05-13 04:23  Scott James Remnant <scott@netsplit.com>
 
 	* src/irc_log.c: Heh, anyone on the machine could not only see what
 	channels you were on, not only read everything on those channels,
 	they could also read your private messages.
-        This isn't good.  Made the dir be created 0700 and files 0600 now.
+	
+	This isn't good.  Made the dir be created 0700 and files 0600 now.
 
 2000-05-13 04:17  Scott James Remnant <scott@netsplit.com>
 
@@ -370,25 +439,25 @@ Also fixed the bugs url so its not https
 2000-05-13 04:13  Scott James Remnant <scott@netsplit.com>
 
 	* src/irc_client.c: Fixed a missing bracket problem that crept in
-        and prevented compilation...  doh! damned "TODO" code
+	and prevented compilation...  doh! damned "TODO" code
 
 2000-05-13 04:07  Scott James Remnant <scott@netsplit.com>
 
 	* src/sock.c: Made the calls to set/unset non blocking a bit more
 	friendly.  Also we now block when doing a send() otherwise we loose
-        data (doh!)
+	data (doh!)
 
 2000-05-13 02:38  Scott James Remnant <scott@netsplit.com>
 
 	* src/dircproxy.h: PACKAGE and VERSION will always be defined in
 	config.h unless something has really gone wrong, and that'll need
 	fixing anyway.	Define them in the elsif to save code and make
-        things look neeter.
+	things look neeter.
 
 2000-05-13 02:34  Scott James Remnant <scott@netsplit.com>
 
 	* README, src/main.c: Changed the homepage and bug reporting
-        locations now we're all fully sourceforge'd up
+	locations now we're all fully sourceforge'd up
 
 2000-05-13 02:28  Scott James Remnant <scott@netsplit.com>
 
@@ -401,7 +470,7 @@ Also fixed the bugs url so its not https
 	directory.  This means that 'cvs update' etc will ignore any files
 	generated by auto{conf,make}.  This is a good-thing.  Means you can
 	run autogen.sh on your checked out version without it getting in
-        the way of CVS.
+	the way of CVS.
 
 2000-05-13 02:13  Scott James Remnant <scott@netsplit.com>
 
@@ -414,5 +483,21 @@ Also fixed the bugs url so its not https
 	src/stringex.c, src/irc_log.c, src/irc_log.h, src/irc_net.h,
 	src/irc_client.c, src/irc_client.h, src/irc_server.h,
 	src/memdebug.c, src/irc_server.c, src/timers.c, src/timers.h,
-        src/getopt.c, src/getopt.h, src/getopt1.c: Initial revision
+	src/getopt.c, src/getopt.h, src/getopt1.c: Imported version 0.5.2
+	into the CVS tree.  Its in a CLEAN state that requires autoconf and
+	automake (run autogen.sh) to build.
+        
+
+2000-05-13 02:13  Scott James Remnant <scott@netsplit.com>
+
+	* AUTHORS, ChangeLog, FILES.autoconf, Makefile.am, NEWS, PROTOCOL,
+	README, TODO, acconfig.h, autogen.sh, README.inetd, configure.in,
+	src/Makefile.am, src/dircproxy.h, src/dns.c, src/dns.h, src/sock.c,
+	src/irc_prot.c, src/main.c, src/match.c, src/match.h, src/sock.h,
+	src/sprintf.c, src/sprintf.h, src/irc_string.c, src/stringex.h,
+	src/irc_net.c, src/memdebug.h, src/irc_prot.h, src/irc_string.h,
+	src/stringex.c, src/irc_log.c, src/irc_log.h, src/irc_net.h,
+	src/irc_client.c, src/irc_client.h, src/irc_server.h,
+	src/memdebug.c, src/irc_server.c, src/timers.c, src/timers.h,
+	src/getopt.c, src/getopt.h, src/getopt1.c: Initial revision
 
