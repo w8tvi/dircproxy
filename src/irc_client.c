@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.85 2002/08/17 19:24:19 scott Exp $
+ * @(#) $Id: irc_client.c,v 1.86 2002/08/17 19:39:05 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -56,7 +56,8 @@ static int _ircclient_got_details(struct ircproxy *, const char *,
                                   const char *, const char *, const char *);
 static int _ircclient_motd(struct ircproxy *);
 static void _ircclient_timedout(struct ircproxy *, void *);
-static int _ircclient_send_dccreject(struct ircproxy *, const char *);
+static int _ircclient_send_dccreject(struct ircproxy *, const char *,
+                                     const char *);
 
 /* New user mode bits */
 #define RFC2812_MODE_W 0x04
@@ -542,10 +543,9 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
                 dccmsg = 0;
 
                 /* Save this in case we need it later */
-                rejmsg = x_sprintf(":%s NOTICE %s :\001DCC REJECT %s %s "
-                                   "(%s: unable to proxy)\001",
+                rejmsg = x_sprintf(":%s NOTICE %s :\001DCC REJECT %s %s",
                                    msg.params[0], p->nickname,
-                                   cmsg.params[0], cmsg.params[1], PACKAGE);
+                                   cmsg.params[0], cmsg.params[1]);
  
                 /* Set up a dcc proxy */
                 if (ptr && !dccnet_new(type, p->conn_class->dcc_proxy_timeout,
@@ -566,7 +566,8 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
 
                 } else if (ptr) {
                   dccmsg = x_strdup("");
-                  _ircclient_send_dccreject(p, rejmsg);
+                  _ircclient_send_dccreject(p, rejmsg,
+                                            "Couldn't establish proxy");
                 }
 
                 /* Don't need this now */
@@ -2047,13 +2048,20 @@ int ircclient_send_error(struct ircproxy *p, const char *format, ...) {
 }
 
 /* Send a DCC reject message */
-static int _ircclient_send_dccreject(struct ircproxy *p, const char *msg) {
+static int _ircclient_send_dccreject(struct ircproxy *p, const char *msg,
+                                     const char *reason) {
   int ret = 1;
 
   if (p && p->conn_class && p->conn_class->dcc_proxy_sendreject &&
       (p->client_status == IRC_CLIENT_ACTIVE)) {
-    ret = net_send(p->client_sock, "%s\r\n", msg);
-    debug("<- '%s'", msg);
+    if (reason) {
+      ret = net_send(p->client_sock, "%s (%s: %s)\001\r\n", msg,
+                     PACKAGE, reason);
+      debug("<- '%s (%s: %s)\001'", msg, PACKAGE, reason);
+    } else {
+      ret = net_send(p->client_sock, "%s\001\r\n", msg);
+      debug("<- '%s\001'", msg);
+    }
   }
 
   return ret;
