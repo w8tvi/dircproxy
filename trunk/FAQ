@@ -55,6 +55,7 @@ Questions
      5.2  What's "DCC over ssh" and how do I use it?
      5.3  Does text I type before dircproxy tells me the remote peer
           has connected ever reach them?
+     5.4  Why doesn't dircproxy support DCC RESUME?
 
 6.  Advanced Use
      6.1  How do I change what username is presented on IRC?
@@ -102,8 +103,10 @@ Answers
 
  1.4  Is there a dircproxy IRC channel?
 
-     Yes, on the OpenProjects IRC network (irc.openprojects.net or
-     irc.linux.com).  We're on #dircproxy.
+     Yes, on the OpenProjects IRC network (irc.openprojects.net)
+     called #dircproxy.
+
+     I can usually be found with the nickname Keybuk.
 
  1.5  How do I report bugs?
 
@@ -487,7 +490,49 @@ Answers
      Yes, its simply queued until the remote side connects, then
      is sent to them.
 
+ 5.4  Why doesn't dircproxy support DCC RESUME?
+
+     The DCC RESUME protocol is an mIRC extension to the standard,
+     and is documented at:
+
+         http://www.mirc.co.uk/help/dccresum.txt
+
+     dircproxy does not support this protocol, therefore you cannot
+     resume DCC transfers if you are using dircproxy.  DCC RESUME
+     support will *never* be implemented in dircproxy, the reason
+     for this is as follows.
+
+     Ordinary DCC SENDs are offered by the sender sending a DCC SEND
+     message to the receiver containing a ip address and port number.
+     The receiver accepts the offer by connecting to it.
+
+     [ sender ] --(1) DCC SEND--> [ receiver ]
+                <---(2) accept---
+    
+     When proxied through dircproxy, dircproxy accepts the offer
+     itself, then makes a new offer to the receiver.  This means
+     that dircproxy has already usually received a fair portion of
+     the file before the receiver accepts dircproxy's own offer.
+     This greatly increases the speed of transfers.
+
+     [ sender ] --(1) DCC SEND--> [ proxy ] --(3) DCC SEND--> [ receiver ]
+                <---(2) accept---           <---(4) accept---
      
+     If the DCC RESUME protocol is used, the receiver indicates it wishes
+     to do so by sending a DCC RESUME message to the sender instead of
+     connecting to it, the connect is only done after a DCC ACCEPT is
+     received from the sender.
+
+     [ sender ] --(1) DCC SEND--> [ receiver ]
+                <-(2) DCC RESUME-
+                -(3) DCC ACCEPT->
+                <---(4) accept---
+
+     Of course, with dircproxy proxying, this is too late, it's already
+     accepted the sender's offer and is receiving the file from the
+     beginning.
+
+
  6.1  How do I change what username is presented on IRC?
 
      The obvious answer is to run dircproxy under that username,
