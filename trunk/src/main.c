@@ -9,7 +9,7 @@
  *  - Signal handling
  *  - Debug functions
  * --
- * @(#) $Id: main.c,v 1.44 2000/10/30 13:41:20 keybuk Exp $
+ * @(#) $Id: main.c,v 1.45 2000/11/01 15:04:17 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,6 +46,7 @@
 #include "irc_net.h"
 #include "irc_client.h"
 #include "irc_server.h"
+#include "dcc_net.h"
 #include "timers.h"
 #include "dns.h"
 #include "net.h"
@@ -62,7 +63,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.44 2000/10/30 13:41:20 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.45 2000/11/01 15:04:17 keybuk Exp $";
 
 /* The name of the program */
 static char *progname;
@@ -302,6 +303,7 @@ int main(int argc, char *argv[]) {
     int ns, nt;
 
     ircnet_expunge_proxies();
+    dccnet_expunge_proxies();
     ns = net_poll();
     nt = timer_poll();
 
@@ -311,9 +313,9 @@ int main(int argc, char *argv[]) {
 
   /* Free up stuff */
   ircnet_flush();
+  dccnet_flush();
   dns_flush();
   timer_flush();
-
 
   /* Do a lingering close on all sockets */
   net_closeall();
@@ -501,7 +503,7 @@ int syscall_fail(const char *function, const char *arg, const char *message) {
     syslog(LOG_NOTICE, "%s", msg);
   } else {
 #ifdef DEBUG
-    fprintf(stderr, "%s: %c[33;1m%s%c[m\n", progname, 27, msg, 27);
+    fprintf(stderr, "%s: \033[33;1m%s\033[m\n", progname, msg);
 #else /* DEBUG */
     fprintf(stderr, "%s: %s\n", progname, msg);
 #endif /* DEBUG */
@@ -524,7 +526,7 @@ int error(const char *format, ...) {
     syslog(LOG_ERR, "%s", msg);
   } else {
 #ifdef DEBUG
-    fprintf(stderr, "%s: %c[31;1m%s%c[m\n", progname, 27, msg, 27);
+    fprintf(stderr, "%s: \033[31;1m%s\033[m\n", progname, msg);
 #else /* DEBUG */
     fprintf(stderr, "%s: %s\n", progname, msg);
 #endif /* DEBUG */
