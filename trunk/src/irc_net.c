@@ -5,7 +5,7 @@
  * irc_net.c
  *  - Polling of sockets and acting on any data
  * --
- * @(#) $Id: irc_net.c,v 1.14 2000/08/25 09:38:23 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.15 2000/08/25 09:47:42 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -35,6 +35,7 @@
 #include "irc_net.h"
 
 /* forward declarations */
+static int _ircnet_listen(struct sockaddr_in *);
 static struct ircproxy *_ircnet_newircproxy(void);
 static int _ircnet_client_connected(struct ircproxy *);
 static int _ircnet_acceptclient(int);
@@ -57,7 +58,6 @@ static int listen_sock = -1;
 /* Create a socket to listen on. 0 = ok, other = error */
 int ircnet_listen(const char *port) {
   struct sockaddr_in local_addr;
-  int this_sock;
 
   local_addr.sin_family = AF_INET;
   local_addr.sin_addr.s_addr = INADDR_ANY;
@@ -66,15 +66,24 @@ int ircnet_listen(const char *port) {
   if (!local_addr.sin_port)
     return -1;
 
+  return _ircnet_listen(&local_addr);
+}
+
+/* Does the actual work of creating a listen socket. 0 = ok, other = error */
+int _ircnet_listen(struct sockaddr_in *local_addr) {
+  int this_sock;
+
   this_sock = sock_make();
   if (this_sock == -1)
     return -1;
 
-  if (bind(this_sock, (struct sockaddr *)&local_addr,
-           sizeof(struct sockaddr_in))) {
-    DEBUG_SYSCALL_FAIL("bind");
-    sock_close(this_sock);
-    return -1;
+  if (local_addr) {
+    if (bind(this_sock, (struct sockaddr *)local_addr,
+             sizeof(struct sockaddr_in))) {
+      syscall_fail("bind", "listen", 0);
+      sock_close(this_sock);
+      return -1;
+    }
   }
 
   if (listen(this_sock, SOMAXCONN)) {
@@ -505,21 +514,12 @@ int ircnet_dedicate(struct ircproxy *p) {
   struct ircconnclass *c;
 
   if (dedicated_proxy)
-    return 1;
-
-  if (listen_sock != -1)
-    sock_close(listen_sock);
-
-  listen_sock = sock_make();
-  if (listen_sock == -1)
     return -1;
 
-  if (listen(listen_sock, SOMAXCONN)) {
-    DEBUG_SYSCALL_FAIL("listen");
-    sock_close(listen_sock);
-    listen_sock = -1;
+  debug("Dedicating proxy to %p", p);
+
+  if (_ircnet_listen(0))
     return -1;
-  }
 
   c = connclasses;
   while (c) {
