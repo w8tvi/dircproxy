@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.46 2000/10/10 13:08:35 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.47 2000/10/11 16:05:50 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -501,8 +501,8 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
           ircclient_send_error(p, "Detached from %s %s", PACKAGE, VERSION);
 
           /* Optional AWAY message can be supplied */
-          if ((msg.numparams >= 2) && strlen(msg.params[1])) {
-            _ircclient_detach(p, msg.params[1]);
+          if ((msg.numparams >= 2) && strlen(msg.paramstarts[1])) {
+            _ircclient_detach(p, msg.paramstarts[1]);
           } else {
             _ircclient_detach(p, 0);
           }
@@ -514,8 +514,8 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
 
           if (IS_SERVER_READY(p)) {
             /* Optional QUIT message can be supplied */
-            if ((msg.numparams >= 2) && strlen(msg.params[1])) {
-              ircserver_send_peercmd(p, "QUIT", ":%s", msg.params[1]);
+            if ((msg.numparams >= 2) && strlen(msg.paramstarts[1])) {
+              ircserver_send_peercmd(p, "QUIT", ":%s", msg.paramstarts[1]);
             } else {
               ircserver_send_peercmd(p, "QUIT", ":Leaving IRC - %s %s",
                                      PACKAGE, VERSION);
