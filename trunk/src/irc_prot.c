@@ -1,5 +1,5 @@
 /* dircproxy
- * Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
+ * Copyright (C) 2001 Scott James Remnant <scott@netsplit.com>.
  * All Rights Reserved.
  *
  * irc_prot.c
@@ -9,7 +9,7 @@
  *  - CTCP message parsing
  *  - Username sanitisation
  * --
- * @(#) $Id: irc_prot.c,v 1.12 2000/11/02 16:36:27 keybuk Exp $
+ * @(#) $Id: irc_prot.c,v 1.13 2001/01/11 15:29:21 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the

@@ -1,10 +1,10 @@
 /* dircproxy
- * Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
+ * Copyright (C) 2001 Scott James Remnant <scott@netsplit.com>.
  * All Rights Reserved.
  *
  * match.h
  * --
- * @(#) $Id: match.h,v 1.1 2000/05/13 02:13:56 keybuk Exp $
+ * @(#) $Id: match.h,v 1.2 2001/01/11 15:29:21 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
