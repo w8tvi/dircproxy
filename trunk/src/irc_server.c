@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.58 2002/01/24 01:00:52 scott Exp $
+ * @(#) $Id: irc_server.c,v 1.59 2002/01/31 13:55:04 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -851,6 +851,21 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
         if (p->conn_class->log_events & IRC_LOG_MODE)
           irclog_notice(p, c->name, p->servername, "%s changed mode: %s",
                         msg.src.fullname, msg.paramstarts[1]);
+      }
+
+      squelch = 0;
+    }
+
+  } else if (!irc_strcasecmp(msg.cmd, "TOPIC")) {
+    if (msg.numparams >= 2) {
+      struct ircchannel *c;
+
+      /* Channel topic change */
+      c = ircnet_fetchchannel(p, msg.params[0]);
+
+      if (p->conn_class->log_events & IRC_LOG_TOPIC)
+        irclog_notice(p, c->name, p->servername, "%s changed topic: %s",
+                      msg.src.fullname, msg.paramstarts[1]);
       }
 
       squelch = 0;

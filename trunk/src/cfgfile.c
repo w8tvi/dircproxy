@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.39 2001/12/21 20:17:06 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.40 2002/01/31 13:55:04 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -739,6 +739,8 @@ int cfg_read(const char *filename, char **listen_port,
                 flag = IRC_LOG_NICK;
               } else if (!strcasecmp(str, "mode")) {
                 flag = IRC_LOG_MODE;
+              } else if (!strcasecmp(str, "topic")) {
+                flag = IRC_LOG_TOPIC;
               } else if (!strcasecmp(str, "client")) {
                 flag = IRC_LOG_CLIENT;
               } else if (!strcasecmp(str, "server")) {
