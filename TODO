@@ -60,12 +60,20 @@ For the next release (0.7.0)
 
 	* Locate mysterious "+iw" channel bug.
 
+	* Server passwords, so we can connect to an IRC server that
+	  needs a password
+
 
 Whenever time permits:
 
-	* DCC proxying/rewriting
+	* DCC proxying/rewriting.  Not entirely sure what this involves,
+	  probably having listening sockets, rewriting addresses and all
+	  sorts of things like that.  Ick.
 
-	* DCC-via-ssh
+	* DCC-via-ssh.  This is quite nice, when we get a dcc request,
+	  we somehow run an ssh tunnel and forward the necessary ports
+	  via ssh.  Would involve killing the process when the proxy
+	  has died.  A nice feature to have if possible.
 
 
 Would be nice:
