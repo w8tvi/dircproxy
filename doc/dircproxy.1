@@ -932,7 +932,17 @@ a specific connection class (ie yours).
 
  yes = Command enabled
  no = Command disabled
+ 
+.TP
+.B allow_kill
+You can enable the /DIRCPROXY NOTIFY command if you want people
+to be able to send a notice to anyone using your proxy (including you!).
+This isn't recommended as a global option, instead only enable it for
+a specific connection class (ie yours).
 
+ yes = Command enabled
+ no = Command disabled
+  
 .PP
 Additionally, the following keywords may go only inside a connection
 class definition.  One '\fBpassword\fR' and at least one '\fBserver\fR'

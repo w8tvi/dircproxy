@@ -33,7 +33,8 @@ static char * client_commands[] = {
   "QUIT",
   "USERS",
   "SERVERS",
-  "STATUS"
+  "STATUS",
+  "NOTIFY"
 };
 
 #define I_HELP_INDEX     0
@@ -53,6 +54,7 @@ static char * client_commands[] = {
 #define I_HELP_USERS     14
 #define I_HELP_SERVERS   15
 #define I_HELP_STATUS    16
+#define I_HELP_NOTIFY    17
 
 static char ** command_help[] = {
   help_index,
@@ -71,7 +73,8 @@ static char ** command_help[] = {
   help_quit,
   help_users,
   help_servers,
-  help_status
+  help_status,
+  help_notify
 };
 
 /* functions */

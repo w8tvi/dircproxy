@@ -899,6 +899,17 @@
 #
 #allow_kill no
 
+# allow_notify
+#     You can enable the /DIRCPROXY NOTIFY command here if you want people
+#     to be able to send a notice to anyone using your proxy (including you!).
+#     This isn't recommended, instead only enable it for a specific
+#     connection class (ie yours).
+#
+#     yes = Command enabled
+#     no = Command disabled
+#
+#allow_notify no
+
 
 
 #------------------------------------------------------------------------------#

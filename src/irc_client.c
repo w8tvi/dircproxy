@@ -62,6 +62,7 @@ int  _ircclient_handle_privmsg(struct ircproxy *, struct ircmessage);
 void _ircclient_handle_recall(struct ircproxy *, struct ircmessage);
 void _ircclient_handle_users(struct ircproxy *, struct ircmessage);
 void _ircclient_handle_kill(struct ircproxy *, struct ircmessage);
+void _ircclient_handle_notify(struct ircproxy *, struct ircmessage);
 int  _ircclient_handle_jump(struct ircproxy *, struct ircmessage);
 void _ircclient_handle_status(struct ircproxy *, struct ircmessage);
 void _ircclient_handle_help(struct ircproxy *, struct ircmessage);
@@ -561,7 +562,11 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
         } else if (p->conn_class->allow_kill
                    && !irc_strcasecmp(msg.params[0], "KILL")) {
           _ircclient_handle_kill(p, msg);
-
+	   
+	} else if (p->conn_class->allow_notify
+		   && !irc_strcasecmp(msg.params[0], "NOTIFY")) {
+	  _ircclient_handle_notify(p, msg);
+	      
         } else if (!irc_strcasecmp(msg.params[0], "SERVERS")) {
           struct strlist *s;
           int i;
@@ -1788,6 +1793,14 @@ void _ircclient_handle_kill(struct ircproxy *p, struct ircmessage msg) {
   }
 }
 
+  /* /DIRCPROXY NOTIFY handler */
+void _ircclient_handle_notify(struct ircproxy *p, struct ircmessage msg) 
+{   
+	
+	 
+}
+   
+   
   /* /DIRCPROXY USERS handler */
 void _ircclient_handle_users(struct ircproxy *p, struct ircmessage msg) {
   struct ircconnclass *c;
@@ -2097,6 +2110,8 @@ void _ircclient_handle_help(struct ircproxy *p, struct ircmessage msg) {
       help_page = command_help[I_HELP_USERS];
     } else if (!irc_strcasecmp(msg.params[1], "KILL")) {
       help_page = command_help[I_HELP_KILL];
+    } else if (!irc_strcasecmp(msg.params[1], "NOTIFY")) {
+      help_page = command_help[I_HELP_NOTIFY]; 
     } else if (!irc_strcasecmp(msg.params[1], "HELP")) {
       help_page = command_help[I_HELP_HELP];
     } else {
@@ -2144,6 +2159,9 @@ void _ircclient_handle_help(struct ircproxy *p, struct ircmessage msg) {
       if (p->conn_class->allow_kill)
         ircclient_send_notice(p, "-     KILL      "
                               "(terminate a user's session)");
+      if (p->conn_class->allow_notify)
+	ircclient_send_notice(p, "-     NOTIFY    "
+			      "(send a notice to a user's session");
       ircclient_send_notice(p, "-     SERVERS   "
                             "(show servers list)");
       if (p->conn_class->allow_jump)

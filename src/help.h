@@ -225,4 +225,21 @@ static char *help_kill[] = {
   0
 };
 
+/* help kill */
+static char *help_notify[] = {   
+  "/DIRCPROXY NOTIFY <num>",
+  "send a notice to the user listed in the",
+  "/DIRCPROXY USERS list specified by number",
+  "",
+  "/DIRCPROXY NOTIFY <hostname>",
+  "send a notice to the user coming from or connecting",
+  "to the hostname specified",
+  "",
+  "/DIRCPROXY NOTIFY <nickname>",
+  "send a notice to the user with the nickname specified",
+  0
+}
+;
+
+
 #endif /* __DIRCPROXY_HELP_H */

@@ -602,6 +602,12 @@
  */
 #define DEFAULT_ALLOW_KILL 0
 
+/* DEFAULT_ALLOW_NOTIFY
+ * Wheter the /DIRCPROXY NOTIFY command can be used.
+ * 1 = Enabled
+ * 0 = Disabled
+ */
+#define DEFAULT_ALLOW_NOTIFY 0
 
 /* Global variables */
 struct globalvars {
