@@ -19,3 +19,7 @@ kind of things bots can do, get one of those and get yourself K-Lined.
 Auto-Op/Auto-Voice support: see above.  There is a user-supplied patch
 which adds this at <http://www.shad0w.org.uk/code/>.  It's not official
 so your mileage may vary.
+
+Automatic connection to server: I never wrote dircproxy to do this, so
+to implement the ability for it to connect without having seen a client
+would be a large rewrite.  Maybe one day, not today.
