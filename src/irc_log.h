@@ -4,7 +4,7 @@
  *
  * irc_log.h
  * --
- * @(#) $Id: irc_log.h,v 1.3 2000/08/29 11:12:31 keybuk Exp $
+ * @(#) $Id: irc_log.h,v 1.4 2000/08/31 15:30:56 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -29,5 +29,7 @@ extern int irclog_msg(struct ircproxy *, const char *, const char *,
 extern int irclog_notice(struct ircproxy *, const char *, const char *,
                          const char *, ...);
 extern int irclog_autorecall(struct ircproxy *, const char *);
+extern int irclog_recall(struct ircproxy *, const char *, unsigned long,
+                         unsigned long, const char *);
 
 #endif /* __DIRCPROXY_IRC_LOG_H */
