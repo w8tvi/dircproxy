@@ -1,4 +1,16 @@
-Keep it stable! :o)
+Known Bugs:
 
-1.1 will probably be a core overhaul to add things like scripting
-support and module support.
+   *	Strips any character <= 32 from strings and treats as whitespace.
+	This not only strips things like ^B (bold) and ^A (ctcp) but also
+	strips any > 127 character because it does it using char.
+
+   *	The removal of lines from the start of a log file results in the
+   	file being unlinked, yet the new file isn't chmod()d like the old
+	one was.
+
+   *	Investigate server_pingtimeout bug on IRCnet that's been reported.
+
+   *	Have a look to see if we can't make sure that DCC malloc()s are at
+   	least trapped.  And maybe some others in the code as well.  Those
+	core dumps just aren't pleasant.
+
