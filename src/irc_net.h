@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.3 2000/05/24 17:57:35 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.4 2000/05/24 20:18:21 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -45,6 +45,7 @@ struct ircconnclass {
 /* a channel someone is on */
 struct ircchannel {
   char *name;
+  int inactive;
   struct logfile log;
 
   struct ircchannel *next;
@@ -121,5 +122,6 @@ extern struct ircchannel *ircnet_fetchchannel(struct ircproxy *, const char *);
 extern int ircnet_addchannel(struct ircproxy *, const char *);
 extern int ircnet_delchannel(struct ircproxy *, const char *);
 extern struct ircchannel *ircnet_freechannel(struct ircchannel *);
+extern int ircnet_rejoin(struct ircproxy *, const char *);
 
 #endif /* __DIRCPROXY_IRC_NET_H */
