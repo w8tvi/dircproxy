@@ -6,7 +6,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.65 2002/12/29 21:30:12 scott Exp $
+ * @(#) $Id: irc_server.c,v 1.66 2004/02/14 09:05:12 fharvey Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <sys/param.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -26,6 +27,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <time.h>
+#include <fcntl.h>
 
 #include <dircproxy.h>
 #include "sprintf.h"
@@ -59,8 +61,11 @@ static void _ircserver_ping(struct ircproxy *, void *);
 static void _ircserver_stoned(struct ircproxy *, void *);
 static void _ircserver_antiidle(struct ircproxy *, void *);
 static int _ircserver_forclient(struct ircproxy *, struct ircmessage *);
-static int _ircserver_send_dccreject(struct ircproxy *, const char *,
-                                     const char *);
+static int _ircserver_send_dccreject(struct ircproxy *, const char *, const char *);
+static int _ircserver_dccresume_timeout(struct ircproxy *, struct dcc_resume *);
+
+struct dcc_resume *dcc_resume_list=NULL;
+
 
 /* Time/date format for strftime(3) */
 #define CTCP_TIMEDATE_FORMAT "%a, %d %b %Y %H:%M:%S %z"
@@ -1047,7 +1052,9 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
         struct strlist *n;
         char *unquoted;
         int r;
-
+	struct dcc_resume *currptr;
+	 
+	 
         n = s->next;
         r = ircprot_parsectcp(s->str, &cmsg);
         unquoted = s->str;
@@ -1071,8 +1078,56 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
           len = sizeof(struct sockaddr_in);
           if ((p->client_status == IRC_CLIENT_ACTIVE) &&
               getsockname(p->client_sock, (struct sockaddr *)&vis_addr, &len)) {
-            syscall_fail("getsockname", "", 0);
-
+	     syscall_fail("getsockname", "", 0);
+	     
+	  } else if ((cmsg.numparams >= 4)
+		     && (!irc_strcasecmp(cmsg.params[0], "ACCEPT"))) {
+	     
+	     /* This means someone has accepted our RESUME request */
+	     char *id;
+	     struct dcc_resume *prevptr=NULL;
+	     
+	     id = malloc(strlen(msg.src.name)+strlen(cmsg.params[2])+2);
+	     sprintf(id, "%s:%s", msg.src.name, cmsg.params[2]);
+	     debug("Recieved ACCEPT message with id %s", id);
+	     
+	     for (currptr = dcc_resume_list; currptr; currptr = currptr->next) {
+		if (!strcmp(currptr->id, id)) {
+		   
+		   /* Remove timer */
+		   timer_del((void *)p, currptr->id);
+		   
+		   /* Make connection */
+		   if (!dccnet_new(DCC_SEND_CAPTURE, p->conn_class->dcc_proxy_timeout,
+				   p->conn_class->dcc_proxy_ports, p->conn_class->dcc_proxy_ports_sz,
+				   &currptr->l_port, currptr->r_addr, currptr->r_port,
+				   currptr->capfile, p->conn_class->dcc_capture_maxsize,
+				   DCCN_FUNCTION(_ircserver_send_dccreject),
+				   p, currptr->rejmsg, currptr->size)) {
+		      if (p->conn_class->log_events & IRC_LOG_CTCP)
+			irclog_log(p, IRC_LOG_NOTICE, p->servername, msg.src.fullname,
+				      "Captured DCC SEND from %s into %s",
+				      msg.src.fullname, currptr->capfile);
+		   } else
+		     _ircserver_send_dccreject(p, currptr->rejmsg, "");
+		   /* Remove entry from list */
+		   if (prevptr)
+		     prevptr->next = currptr->next;
+		   else
+		     dcc_resume_list = NULL;
+		   free(currptr->id);
+		   free(currptr->capfile);
+		   free(currptr->rejmsg);
+		   free(currptr->fullname);
+		   free(currptr);
+		   
+		   break;
+		   
+		}
+		prevptr = currptr;
+	     }
+	     free(id);
+	     
           } else if ((cmsg.numparams >= 4)
                      && (!irc_strcasecmp(cmsg.params[0], "CHAT")
                         || !irc_strcasecmp(cmsg.params[0], "SEND"))) {
@@ -1081,9 +1136,11 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
             int l_port, r_port, t_port;
             char *capfile = 0;
             char *rest = 0;
-            int type = 0;
-
-            /* Find out what type of DCC request this is */
+	    int type = 0;
+	    unsigned short resume = 0;
+	    struct stat file_stat; 
+            
+	     /* Find out what type of DCC request this is */
             if (!irc_strcasecmp(cmsg.params[0], "CHAT")) {
               /* Can only proxy chats if we have a client */
               if (p->client_status == IRC_CLIENT_ACTIVE)
@@ -1174,39 +1231,88 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
                                p->nickname, msg.src.name,
                                cmsg.params[0], cmsg.params[1]);
 
-            /* Set up a dcc proxy, note: type is 0 if there isn't a client
-               active and we're not capturing it.  This will send a reject
-               back which is exactly what we want to do. */
-            if (ptr && type
-                && !dccnet_new(type, p->conn_class->dcc_proxy_timeout,
-                               p->conn_class->dcc_proxy_ports,
-                               p->conn_class->dcc_proxy_ports_sz,
-                               &l_port, r_addr, r_port,
-                               capfile, p->conn_class->dcc_capture_maxsize,
-                               DCCN_FUNCTION(_ircserver_send_dccreject),
-                               p, rejmsg))
-            {
-              if (capfile) {
-                dccmsg = x_strdup("");
+	    if (capfile) {
+	       if (!stat(capfile, &file_stat)) {
+		  resume = 1;
+		  
+		  debug("File exists resuming at %d", file_stat.st_size);
+		  
+		  /* Store parameters in linked list */
+		  if (dcc_resume_list) {
+		     for (currptr = dcc_resume_list; currptr->next; currptr = currptr->next);
 
-                irclog_log(p, IRC_LOG_CTCP, logdest, msg.src.orig,
-                           "Captured DCC %s into %s", cmsg.params[0], capfile);
-              } else {
-                dccmsg = x_sprintf("\001DCC %s %s %lu %u%s%s\001",
-                                   cmsg.params[0], cmsg.params[1],
-                                   l_addr.s_addr, l_port,
-                                   (rest ? " " : ""), (rest ? rest : ""));
-
-                irclog_log(p, IRC_LOG_CTCP, logdest, msg.src.orig,
-                           "Received DCC %s Request", cmsg.params[0]);
-              }
-
-            } else if (ptr) {
-              dccmsg = x_strdup("");
-              _ircserver_send_dccreject(p, rejmsg, "Couldn't establish proxy");
-            }
-
-            /* Don't need this anymore */
+		     currptr->next = malloc(sizeof(struct dcc_resume));
+		     currptr = currptr->next;
+		  } else {
+		     dcc_resume_list = malloc(sizeof(struct dcc_resume));
+		     currptr = dcc_resume_list;
+		  }
+		  
+		  /* The Unique ID is Nick:Port */
+		  currptr->id = malloc(strlen(msg.src.name)+strlen(cmsg.params[3])+2);
+		  sprintf(currptr->id, "%s:%s", msg.src.name, cmsg.params[3]);
+		  currptr->capfile = malloc(strlen(capfile)+1);
+		  strcpy(currptr->capfile, capfile);
+		  currptr->rejmsg = malloc(strlen(rejmsg)+1);
+		  strcpy(currptr->rejmsg, rejmsg);
+		  currptr->fullname = malloc(strlen(msg.src.fullname)+1);
+		  strcpy(currptr->fullname, msg.src.fullname);
+		  currptr->l_port = l_port;
+		  currptr->r_port = r_port;
+		  currptr->r_addr = r_addr;
+		  currptr->size = file_stat.st_size;
+		  currptr->next = NULL;
+		  
+		  /* Send RESUME request
+		   net_send(p->server_sock, "PRIVMSG %s :\001DCC RESUME %s %s %d\001", msg.src.name,
+		   cmsg.params[1], cmsg.params[3], file_stat.st_size); */
+		  ircserver_send_command(p, "PRIVMSG", "%s :\001DCC RESUME %s %s %d\001", msg.src.name,
+					 cmsg.params[1], cmsg.params[3], file_stat.st_size);
+		  
+		  /* Set timer */
+		  timer_new((void *)p, currptr->id, p->conn_class->server_retry,
+			    TIMER_FUNCTION(_ircserver_dccresume_timeout), currptr);
+	       }
+	    }
+	     
+	    if (!resume) {
+		
+		/* Set up a dcc proxy, note: type is 0 if there isn't a client
+		 * active and we're not capturing it.  This will send a reject
+		 * back which is exactly what we want to do. */
+		if (ptr && type
+		    && !dccnet_new(type, p->conn_class->dcc_proxy_timeout,
+				   p->conn_class->dcc_proxy_ports,
+				   p->conn_class->dcc_proxy_ports_sz,
+				   &l_port, r_addr, r_port,
+				   capfile, p->conn_class->dcc_capture_maxsize,
+				   DCCN_FUNCTION(_ircserver_send_dccreject),
+				   p, rejmsg, 0)) {		   
+		   if (capfile) {		      
+		      if (p->conn_class->log_events & IRC_LOG_CTCP)
+			irclog_log(p, IRC_LOG_NOTICE, msg.params[0], p->servername,
+				      "Captured DCC %s from %s into %s",
+				      cmsg.params[0], msg.src.fullname, capfile);
+		   } else { 
+		      dccmsg = x_sprintf("\001DCC %s %s %lu %u%s%s\001",
+					 cmsg.params[0], cmsg.params[1],
+					 l_addr.s_addr, l_port,
+					 (rest ? " " : ""), (rest ? rest : ""));		      
+		      if (p->conn_class->log_events & IRC_LOG_CTCP)
+			irclog_log(p, IRC_LOG_NOTICE, msg.params[0], p->servername,
+				      "DCC %s Request from %s", cmsg.params[0],
+				      msg.src.fullname);		      
+		   }
+		} else if (ptr) {
+		   dccmsg = x_strdup("");
+		   _ircserver_send_dccreject(p, rejmsg, "");
+		}
+	     }
+	     
+	     if (capfile)
+	       dccmsg = x_strdup("");
+	     
+	     /* Don't need this anymore */
             free(rejmsg);
 
             /* Cut out the old CTCP and replace with dccmsg */
@@ -1555,4 +1661,58 @@ static int _ircserver_send_dccreject(struct ircproxy *p, const char *msg,
   }
 
   return ret;
+}
+
+static int _ircserver_dccresume_timeout(struct ircproxy *p, struct dcc_resume *node)
+{
+   struct dcc_resume *prevptr;
+   struct stat file_stat;
+   unsigned short counter = 1;
+   char *newfile;
+   int new, old, bytesread;
+   char buffer[1024];
+   
+   timer_del((void *)p, node->id);
+   
+   debug("DCC Resume ID %s timed out", node->id);
+   
+   /* Save file to a new name */
+   newfile = malloc(strlen(node->capfile)+7);
+   do {   
+      sprintf(newfile, "%s.%d", node->capfile, counter);
+      if (stat(newfile, &file_stat)) {
+	 /* File doesn't exist save as this */
+	 debug("Saving %s to %s", node->capfile, newfile);
+	 strcpy(node->capfile, newfile);
+	 break;	 
+      }
+      counter++;     
+   } while (1);
+   
+   free(newfile);
+   
+   /* Make connection anyway (Just means we can't resume) */
+   if (!dccnet_new(DCC_SEND_CAPTURE, p->conn_class->dcc_proxy_timeout,
+		   p->conn_class->dcc_proxy_ports, p->conn_class->dcc_proxy_ports_sz,
+		   &node->l_port, node->r_addr, node->r_port,
+		   node->capfile, p->conn_class->dcc_capture_maxsize,
+		   DCCN_FUNCTION(_ircserver_send_dccreject), p, node->rejmsg, 0)) {  
+      if (p->conn_class->log_events & IRC_LOG_CTCP)
+	irclog_log(p, IRC_LOG_NOTICE, p->servername, node->fullname, 
+		      "Captured DCC SEND from %s into %s", node->fullname, node->capfile);      
+   } else
+     _ircserver_send_dccreject(p, node->rejmsg, "");
+   /* Remove entry from list */
+   if (node != dcc_resume_list) {
+      for (prevptr = dcc_resume_list; prevptr->next != node; prevptr = prevptr->next);
+      prevptr->next = node->next;
+   } else
+     dcc_resume_list = NULL;
+   free(node->id);
+   free(node->capfile);
+   free(node->rejmsg);
+   free(node->fullname);
+   free(node);
+   
+   return 0;
 }

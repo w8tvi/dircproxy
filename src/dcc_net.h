@@ -3,7 +3,7 @@
  *
  * dcc_net.h
  * --
- * @(#) $Id: dcc_net.h,v 1.10 2002/12/29 21:30:11 scott Exp $
+ * @(#) $Id: dcc_net.h,v 1.11 2004/02/14 09:05:12 fharvey Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -86,7 +86,7 @@ struct dccproxy {
 extern int dccnet_new(int, long, int *, size_t, int *,
                       struct in_addr, int, const char *, long,
                       int (*)(void *, const char *, const char *),
-                      void *, const char *);
+                      void *, const char *, uint32_t);
 extern int dccnet_expunge_proxies(void);
 extern void dccnet_flush(void);
 

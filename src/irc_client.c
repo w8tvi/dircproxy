@@ -7,7 +7,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.92 2004/02/13 23:39:33 bear Exp $
+ * @(#) $Id: irc_client.c,v 1.93 2004/02/14 09:05:12 fharvey Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -543,7 +543,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
                                        p->conn_class->dcc_proxy_ports_sz,
                                        &l_port, r_addr, r_port, 0, 0,
                                        DCCN_FUNCTION(_ircclient_send_dccreject),
-                                       p, rejmsg)) {
+                                       p, rejmsg, 0)) {
                   char *me_tmp;
 
                   dccmsg = x_sprintf("\001DCC %s %s %lu %u%s%s\001",
