@@ -10,7 +10,7 @@
  *  - functions to retrieve data from buffers up to delimiters (newlines?)
  *  - main poll()/select() function
  * --
- * @(#) $Id: net.c,v 1.1 2000/10/18 13:26:10 keybuk Exp $
+ * @(#) $Id: net.c,v 1.2 2000/10/18 17:23:31 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -60,6 +60,9 @@ struct sockinfo {
 };
 
 /* forward declarations */
+static struct sockinfo *_net_fetch(int);
+static void _net_free(struct sockinfo *);
+static void _net_freebuff(struct sockbuff *);
 
 /* Types of buffer */
 #define SB_IN  0x01
@@ -274,5 +277,45 @@ int net_read(int sock, char **dest, int len) {
   } else {
     syscall_fail("net_gets", 0, "bad socket provided");
     return -1;
+  }
+}
+
+/* Fetch a sockinfo structure for a socket */
+static struct sockinfo *_net_fetch(int sock) {
+  struct sockinfo *s;
+
+  s = sockets;
+  while (s) {
+    if (s->sock == sock)
+      return s;
+
+    s = s->next;
+  }
+
+  return 0;
+}
+
+/* Free a sockinfo structure and close its socket */
+static void _net_free(struct sockinfo *s) {
+  if (s->in_buff)
+    _net_freebuff(s->in_buff);
+  if (s->out_buff)
+    _net_freebuff(s->out_buff);
+  if (s->pri_buff)
+    _net_freebuff(s->pri_buff);
+
+  close(s->sock);
+  free(s);
+}
+
+/* Free a socket buffer chain */
+static void _net_freebuff(struct sockbuff *b) {
+  while (b) {
+    struct sockbuff *n;
+
+    n = b->next;
+    free(b->data);
+    free(b);
+    b = n;
   }
 }
