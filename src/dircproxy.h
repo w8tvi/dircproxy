@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.41 2000/12/06 15:25:50 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.42 2000/12/07 17:05:43 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -54,6 +54,12 @@
  * shutdown continue
  */
 #define NET_LINGER_TIME 5
+
+/* DCC_BLOCK_SIZE
+ * Size of the block we use when DCC proxying.  Should never really need to
+ * change it, as its not strictly honored anyway.
+ */
+#define DCC_BLOCK_SIZE 2048
 
 /* FALLBACK_USERNAME
  * Before sending username's to the server in a USER command, we strip it
