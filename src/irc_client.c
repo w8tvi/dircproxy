@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.84 2002/08/13 17:31:29 scott Exp $
+ * @(#) $Id: irc_client.c,v 1.85 2002/08/17 19:24:19 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -543,7 +543,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
 
                 /* Save this in case we need it later */
                 rejmsg = x_sprintf(":%s NOTICE %s :\001DCC REJECT %s %s "
-                                   "(%s: unable to proxy)",
+                                   "(%s: unable to proxy)\001",
                                    msg.params[0], p->nickname,
                                    cmsg.params[0], cmsg.params[1], PACKAGE);
  
