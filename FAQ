@@ -99,10 +99,17 @@ Answers
 
  1.3  Are there any mailing lists?
 
-     Yes, there are two mailing lists.  A low traffic one which
-     only receives posts from myself announcing new releases and the
-     occasional other announcement (dircproxy-announce) and a public
-     mailing list for general dircproxy discussion (dircproxy-users).
+     Yes, there are two user mailing lists and two developer mailing
+     lists.
+     
+     The user mailing lists consist of a low traffic one which only
+     receives posts from myself announcing new releases and the occasional
+     other announcement (dircproxy-announce) and a public mailing list
+     for general dircproxy discussion (dircproxy-users).
+
+     For developers there's a mailing list for discussion about dircproxy
+     development (dircproxy-devel) and a mailing list where CVS commit
+     logs are sent (dircproxy-cvs).
 
      For more information, including how to subscribe, see:
 
