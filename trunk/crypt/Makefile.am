@@ -5,3 +5,6 @@ bin_PROGRAMS = \
 
 dircproxy_crypt_SOURCES = \
 	main.c
+
+dircproxy_crypt_LDADD = \
+	../getopt/libgetopt.a
