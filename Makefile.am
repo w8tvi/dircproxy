@@ -2,9 +2,7 @@
 
 EXTRA_DIST = \
 	PROTOCOL \
-	README.inetd \
-	README.dcc-via-ssh \
-	FAQ
+	README.inetd
 
 SUBDIRS = \
 	conf \

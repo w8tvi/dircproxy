@@ -4,12 +4,8 @@
  *
  * main.c
  *  - Program main loop
- *  - Command line handling
- *  - Initialisation and shutdown
- *  - Signal handling
- *  - Debug functions
  * --
- * @(#) $Id: main.c,v 1.41 2000/10/13 13:36:40 keybuk Exp $
+ * @(#) $Id: main.c,v 1.35 2000/09/26 11:52:48 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +25,6 @@
 #include <pwd.h>
 #include <stdio.h>
 #include <sys/types.h>
-#include <sys/wait.h>
 #include <sys/stat.h>
 #include <string.h>
 #include <stdlib.h>
@@ -47,12 +42,10 @@
 #include "irc_client.h"
 #include "irc_server.h"
 #include "timers.h"
-#include "dns.h"
 
 /* forward declarations */
 static void sig_term(int);
 static void sig_hup(int);
-static void sig_child(int);
 #ifdef DEBUG_MEMORY
 static void sig_usr(int);
 #endif /* DEBUG_MEMORY */
@@ -61,7 +54,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.41 2000/10/13 13:36:40 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.35 2000/09/26 11:52:48 keybuk Exp $";
 
 /* The name of the program */
 static char *progname;
@@ -77,9 +70,6 @@ static char *listen_port;
 
 /* The configuration file we used */
 static char *config_file;
-
-/* Global variables */
-struct globalvars g;
 
 /* Long options */
 struct option long_opts[] = {
@@ -178,7 +168,7 @@ int main(int argc, char *argv[]) {
         free(local_file);
         return 2;
       }
-      if (cfg_read(local_file, &listen_port, &g)) {
+      if (cfg_read(local_file, &listen_port)) {
         /* If the local one didn't exist, set to 0 so we open
            global one */
         free(local_file);
@@ -188,7 +178,7 @@ int main(int argc, char *argv[]) {
       }
     }
   } else if (local_file) {
-    if (cfg_read(local_file, &listen_port, &g)) {
+    if (cfg_read(local_file, &listen_port)) {
       /* This is fatal! */
       fprintf(stderr, "%s: Couldn't read configuration from %s: %s\n",
               progname, local_file, strerror(errno));
@@ -206,7 +196,7 @@ int main(int argc, char *argv[]) {
     /* Not fatal if it doesn't exist */
     global_file = x_sprintf("%s/%s", SYSCONFDIR, GLOBAL_CONFIG_FILENAME);
     debug("Global config file: %s", global_file);
-    cfg_read(global_file, &listen_port, &g);
+    cfg_read(global_file, &listen_port);
     config_file = x_strdup(global_file);
     free(global_file);
   } else {
@@ -230,7 +220,6 @@ int main(int argc, char *argv[]) {
   signal(SIGTERM, sig_term);
   signal(SIGINT, sig_term);
   signal(SIGHUP, sig_hup);
-  signal(SIGCHLD, sig_child);
 #ifdef DEBUG_MEMORY
   signal(SIGUSR1, sig_usr);
   signal(SIGUSR2, sig_usr);
@@ -265,6 +254,9 @@ int main(int argc, char *argv[]) {
 
       /* Become process group leader */
       setsid();
+
+      /* Ignore HUP signals */
+      signal(SIGHUP, SIG_IGN);
 
       switch (fork()) {
         case -1:
@@ -310,7 +302,6 @@ int main(int argc, char *argv[]) {
 
   /* Free up stuff */
   ircnet_flush();
-  dns_flush();
   timer_flush();
   if (!inetd_mode && !no_daemon)
     closelog();
@@ -330,11 +321,9 @@ static void sig_term(int sig) {
   stop_poll = 1;
 }
 
-  struct globalvars newglobals;
 /* Signal to reload configuration file */
 static void sig_hup(int sig) {
   struct ircconnclass *oldclasses, *c;
-  struct globalvars newglobals;
   char *new_listen_port;
 
   debug("Received signal %d to reload from %s", sig, config_file);
@@ -342,20 +331,14 @@ static void sig_hup(int sig) {
   oldclasses = connclasses;
   connclasses = 0;
 
-  if (cfg_read(config_file, &new_listen_port, &newglobals)) {
+  if (cfg_read(config_file, &new_listen_port)) {
     /* Config file reload failed */
     error("Reload of configuration file %s failed", config_file);
     ircnet_flush_connclasses(&connclasses);
-
-  /* Copy over new globals */
-  memcpy(&g, &newglobals, sizeof(struct globalvars));
     connclasses = oldclasses;
     free(new_listen_port);
     return;
   }
-
-  /* Copy over new globals */
-  memcpy(&g, &newglobals, sizeof(struct globalvars));
 
   /* Listen port changed */
   if (strcmp(listen_port, new_listen_port)) {
@@ -402,7 +385,7 @@ static void sig_hup(int sig) {
     p = ircnet_fetchclass(c);
     if (p) {
       p->conn_class = 0;
-      ircserver_send_peercmd(p, "QUIT", ":Permission revoked - %s %s",
+      ircserver_send_peercmd(p, "QUIT", ":No longer permitted - %s %s",
                              PACKAGE, VERSION);
       ircserver_close_sock(p);
 
@@ -420,23 +403,6 @@ static void sig_hup(int sig) {
   /* Restore the signal */
   signal(sig, sig_hup);
 }
-
-/* Signal to reap child process */
-static void sig_child(int sig) {
-  int status;
-  pid_t pid;
-
-  debug("Received signal %d to reap", sig);
-  pid = wait(&status);
-  debug("Reaped process %d, exit status %d", pid, status);
-
-  /* Handle any DNS children */
-  dns_endrequest(pid, status);
-
-  /* Restore the signal */
-  signal(sig, sig_child);
-}
-
 
 #ifdef DEBUG_MEMORY
 /* On USR signals, dump debug information */
@@ -536,13 +502,6 @@ int debug(const char *format, ...) {
 
   free(msg);
 #endif /* DEBUG */
-
-  return 0;
-}
-
-/* Called to stop dircproxy */
-int stop(void) {
-  stop_poll = 1;
 
   return 0;
 }

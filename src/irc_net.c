@@ -3,13 +3,9 @@
  * All Rights Reserved.
  *
  * irc_net.c
- *  - Socket to listen for new connections on
- *  - The list of connection classes
- *  - The list of currently active proxies
- *  - Miscellaneous IRC functions
- *  - The main poll() loop
+ *  - Polling of sockets and acting on any data
  * --
- * @(#) $Id: irc_net.c,v 1.30 2000/10/16 11:26:04 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.22 2000/09/26 11:51:26 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -132,9 +128,14 @@ int ircnet_poll(void) {
     }
 
     if (p->client_status & IRC_CLIENT_CONNECTED) {
-      hs = (p->client_sock > hs ? p->client_sock : hs);
-      ns++;
-      FD_SET(p->client_sock, &readset);
+      if ((p->server_status == IRC_SERVER_ACTIVE) 
+          || !(p->client_status & IRC_CLIENT_AUTHED)
+          || !(p->client_status & IRC_CLIENT_GOTNICK)
+          || !(p->client_status & IRC_CLIENT_GOTUSER)) {
+        hs = (p->client_sock > hs ? p->client_sock : hs);
+        ns++;
+        FD_SET(p->client_sock, &readset);
+      }
     }
 
     p = p->next;
@@ -311,7 +312,7 @@ int ircnet_addchannel(struct ircproxy *p, const char *name) {
     p->channels = c;
   }
 
-  if (p->conn_class->chan_log_enabled && p->conn_class->chan_log_always) {
+  if (p->conn_class->chan_log_always) {
     if (irclog_open(p, c->name))
       ircclient_send_channotice(p, c->name,
                                 "(warning) Unable to log channel: %s", c->name);
@@ -349,61 +350,6 @@ int ircnet_delchannel(struct ircproxy *p, const char *name) {
   return -1;
 }
 
-/* Got a channel mode change */
-int ircnet_channel_mode(struct ircproxy *p, struct ircchannel *c,
-                        struct ircmessage *msg, int modes) {
-  int add = 1;
-  int param;
-  char *ptr;
-
-  if (msg->numparams < (modes + 1))
-    return -1;
-
-  debug("Channel '%s' mode change '%s'", c->name, msg->paramstarts[modes]);
-  ptr = msg->params[modes];
-  param = modes + 1;
-
-  while (*ptr) {
-    switch (*ptr) {
-      case '+':
-        add = 1;
-        break;
-      case '-':
-        add = 0;
-        break;
-      /* RFC2812 modes that have a parameter */
-      case 'O':
-      case 'o':
-      case 'v':
-      case 'b':
-      case 'e':
-      case 'I':
-      case 'l':
-        param++;
-        break;
-      /* Channel key */  
-      case 'k':
-        if (add) {
-          if (msg->numparams >= (param + 1)) {
-            debug("Set channel '%s' key '%s'", c->name, msg->params[param]);
-            free(c->key);
-            c->key = x_strdup(msg->params[param]);
-          } else {
-            debug("Bad mode from server, said +k without a key");
-          }
-        } else {
-          debug("Remove channel '%s' key");
-          free(c->key);
-        }
-        param++;
-    }
-
-    ptr++;
-  }
-
-  return 0;
-}
-
 /* Free an ircchannel structure, returns the next */
 struct ircchannel *ircnet_freechannel(struct ircchannel *chan) {
   struct ircchannel *ret;
@@ -412,7 +358,6 @@ struct ircchannel *ircnet_freechannel(struct ircchannel *chan) {
 
   irclog_free(&(chan->log));
   free(chan->name);
-  free(chan->key);
   free(chan);
 
   return ret;
@@ -423,18 +368,14 @@ static void _ircnet_freeproxy(struct ircproxy *p) {
   debug("Freeing proxy %p", p);
 
   if (p->server_status & IRC_SERVER_CONNECTED) {
-    ircserver_send_peercmd(p, "QUIT",
-                           ":Terminated with extreme prejudice - %s %s",
+    ircserver_send_peercmd(p, "QUIT", ":Escaping IRC - %s %s",
                            PACKAGE, VERSION);
     ircserver_close_sock(p);
   }
 
-  if (p->client_status & IRC_CLIENT_CONNECTED) {
-    ircclient_send_error(p, "dircproxy going bye-bye");
+  if (p->client_status & IRC_CLIENT_CONNECTED)
     ircclient_close(p);
-  }
 
-  dns_delall(p);
   timer_delall(p);
   free(p->client_host);
 
@@ -457,20 +398,6 @@ static void _ircnet_freeproxy(struct ircproxy *p) {
     c = p->channels;
     while (c)
       c = ircnet_freechannel(c);
-  }
-
-  if (p->squelch_modes) {
-    struct strlist *s;
-
-    s = p->squelch_modes;
-    while (s) {
-      struct strlist *n;
-
-      n = s->next;
-      free(s->str);
-      free(s);
-      s = n;
-    }
   }
 
   irclog_free(&(p->other_log));
@@ -542,20 +469,10 @@ void ircnet_freeconnclass(struct ircconnclass *class) {
 
   free(class->server_port);
   free(class->drop_modes);
-  free(class->refuse_modes);
   free(class->local_address);
   free(class->away_message);
-  free(class->quit_message);
-  free(class->attach_message);
-  free(class->detach_message);
-  free(class->detach_nickname);
   free(class->chan_log_dir);
-  free(class->chan_log_program);
   free(class->other_log_dir);
-  free(class->other_log_program);
-  free(class->motd_file);
-
-  free(class->orig_local_address);
 
   free(class->password);
   s = class->servers;
@@ -580,36 +497,13 @@ void ircnet_freeconnclass(struct ircconnclass *class) {
     free(t);
   }
 
-  s = class->channels;
-  while (s) {
-    struct strlist *t;
-
-    t = s;
-    s = s->next;
-
-    free(t->str);
-    free(t);
-  }
-
   free(class);
 }
 
 /* hook to rejoin a channel after a kick */
 static void _ircnet_rejoin(struct ircproxy *p, void *data) {
-  struct ircchannel *c;
-
   debug("Rejoining '%s'", (char *)data);
-  c = ircnet_fetchchannel(p, (char *)data);
-  if (c) {
-    if (c->key) {
-      ircserver_send_command(p, "JOIN", "%s :%s", c->name, c->key);
-    } else {
-      ircserver_send_command(p, "JOIN", ":%s", c->name);
-    }
-  } else {
-    ircserver_send_command(p, "JOIN", ":%s", (char *)data);
-  }
-
+  ircserver_send_command(p, "JOIN", ":%s", (char *)data);
   free(data);
 }
 
@@ -668,23 +562,37 @@ int ircnet_dedicate(struct ircproxy *p) {
 
 /* send the dedicated listening port to the user */
 int ircnet_announce_dedicated(struct ircproxy *p) {
-  struct sockaddr_in listen_addr;
+  struct sockaddr_in local_addr, listen_addr;
   unsigned short int port;
+  char *hostname;
   int len;
 
   if (!IS_CLIENT_READY(p))
     return -1;
+
+  hostname = 0;
+  port = 0;
+
+  len = sizeof(struct sockaddr_in);
+  if (!getsockname(p->client_sock, (struct sockaddr *)&local_addr, &len)) {
+    if (local_addr.sin_addr.s_addr)
+      hostname = dns_hostfromaddr(local_addr.sin_addr);
+  } else {
+    syscall_fail("getsockname", "p->client_sock", 0);
+  }
 
   len = sizeof(struct sockaddr_in);
   if (!getsockname(listen_sock, (struct sockaddr *)&listen_addr, &len)) {
     port = ntohs(listen_addr.sin_port);
   } else {
     syscall_fail("getsockname", "listen_sock", 0);
+    free(hostname);
     return -1;
   }
 
   ircclient_send_notice(p, "Reconnect to this session at %s:%d",
-                        p->hostname, port);
+                        (hostname ? hostname : p->hostname), port);
+  free(hostname);
 
   return 0;
 }

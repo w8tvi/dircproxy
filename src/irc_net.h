@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.31 2000/10/16 10:46:48 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.21 2000/09/27 16:45:32 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -21,7 +21,6 @@
 #include <arpa/inet.h>
 #include <time.h>
 
-#include "irc_prot.h"
 #include "stringex.h"
 
 /* a log file - there are good reasons why this isn't defined in irc_log.h */
@@ -41,63 +40,28 @@ struct ircconnclass {
   long server_maxattempts;
   long server_maxinitattempts;
   long server_pingtimeout;
-  int server_autoconnect;
-
   long channel_rejoin;
-  int channel_leave_on_detach;
-  int channel_rejoin_on_attach;
-  
-  long idle_maxtime;
-
   int disconnect_existing;
   int disconnect_on_detach;
-
   char *drop_modes;
-  char *refuse_modes;
-  
   char *local_address;
-
   char *away_message;
-  char *quit_message;
-  char *attach_message;
-  char *detach_message;
-  char *detach_nickname;
-
-  int chan_log_enabled;
   char *chan_log_dir;
-  char *chan_log_program;
   int chan_log_always;
   int chan_log_timestamp;
   long chan_log_maxsize;
   long chan_log_recall;
-
-  int other_log_enabled;
   char *other_log_dir;
-  char *other_log_program;
   int other_log_always;
   int other_log_timestamp;
   long other_log_maxsize;
   long other_log_recall;
-
   int motd_logo;
-  char *motd_file;
   int motd_stats;
-
-  int allow_persist;
-  int allow_jump;
-  int allow_jump_new;
-  int allow_host;
-  int allow_die;
 
   char *password;
   struct strlist *servers, *next_server;
   struct strlist *masklist;
-  struct strlist *channels;
-
-  /* Most config file options can be changed by editing the config file and
-     HUP'ing dircproxy.  One or two can be done from the /DIRCPROXY command
-     though.  Always keep the originals. */
-  char *orig_local_address;
 
   struct ircconnclass *next;
 };
@@ -105,9 +69,7 @@ struct ircconnclass {
 /* a channel someone is on */
 struct ircchannel {
   char *name;
-  char *key;
   int inactive;
-  int unjoined;
   struct logfile log;
 
   struct ircchannel *next;
@@ -142,9 +104,6 @@ struct ircproxy {
 
   int allow_motd;
   int allow_pong;
-  int squelch_411;
-  struct strlist *squelch_modes;
-
   char *awaymessage;
   char *modes;
   struct ircchannel *channels;
@@ -172,12 +131,11 @@ struct ircproxy {
 #define IRC_SERVER_CREATED     0x01
 #define IRC_SERVER_SEEN        0x02
 #define IRC_SERVER_CONNECTED   0x04
-#define IRC_SERVER_INTRODUCED  0x08
-#define IRC_SERVER_GOTWELCOME  0x10
-#define IRC_SERVER_ACTIVE      0x1f
+#define IRC_SERVER_GOTWELCOME  0x08
+#define IRC_SERVER_ACTIVE      0x0f
 
 /* Can we send data to the server? */
-#define IS_SERVER_READY(_c) (((_c)->server_status & 0x0c) == 0x0c)
+#define IS_SERVER_READY(_c) (((_c)->server_status & 0x07) == 0x07)
 
 /* global variables */
 extern struct ircconnclass *connclasses;
@@ -194,8 +152,6 @@ extern struct ircproxy *ircnet_fetchclass(struct ircconnclass *);
 extern struct ircchannel *ircnet_fetchchannel(struct ircproxy *, const char *);
 extern int ircnet_addchannel(struct ircproxy *, const char *);
 extern int ircnet_delchannel(struct ircproxy *, const char *);
-extern int ircnet_channel_mode(struct ircproxy *, struct ircchannel *,
-                               struct ircmessage *, int);
 extern struct ircchannel *ircnet_freechannel(struct ircchannel *);
 extern int ircnet_rejoin(struct ircproxy *, const char *);
 extern int ircnet_dedicate(struct ircproxy *);
