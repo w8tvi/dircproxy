@@ -4,7 +4,7 @@
  *
  * dcc_net.h
  * --
- * @(#) $Id: dcc_net.h,v 1.3 2000/11/10 15:06:20 keybuk Exp $
+ * @(#) $Id: dcc_net.h,v 1.4 2000/11/15 16:10:25 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -19,6 +19,13 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <time.h>
+
+/* Always included after dircproxy.h, so we can do this here. */
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h>
+#else /* HAVE_INTTYPES_H */
+#define uint32_t unsigned long
+#endif /* HAVE_INTTYPES_H */
 
 /* a proxied dcc connection */
 struct dccproxy {
@@ -35,12 +42,12 @@ struct dccproxy {
   struct sockaddr_in sendee_addr;
 
   /* DCC SEND only */
-  u_int32_t bytes_sent, bytes_ackd;
+  uint32_t bytes_sent, bytes_ackd;
 
   /* DCC SEND (Capture) only */
   char *cap_filename;
   FILE *cap_file;
-  u_int32_t bytes_max;
+  uint32_t bytes_max;
 
   struct dccproxy *next;
 };
