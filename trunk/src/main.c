@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.25 2000/08/25 09:46:25 keybuk Exp $
+ * @(#) $Id: main.c,v 1.26 2000/08/25 09:54:32 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.25 2000/08/25 09:46:25 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.26 2000/08/25 09:54:32 keybuk Exp $";
 
 /* The name of the program */
 char *progname;
@@ -259,11 +259,11 @@ int main(int argc, char *argv[]) {
   } else {
     debug("Inetd SuperTed mode!");
 
+    /* running under inetd means we are backgrounded right *now* */
+    in_background = 1;
+
     /* Hook STDIN into a new proxy */
     ircnet_hooksocket(STDIN_FILENO);
-
-    /* running under inetd means we are backgrounded */
-    in_background = 1;
   }
  
   /* Open a connection to syslog if we're in the background */
