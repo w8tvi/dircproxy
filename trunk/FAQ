@@ -8,9 +8,10 @@ Questions
      1.1  What is dircproxy?
      1.2  Where can I get dircproxy?
      1.3  Are there any mailing lists?
-     1.4  How do I report bugs?
-     1.5  Is there an anonymous CVS server?
-     1.6  How do I add a question to the FAQ?
+     1.4  Is there a dircproxy IRC channel?
+     1.5  How do I report bugs?
+     1.6  Is there an anonymous CVS server?
+     1.7  How do I add a question to the FAQ?
 
 2.  Installation
      2.1  How do I compile and install dircproxy?
@@ -96,21 +97,26 @@ Answers
 
          http://dircproxy.sourceforge.net/lists.html
 
- 1.4  How do I report bugs?
+ 1.4  Is there a dircproxy IRC channel?
+
+     Yes, on the OpenProjects IRC network (irc.openprojects.net or
+     irc.linux.com).  We're on #dircproxy.
+
+ 1.5  How do I report bugs?
 
      Bug tracking is done using the SourceForge bug tracking
      system at:
 
          http://sourceforge.net/bugs/?group_id=5645
 
- 1.5  Is there an anonymous CVS server?
+ 1.6  Is there an anonymous CVS server?
 
      Yes.  This can be used to retrieve any release, including the
      current developmental release.  For more information see:
 
          http://dircproxy.sourceforge.net/cvs.html
 
- 1.6  How do I add a question to the FAQ?
+ 1.7  How do I add a question to the FAQ?
 
      E-mail me at scott@netsplit.com and I'll see if its suitable
      for inclusion.
