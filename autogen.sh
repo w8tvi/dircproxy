@@ -2,9 +2,12 @@
 # autogen.sh for dircproxy
 # Scott James Remnant <scott@netsplit.com>
 
-# gettextize
-aclocal-1.6
-autoheader
-automake-1.6 --add-missing --copy
-autoconf
-./configure --enable-maintainer-mode "$@"
+if [ -f ./configure ]; then
+	echo "No need to run autogen.sh, run autoreconf"
+else
+	aclocal
+	autoheader
+	automake --add-missing --copy
+	autoconf
+	./configure --enable-maintainer-mode ${1+"$@"}
+fi

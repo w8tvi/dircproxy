@@ -1,6 +1,6 @@
 To remove litter:
 	for A in . conf contrib crypt doc getopt src; do \
-		(cd $A; rm -rf `cat .cvsignore`); done
+		(cd $A; rm -rf `cat .cvsignore`; rm -rf *~); done
 
 Release checklist
 
