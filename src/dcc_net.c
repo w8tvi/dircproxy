@@ -8,7 +8,7 @@
  *  - The list of currently active DCC proxies
  *  - Miscellaneous DCC functions
  * --
- * @(#) $Id: dcc_net.c,v 1.1 2000/11/01 15:03:30 keybuk Exp $
+ * @(#) $Id: dcc_net.c,v 1.2 2000/11/02 13:29:41 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -104,7 +104,7 @@ static int _dccnet_listen(struct dccproxy *p, void *range, short *port) {
   }
 
   if (port)
-    *port = local_addr.sin_port;
+    *port = ntohs(local_addr.sin_port);
   debug("Listening for DCC Sendees on port %d", ntohs(local_addr.sin_port));
   net_hook(p->sendee_sock, SOCK_LISTENING, (void *)p,
            ACTIVITY_FUNCTION(_dccnet_accept), 0);
@@ -116,8 +116,8 @@ static int _dccnet_listen(struct dccproxy *p, void *range, short *port) {
 static int _dccnet_connect(struct dccproxy *p,
                            struct in_addr addr, short port) {
   p->sender_addr.sin_family = AF_INET;
-  p->sender_addr.sin_addr.s_addr = addr.s_addr;
-  p->sender_addr.sin_port = port;
+  p->sender_addr.sin_addr.s_addr = htonl(addr.s_addr);
+  p->sender_addr.sin_port = htons(port);
 
   debug("Connecting to DCC Sender %s:%d", inet_ntoa(addr), ntohs(port));
 
@@ -173,9 +173,7 @@ static void _dccnet_accept(struct dccproxy *p, int sock) {
       debug("DCC_SEND unimplemented");
       net_hook(p->sendee_sock, SOCK_NORMAL, 0, 0, 0);
     } else if (p->type == DCC_CHAT) {
-      net_hook(p->sendee_sock, SOCK_NORMAL, (void *)p,
-               ACTIVITY_FUNCTION(dccchat_data),
-               ERROR_FUNCTION(dccchat_error));
+      dccchat_accepted(p);
     }
 
     debug("DCC Sendee connected from %s", inet_ntoa(p->sendee_addr.sin_addr));

@@ -5,7 +5,7 @@
  * dcc_chat.c
  *  - DCC chat protocol
  * --
- * @(#) $Id: dcc_chat.c,v 1.2 2000/11/01 17:58:01 keybuk Exp $
+ * @(#) $Id: dcc_chat.c,v 1.3 2000/11/02 13:29:41 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -43,6 +43,13 @@ void dccchat_connected(struct dccproxy *p, int sock) {
   net_hook(p->sender_sock, SOCK_NORMAL, (void *)p,
            ACTIVITY_FUNCTION(dccchat_data),
            ERROR_FUNCTION(dccchat_error));
+
+  if (p->sendee_status != DCC_SENDEE_ACTIVE) {
+    net_send(p->sender_sock, "--(%s)-- Awaiting connection from remote peer\n",
+             PACKAGE);
+  } else {
+    net_send(p->sendee_sock, "--(%s)-- Connected to remote peer\n", PACKAGE);
+  }
 }
 
 /* Called when a connection fails */
@@ -56,6 +63,19 @@ void dccchat_connectfailed(struct dccproxy *p, int sock, int bad) {
   debug("DCC Connection failed");
   p->sender_status &= ~(DCC_SENDER_CREATED);
   p->dead = 1;
+}
+
+/* Called when the sendee has been accepted */
+void dccchat_accepted(struct dccproxy *p) {
+  net_hook(p->sender_sock, SOCK_NORMAL, (void *)p,
+           ACTIVITY_FUNCTION(dccchat_data),
+           ERROR_FUNCTION(dccchat_error));
+
+  if (p->sender_status != DCC_SENDER_ACTIVE) {
+    net_send(p->sendee_sock, "--(%s)-- Connecting to remote peer\n", PACKAGE);
+  } else {
+    net_send(p->sender_sock, "--(%s)-- Remote peer connected\n", PACKAGE);
+  }
 }
 
 /* Called when we get data over a DCC link */
