@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.14 2000/09/01 12:15:36 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.15 2000/09/26 10:58:57 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -49,6 +49,7 @@ int cfg_read(const char *filename, char **listen_port) {
   long server_pingtimeout;
   long channel_rejoin;
   int disconnect_existing;
+  int disconnect_on_detach;
   char *drop_modes;
   char *local_address;
   char *away_message;
@@ -81,6 +82,7 @@ int cfg_read(const char *filename, char **listen_port) {
   server_pingtimeout = DEFAULT_SERVER_PINGTIMEOUT;
   channel_rejoin = DEFAULT_CHANNEL_REJOIN;
   disconnect_existing = DEFAULT_DISCONNECT_EXISTING;
+  disconnect_on_detach = DEFAULT_DISCONNECT_ON_DETACH;
   drop_modes = x_strdup(DEFAULT_DROP_MODES);
   local_address = (DEFAULT_LOCAL_ADDRESS ? x_strdup(DEFAULT_LOCAL_ADDRESS) : 0);
   away_message = (DEFAULT_AWAY_MESSAGE ? x_strdup(DEFAULT_AWAY_MESSAGE) : 0);
@@ -216,6 +218,13 @@ int cfg_read(const char *filename, char **listen_port) {
         _cfg_read_bool(&buf,
                        &(class ? class->disconnect_existing
                                : disconnect_existing));
+
+      } else if (!strcasecmp(key, "disconnect_existing_user")) {
+        /* disconnect_on_detach yes
+           disconnect_on_detach no */
+        _cfg_read_bool(&buf,
+                       &(class ? class->disconnect_on_detach
+                               : disconnect_on_detach));
 
       } else if (!strcasecmp(key, "drop_modes")) {
         /* drop_modes "ow" */
@@ -448,6 +457,7 @@ int cfg_read(const char *filename, char **listen_port) {
         class->server_pingtimeout = server_pingtimeout;
         class->channel_rejoin = channel_rejoin;
         class->disconnect_existing = disconnect_existing;
+        class->disconnect_on_detach = disconnect_on_detach;
         class->drop_modes = x_strdup(drop_modes);
         class->local_address = (local_address ? x_strdup(local_address) : 0);
         class->away_message = (away_message ? x_strdup(away_message) : 0);

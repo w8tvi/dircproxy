@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.36 2000/09/18 09:54:03 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.37 2000/09/26 10:58:57 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -590,6 +590,9 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
       p->conn_class = cc;
       p->client_status |= IRC_CLIENT_AUTHED;
       time(&(p->start));
+
+      if (p->conn_class->disconnect_on_detach)
+        p->die_on_close = 1;
 
       /* Okay, they've authed for the first time, make the log directory
          here */

@@ -2,7 +2,7 @@
 .\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.9 2000/09/04 13:56:47 keybuk Exp $
+.\" @(#) $Id: dircproxy.1,v 1.10 2000/09/26 10:58:57 keybuk Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -159,6 +159,15 @@ this, otherwise you'll have a fight on your hands.
 
 yes = Yes, disconnect
 no = No, don't let me on
+
+.TP
+.B disconnect_on_detach
+When you detach from dircproxy it usually keeps you connected to the
+server until you connect again.  If you don't want this, and you want
+it to close your server connection as well, then set this.
+
+yes = Close session on disconnection
+no = Stay connected to server until reattachment
 
 .TP
 .B drop_modes
