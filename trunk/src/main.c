@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.29 2000/08/29 11:10:24 keybuk Exp $
+ * @(#) $Id: main.c,v 1.30 2000/08/30 10:48:40 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,13 +54,13 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.29 2000/08/29 11:10:24 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.30 2000/08/30 10:48:40 keybuk Exp $";
 
 /* The name of the program */
-char *progname;
+static char *progname;
 
 /* whether we went in the background or not */
-int in_background = 0;
+static int in_background = 0;
 
 /* set to 1 to abort the main loop */
 static int stop_poll = 0;
