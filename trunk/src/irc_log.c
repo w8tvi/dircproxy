@@ -7,7 +7,7 @@
  *  - Handling of log programs
  *  - Recalling from log files
  * --
- * @(#) $Id: irc_log.c,v 1.41 2002/10/17 18:45:30 scott Exp $
+ * @(#) $Id: irc_log.c,v 1.42 2002/10/20 16:38:58 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -332,7 +332,7 @@ static FILE *_irclog_openuser(struct ircproxy *p, const char *to) {
   return user_log;
 }
 
-/* Read a line from the log */
+/* Read a line from the log FIXME */
 static char *_irclog_read(FILE *file) {
   char buff[512], *line;
 
@@ -384,7 +384,7 @@ static void _irclog_printf(FILE *fd, const char *format, ...) {
   free(msg);
 }
 
-/* Write a line to the log */
+/* Write a line to the log FIXME don't just roll by line counts now? */
 static int _irclog_write(struct logfile *log, const char *format, ...) {
   va_list ap;
   char *msg;
@@ -562,7 +562,7 @@ static int _irclog_writetext(struct ircproxy *p, struct logfile *log,
   _irclog_write(log, "%lu %s %s %s %s",
                 now, irclog_flagtostr(event), dest, from, text);
 
-  /* Write to the user's copy FIXME do this properly */
+  /* Write to the user's copy */
   user_log = _irclog_openuser(p, to);
   if (user_log) {
     char tbuf[40];
@@ -621,7 +621,7 @@ static int _irclog_writetext(struct ircproxy *p, struct logfile *log,
   return 0;
 }
 
-/* Called to automatically recall stuff */
+/* Called to automatically recall stuff FIXME */
 int irclog_autorecall(struct ircproxy *p, const char *to) {
   unsigned long recall, start, lines;
   struct logfile *log;
@@ -653,7 +653,7 @@ int irclog_autorecall(struct ircproxy *p, const char *to) {
   return _irclog_recall(p, log, start, lines, to, 0);
 }
 
-/* Called to manually recall stuff */
+/* Called to manually recall stuff FIXME */
 int irclog_recall(struct ircproxy *p, const char *to,
                   long start, long lines, const char *from) {
   struct logfile *log;
@@ -675,7 +675,7 @@ int irclog_recall(struct ircproxy *p, const char *to,
   return _irclog_recall(p, log, start, lines, to, from);
 }
 
-/* Called to do the recall from a log file */
+/* Called to do the recall from a log file FIXME */
 static int _irclog_recall(struct ircproxy *p, struct logfile *log,
                           unsigned long start, unsigned long lines,
                           const char *to, const char *from) {
