@@ -5,7 +5,7 @@
  * irc_server.c
  *  - Handling of servers connected to the proxy
  * --
- * @(#) $Id: irc_server.c,v 1.22 2000/09/27 16:45:32 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.22.2.1 2000/10/10 13:17:34 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -332,7 +332,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
     /* Restore the user mode */
     if (p->modes)
-      ircserver_send_command(p, "MODE", "+%s", p->modes);
+      ircserver_send_command(p, "MODE", "%s +%s", p->nickname, p->modes);
 
     /* Restore the away message */
     if (p->awaymessage) {
