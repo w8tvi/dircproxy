@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.42 2000/12/07 17:05:43 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.43 2000/12/21 13:21:05 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -60,6 +60,12 @@
  * change it, as its not strictly honored anyway.
  */
 #define DCC_BLOCK_SIZE 2048
+
+/* NICK_GUARD_TIME
+ * Number of seconds after being told the set nickname was rejected to wait
+ * until we attempt to get it back again.
+ */
+#define NICK_GUARD_TIME 60
 
 /* FALLBACK_USERNAME
  * Before sending username's to the server in a USER command, we strip it
@@ -282,6 +288,13 @@
  * 0 = don't do this
  */
 #define DEFAULT_DETACH_NICKNAME 0
+
+/* DEFAULT_NICK_KEEP
+ * Attempt to keep the nickname last set by the IRC client?
+ * 1 = Yes
+ * 0 = No
+ */
+#define DEFAULT_NICK_KEEP 1
 
 /* DEFAULT_CHAN_LOG_ENABLED
  * Whether to log channel text

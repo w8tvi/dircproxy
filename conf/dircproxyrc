@@ -300,6 +300,20 @@
 #detach_nickname "none"
 
 
+# NICKNAME OPTIONS
+#     Options affecting your nickname
+
+# nick_keep
+#     Whether dircproxy should attempt to keep the nickname you last set
+#     using your client.  If this is 'yes' then it will keep on trying to
+#     get it back if it is lost.
+#
+#     yes = try to keep my nickname
+#     no = if it changes, leave it
+#
+#nick_keep yes
+
+
 # CHANNEL LOG OPTIONS
 #     Options affecting logging of channel text.
 

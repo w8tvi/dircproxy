@@ -2,7 +2,7 @@
 .\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.29 2000/12/06 15:06:31 keybuk Exp $
+.\" @(#) $Id: dircproxy.1,v 1.30 2000/12/21 13:21:05 keybuk Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -315,6 +315,15 @@ character is replaced with whataver your nickname was before you
 detached (ie "*_away" adds "_away" to the end of your nickname);
  
  none = Leave nickname as it is
+
+.TP
+.B nick_keep
+Whether \fBdircproxy\fR should attempt to keep the nickname you last set
+using your client.  If this is 'yes' then it will keep on trying to
+get it back if it is lost.
+
+ yes = try to keep my nickname
+ no = if it changes, leave it
 
 .TP
 .B chan_log_enabled

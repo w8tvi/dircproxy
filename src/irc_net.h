@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.39 2000/12/06 15:17:15 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.40 2000/12/21 13:21:05 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -70,6 +70,8 @@ struct ircconnclass {
   char *attach_message;
   char *detach_message;
   char *detach_nickname;
+
+  int nick_keep;
 
   int chan_log_enabled;
   int chan_log_always;
@@ -163,6 +165,9 @@ struct ircproxy {
   long server_attempts;
 
   char *nickname;
+  char *setnickname;
+  char *oldnickname;
+
   char *username;
   char *hostname;
   char *realname;
@@ -177,6 +182,7 @@ struct ircproxy {
   int allow_motd;
   int allow_pong;
   int squelch_411;
+  int expecting_nick;
   struct strlist *squelch_modes;
 
   char *awaymessage;
