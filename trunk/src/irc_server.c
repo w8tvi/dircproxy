@@ -5,7 +5,7 @@
  * irc_server.c
  *  - Handling of servers connected to the proxy
  * --
- * @(#) $Id: irc_server.c,v 1.11 2000/05/25 18:15:11 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.12 2000/08/21 14:54:11 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -295,16 +295,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
         ircclient_welcome(p);
     }
 
-  } else if (!strcasecmp(msg.cmd, "005")) {
-    /* Ignore 005 */
-  } else if (!strcasecmp(msg.cmd, "375")) {
-    /* Ignore 255 */
-  } else if (!strcasecmp(msg.cmd, "372")) {
-    /* Ignore 255 */
-  } else if (!strcasecmp(msg.cmd, "376") || !strcasecmp(msg.cmd, "422")) {
-    /* Use the end of the message of the day as a hook.  This is probably
-       not ideal, but X-Chat does this so I guess it works, and what's good
-       enough for Peter is good enough for me. */
+    /* Also use this numeric to send everything state-related to the client.
+       From this moment on, we assume the server is happy. */
 
     /* Restore the user mode */
     if (p->modes)
@@ -329,6 +321,16 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       }
     }
 
+  } else if (!strcasecmp(msg.cmd, "005")) {
+    /* Ignore 005 */
+  } else if (!strcasecmp(msg.cmd, "375")) {
+    /* Ignore 375 */
+  } else if (!strcasecmp(msg.cmd, "372")) {
+    /* Ignore 372 */
+  } else if (!strcasecmp(msg.cmd, "376")) {
+    /* Ignore 376 */
+  } else if (!strcasecmp(msg.cmd, "422")) {
+    /* Ignore 422 */
   } else if (!strcasecmp(msg.cmd, "431") || !strcasecmp(msg.cmd, "432")
              || !strcasecmp(msg.cmd, "433") || !strcasecmp(msg.cmd, "436")
              || !strcasecmp(msg.cmd, "438")) {
