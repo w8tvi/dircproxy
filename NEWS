@@ -1,6 +1,10 @@
 NEWS about changes for existing users.
 --------------------------------------
 
+Version 0.6.1 - Thu May 25 15:04:00 BST 2000
+
+	* Just bug fixes.  No changes to worry about.
+
 Version 0.6.0 - Wed May 24 22:33:00 BST 2000
 
 	* There is now a configuration file.  Copy the dircproxyrc.example
