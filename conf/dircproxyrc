@@ -208,6 +208,15 @@
 # MODE OPTIONS
 #     Options affecting user modes set by the IRC server.
 
+# initial_modes
+#     Which user modes should we automatically set when you first connect
+#     to a server.  Just in case you forget to do it yourself with your
+#     irc client.
+#
+#     Set to "" to not set any modes.
+#
+#initial_modes "i"
+
 # drop_modes
 #     Which user modes to drop automatically when you detach, handy to
 #     limit the impact that your client has while connected, or for extra

@@ -2,7 +2,7 @@
 .\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.28 2000/11/10 15:03:24 keybuk Exp $
+.\" @(#) $Id: dircproxy.1,v 1.29 2000/12/06 15:06:31 keybuk Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -241,6 +241,14 @@ it to close your server connection as well, then set this.
 
  yes = Close session on disconnection
  no = Stay connected to server until reattachment
+
+.TP
+.B initial_modes
+Which user modes should we automatically set when you first connect
+to a server.  Just in case you forget to do it yourself with your
+irc client.
+
+Set to "" to not set any modes.
 
 .TP
 .B drop_modes
