@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.23 2000/08/29 11:12:31 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.24 2000/08/30 10:41:21 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -28,6 +28,7 @@
 #include "irc_string.h"
 #include "irc_server.h"
 #include "irc_client.h"
+#include "logo.h"
 
 /* forward declarations */
 static int _ircclient_gotmsg(struct ircproxy *, const char *);
@@ -610,61 +611,82 @@ int ircclient_welcome(struct ircproxy *p) {
     ircclient_send_numeric(p, 4, "%s %s %s %s",
                            p->servername, p->serverver,
                            p->serverumodes, p->servercmodes);
-  ircclient_send_numeric(p, 375, ":- %s Message of the Day -", p->servername);
-  if (p->other_log.open && p->other_log.nlines) {
-    char *s;
-
-    if (p->conn_class->other_log_recall == -1) {
-      s = x_strdup("all");
-    } else if (p->conn_class->other_log_recall == 0) {
-      s = x_strdup("none");
-    } else {
-      s = x_sprintf("%ld", p->conn_class->other_log_recall);
+  if (p->conn_class->motd_logo || p->conn_class->motd_stats)
+    ircclient_send_numeric(p, 375, ":- %s Message of the Day -", PACKAGE);
+  if (p->conn_class->motd_logo) {
+    char *ver;
+    int line;
+   
+    line = 0;
+    while (logo[line]) {
+      ircclient_send_numeric(p, 372, ":- %s", logo[line]);
+      line++;
     }
 
-    ircclient_send_numeric(p, 372, ":- %s", "You missed:");
-    ircclient_send_numeric(p, 372, ":-   %ld server/private message%s "
-                           "(%s will be sent)", p->other_log.nlines,
-                           (p->other_log.nlines == 1 ? "" : "s"), s);
-    ircclient_send_numeric(p, 372, ":-");
-
-    free(s);
+    ver = x_sprintf(verstr, VERSION);
+    ircclient_send_numeric(p, 372, ":- %s", ver);
+    free(ver);
   }
-  if (p->channels) {
-    struct ircchannel *c;
+  if (p->conn_class->motd_stats) {
+    if (p->other_log.open && p->other_log.nlines) {
+      char *s;
 
-    ircclient_send_numeric(p, 372, ":- %s", "You were on:");
-    c = p->channels;
-    while (c) {
-      if (c->inactive) {
-        ircclient_send_numeric(p, 372, ":-   %s %s", c->name,
-                               "(forcefully removed)");
-      } else if (c->log.open && c->log.nlines) {
-        char *s;
-
-        if (p->conn_class->chan_log_recall == -1) {
-          s = x_strdup("all");
-        } else if (p->conn_class->chan_log_recall == 0) {
-          s = x_strdup("none");
-        } else {
-          s = x_sprintf("%ld", MIN(p->other_log.nlines,
-                                   p->conn_class->chan_log_recall));
-        }
-
-        ircclient_send_numeric(p, 372, ":-   %s. %ld lines logged. "
-                               "(%s will be sent)", c->name, c->log.nlines, s);
-
-        free(s);
+      if (p->conn_class->other_log_recall == -1) {
+        s = x_strdup("all");
+      } else if (p->conn_class->other_log_recall == 0) {
+        s = x_strdup("none");
       } else {
-        ircclient_send_numeric(p, 372, ":-   %s %s", c->name,
-                               "(not logged)");
+        s = x_sprintf("%ld", p->conn_class->other_log_recall);
       }
-      c = c->next;
+
+      ircclient_send_numeric(p, 372, ":- %s", "You missed:");
+      ircclient_send_numeric(p, 372, ":-   %ld server/private message%s "
+                             "(%s will be sent)", p->other_log.nlines,
+                             (p->other_log.nlines == 1 ? "" : "s"), s);
+      ircclient_send_numeric(p, 372, ":-");
+
+      free(s);
     }
-    ircclient_send_numeric(p, 372, ":-");
+    if (p->channels) {
+      struct ircchannel *c;
+
+      ircclient_send_numeric(p, 372, ":- %s", "You were on:");
+      c = p->channels;
+      while (c) {
+        if (c->inactive) {
+          ircclient_send_numeric(p, 372, ":-   %s %s", c->name,
+                                 "(forcefully removed)");
+        } else if (c->log.open && c->log.nlines) {
+          char *s;
+
+          if (p->conn_class->chan_log_recall == -1) {
+            s = x_strdup("all");
+          } else if (p->conn_class->chan_log_recall == 0) {
+            s = x_strdup("none");
+          } else {
+            s = x_sprintf("%ld", MIN(c->log.nlines,
+                                     p->conn_class->chan_log_recall));
+          }
+
+          ircclient_send_numeric(p, 372, ":-   %s. %ld line%s logged. "
+                                 "(%s will be sent)", c->name, c->log.nlines,
+                                 (c->log.nlines == 1 ? "" : "s"), s);
+
+          free(s);
+        } else {
+          ircclient_send_numeric(p, 372, ":-   %s %s", c->name,
+                                 "(not logged)");
+        }
+        c = c->next;
+      }
+      ircclient_send_numeric(p, 372, ":-");
+    }
   }
-  ircclient_send_numeric(p, 372, ":- %s", "Welcome back!");
-  ircclient_send_numeric(p, 376, ":End of /MOTD command.");
+  if (p->conn_class->motd_logo || p->conn_class->motd_stats) {
+    ircclient_send_numeric(p, 376, ":End of /MOTD command.");
+  } else {
+    ircclient_send_numeric(p, 422, ":No MOTD.");
+  }
 
   if (p->modes)
     ircclient_send_selfcmd(p, "MODE", "%s +%s", p->nickname, p->modes);

@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.11 2000/08/29 11:10:24 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.12 2000/08/30 10:41:21 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -61,6 +61,8 @@ int cfg_read(const char *filename, char **listen_port) {
   int other_log_timestamp;
   long other_log_maxsize;
   long other_log_recall;
+  int motd_logo;
+  int motd_stats;
 
   class = 0;
   line = 0;
@@ -90,6 +92,8 @@ int cfg_read(const char *filename, char **listen_port) {
   other_log_timestamp = DEFAULT_OTHER_LOG_TIMESTAMP;
   other_log_maxsize = DEFAULT_OTHER_LOG_MAXSIZE;
   other_log_recall = DEFAULT_OTHER_LOG_RECALL;
+  motd_logo = DEFAULT_MOTD_LOGO;
+  motd_stats = DEFAULT_MOTD_STATS;
 
   while (valid) {
     char buff[512], *buf;
@@ -399,6 +403,16 @@ int cfg_read(const char *filename, char **listen_port) {
                           &(class ? class->other_log_recall
                                   : other_log_recall));
 
+      } else if (!strcasecmp(key, "motd_logo")) {
+        /* motd_logo yes
+           motd_logo no */
+        _cfg_read_bool(&buf, &(class ? class->motd_logo : motd_logo));
+
+      } else if (!strcasecmp(key, "motd_stats")) {
+        /* motd_stats yes
+           motd_stats no */
+        _cfg_read_bool(&buf, &(class ? class->motd_stats : motd_stats));
+
       } else if (!class && !strcasecmp(key, "connection")) {
         /* connection {
              :
@@ -438,6 +452,8 @@ int cfg_read(const char *filename, char **listen_port) {
         class->other_log_timestamp = other_log_timestamp;
         class->other_log_maxsize = other_log_maxsize;
         class->other_log_recall = other_log_recall;
+        class->motd_logo = motd_logo;
+        class->motd_stats = motd_stats;
 
       } else if (class && !strcasecmp(key, "password")) {
         /* connection {
