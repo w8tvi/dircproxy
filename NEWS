@@ -1,6 +1,10 @@
 NEWS about changes for existing users.
 --------------------------------------
 
+Version 1.0.2 - Tue Jan  1 18:15:00 GMT 2001
+
+	* New 'server_keepalive' config directive.
+
 Version 1.0.1 - Wed Jul 12 17:00:00 BST 2001
 
 	* Just bug fixes.  No changes to worry about.
