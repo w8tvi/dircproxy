@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.5 2000/05/25 22:20:48 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.6 2000/08/24 11:10:21 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -35,7 +35,11 @@ static int _cfg_read_string(char **, char **);
 
 /* Read a config file */
 int cfg_read(const char *filename) {
+  long server_maxattempts, server_maxinitattempts;
+  long server_retry, server_dnsretry;
   struct ircconnclass *class;
+  long channel_rejoin;
+  char *server_port;
   int valid;
   long line;
   FILE *fd;
@@ -46,6 +50,14 @@ int cfg_read(const char *filename) {
   fd = fopen(filename, "r");
   if (!fd)
     return -1;
+
+  /* Initialise using defaults */
+  server_port = x_strdup(DEFAULT_SERVER_PORT);
+  server_retry = DEFAULT_SERVER_RETRY;
+  server_dnsretry = DEFAULT_SERVER_DNSRETRY;
+  server_maxattempts = DEFAULT_SERVER_MAXATTEMPTS;
+  server_maxinitattempts = DEFAULT_SERVER_MAXINITATTEMPTS;
+  channel_rejoin = DEFAULT_CHANNEL_REJOIN;
 
   while (valid) {
     char buff[512], *buf;
@@ -98,7 +110,9 @@ int cfg_read(const char *filename) {
       /* Handle the keys */
       if (!class && !strcasecmp(key, "listen_port")) {
         /* listen_port 57000
-           listen_port "dircproxy"    # From /etc/services */
+           listen_port "dircproxy"    # From /etc/services
+         
+           ( cannot go in a connection {} ) */
         char *str;
 
         if (_cfg_read_string(&buf, &str))
@@ -107,7 +121,7 @@ int cfg_read(const char *filename) {
         free(listen_port);
         listen_port = str;
 
-      } else if (!class && !strcasecmp(key, "server_port")) {
+      } else if (!strcasecmp(key, "server_port")) {
         /* server_port 6667
            server_port "irc"    # From /etc/services */
         char *str;
@@ -115,28 +129,40 @@ int cfg_read(const char *filename) {
         if (_cfg_read_string(&buf, &str))
           UNMATCHED_QUOTE;
 
-        free(server_port);
-        server_port = str;
+        if (class) {
+          free(class->server_port);
+          class->server_port = str;
+        } else {
+          free(server_port);
+          server_port = str;
+        }
 
-      } else if (!class && !strcasecmp(key, "server_retry")) {
+      } else if (!strcasecmp(key, "server_retry")) {
         /* server_retry 15 */
-        _cfg_read_numeric(&buf, &server_retry);
+        _cfg_read_numeric(&buf,
+                          &(class ? class->server_retry : server_retry));
 
-      } else if (!class && !strcasecmp(key, "server_dnsretry")) {
+      } else if (!strcasecmp(key, "server_dnsretry")) {
         /* server_dnsretry 15 */
-        _cfg_read_numeric(&buf, &server_dnsretry);
+        _cfg_read_numeric(&buf,
+                          &(class ? class->server_dnsretry : server_dnsretry));
 
-      } else if (!class && !strcasecmp(key, "server_maxattempts")) {
+      } else if (!strcasecmp(key, "server_maxattempts")) {
         /* server_maxattempts 0 */
-        _cfg_read_numeric(&buf, &server_maxattempts);
+        _cfg_read_numeric(&buf,
+                          &(class ? class->server_maxattempts
+                                  : server_maxattempts));
 
-      } else if (!class && !strcasecmp(key, "server_maxinitattempts")) {
+      } else if (!strcasecmp(key, "server_maxinitattempts")) {
         /* server_maxinitattempts 5 */
-        _cfg_read_numeric(&buf, &server_maxinitattempts);
+        _cfg_read_numeric(&buf,
+                          &(class ? class->server_maxinitattempts
+                                  : server_maxinitattempts));
 
-      } else if (!class && !strcasecmp(key, "channel_rejoin")) {
+      } else if (!strcasecmp(key, "channel_rejoin")) {
         /* channel_rejoin 5 */
-        _cfg_read_numeric(&buf, &channel_rejoin);
+        _cfg_read_numeric(&buf,
+                          &(class ? class->channel_rejoin : channel_rejoin));
  
       } else if (!class && !strcasecmp(key, "log_autorecall")) {
         /* log_autorecall 128 */
@@ -162,7 +188,13 @@ int cfg_read(const char *filename) {
         /* Allocate memory, it'll be filled later */
         class = (struct ircconnclass *)malloc(sizeof(struct ircconnclass));
         memset(class, 0, sizeof(struct ircconnclass));
-        class->awaymessage = (char *)-1;
+        class->awaymessage = x_strdup(DEFAULT_DETACH_AWAY);
+        class->server_port = x_strdup(server_port);
+        class->server_retry = server_retry;
+        class->server_dnsretry = server_dnsretry;
+        class->server_maxattempts = server_maxattempts;
+        class->server_maxinitattempts = server_maxinitattempts;
+        class->channel_rejoin = channel_rejoin;
 
       } else if (class && !strcasecmp(key, "password")) {
         /* connection {
@@ -203,9 +235,7 @@ int cfg_read(const char *filename) {
         if (_cfg_read_string(&buf, &str))
           UNMATCHED_QUOTE;
 
-        if (class->awaymessage != (char *)-1)
-          free(class->awaymessage);
-
+        free(class->awaymessage);
         if (strcmp(str, "none")) {
           class->awaymessage = str;
         } else {
@@ -276,9 +306,6 @@ int cfg_read(const char *filename) {
 
         /* Add to the list of servers if valid, otherwise free it */
         if (valid) {
-          if (class->awaymessage == (char *)-1)
-            class->awaymessage = x_strdup(DEFAULT_DETACH_AWAY);
-
           class->next_server = class->servers;
           class->next = connclasses;
           connclasses = class;
@@ -320,6 +347,7 @@ int cfg_read(const char *filename) {
   }
 
   fclose(fd);
+  free(server_port);
   return (valid ? 0 : -1);
 }
 

@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.7 2000/08/23 11:47:18 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.8 2000/08/24 11:10:21 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -36,6 +36,12 @@ struct ircconnclass {
   char *password;
   char *bind;
   char *awaymessage;
+  char *server_port;
+  long server_retry;
+  long server_dnsretry;
+  long server_maxattempts;
+  long server_maxinitattempts;
+  long channel_rejoin;
   struct strlist *servers, *next_server;
   struct strlist *masklist;
 
