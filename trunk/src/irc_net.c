@@ -5,7 +5,7 @@
  * irc_net.c
  *  - Polling of sockets and acting on any data
  * --
- * @(#) $Id: irc_net.c,v 1.23 2000/09/29 15:51:35 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.24 2000/10/10 13:08:35 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -128,14 +128,9 @@ int ircnet_poll(void) {
     }
 
     if (p->client_status & IRC_CLIENT_CONNECTED) {
-      if ((p->server_status == IRC_SERVER_ACTIVE) 
-          || !(p->client_status & IRC_CLIENT_AUTHED)
-          || !(p->client_status & IRC_CLIENT_GOTNICK)
-          || !(p->client_status & IRC_CLIENT_GOTUSER)) {
-        hs = (p->client_sock > hs ? p->client_sock : hs);
-        ns++;
-        FD_SET(p->client_sock, &readset);
-      }
+      hs = (p->client_sock > hs ? p->client_sock : hs);
+      ns++;
+      FD_SET(p->client_sock, &readset);
     }
 
     p = p->next;
@@ -312,7 +307,7 @@ int ircnet_addchannel(struct ircproxy *p, const char *name) {
     p->channels = c;
   }
 
-  if (p->conn_class->chan_log_always) {
+  if (p->conn_class->chan_log_enabled && p->conn_class->chan_log_always) {
     if (irclog_open(p, c->name))
       ircclient_send_channotice(p, c->name,
                                 "(warning) Unable to log channel: %s", c->name);
@@ -368,13 +363,16 @@ static void _ircnet_freeproxy(struct ircproxy *p) {
   debug("Freeing proxy %p", p);
 
   if (p->server_status & IRC_SERVER_CONNECTED) {
-    ircserver_send_peercmd(p, "QUIT", ":Escaping IRC - %s %s",
+    ircserver_send_peercmd(p, "QUIT",
+                           ":Terminated with extreme prejudice - %s %s",
                            PACKAGE, VERSION);
     ircserver_close_sock(p);
   }
 
-  if (p->client_status & IRC_CLIENT_CONNECTED)
+  if (p->client_status & IRC_CLIENT_CONNECTED) {
+    ircclient_send_error(p, "dircproxy going bye-bye");
     ircclient_close(p);
+  }
 
   timer_delall(p);
   free(p->client_host);
@@ -469,12 +467,18 @@ void ircnet_freeconnclass(struct ircconnclass *class) {
 
   free(class->server_port);
   free(class->drop_modes);
+  free(class->refuse_modes);
   free(class->local_address);
   free(class->away_message);
   free(class->attach_message);
   free(class->detach_message);
   free(class->chan_log_dir);
+  free(class->chan_log_program);
   free(class->other_log_dir);
+  free(class->other_log_program);
+  free(class->motd_file);
+
+  free(class->orig_local_address);
 
   free(class->password);
   s = class->servers;
@@ -489,6 +493,17 @@ void ircnet_freeconnclass(struct ircconnclass *class) {
   }
 
   s = class->masklist;
+  while (s) {
+    struct strlist *t;
+
+    t = s;
+    s = s->next;
+
+    free(t->str);
+    free(t);
+  }
+
+  s = class->channels;
   while (s) {
     struct strlist *t;
 

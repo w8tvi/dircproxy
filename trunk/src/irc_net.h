@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.24 2000/09/29 15:51:35 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.25 2000/10/10 13:08:35 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -40,32 +40,60 @@ struct ircconnclass {
   long server_maxattempts;
   long server_maxinitattempts;
   long server_pingtimeout;
+  int server_autoconnect;
+
   long channel_rejoin;
+  int channel_leave_on_detach;
+  int channel_rejoin_on_attach;
+  
   long idle_maxtime;
+
   int disconnect_existing;
   int disconnect_on_detach;
+
   char *drop_modes;
+  char *refuse_modes;
+  
   char *local_address;
+
   char *away_message;
   char *attach_message;
   char *detach_message;
+
+  int chan_log_enabled;
   char *chan_log_dir;
+  char *chan_log_program;
   int chan_log_always;
   int chan_log_timestamp;
   long chan_log_maxsize;
   long chan_log_recall;
+
+  int other_log_enabled;
   char *other_log_dir;
+  char *other_log_program;
   int other_log_always;
   int other_log_timestamp;
   long other_log_maxsize;
   long other_log_recall;
+
   int motd_logo;
+  char *motd_file;
   int motd_stats;
+
   int allow_persist;
+  int allow_jump;
+  int allow_jump_new;
+  int allow_host;
 
   char *password;
   struct strlist *servers, *next_server;
   struct strlist *masklist;
+  struct strlist *channels;
+
+  /* Most config file options can be changed by editing the config file and
+     HUP'ing dircproxy.  One or two can be done from the /DIRCPROXY command
+     though.  Always keep the originals. */
+  char *orig_local_address;
 
   struct ircconnclass *next;
 };
@@ -74,6 +102,7 @@ struct ircconnclass {
 struct ircchannel {
   char *name;
   int inactive;
+  int unjoined;
   struct logfile log;
 
   struct ircchannel *next;
@@ -141,7 +170,7 @@ struct ircproxy {
 #define IRC_SERVER_ACTIVE      0x0f
 
 /* Can we send data to the server? */
-#define IS_SERVER_READY(_c) (((_c)->server_status & 0x07) == 0x07)
+#define IS_SERVER_READY(_c) (((_c)->server_status & 0x05) == 0x05)
 
 /* global variables */
 extern struct ircconnclass *connclasses;

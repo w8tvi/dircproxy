@@ -4,7 +4,7 @@
  *
  * help.h
  * --
- * @(#) $Id: help.h,v 1.2 2000/09/29 12:43:36 keybuk Exp $
+ * @(#) $Id: help.h,v 1.3 2000/10/10 13:08:35 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -94,6 +94,66 @@ static char *help_persist[] = {
   "for use if running dircproxy under inetd.  Creates a new",
   "listening socket, and links your current proxied session",
   "to it so you can reconnect later",
+  0
+};
+
+/* help motd */
+static char *help_motd[] = {
+  "/DIRCPROXY MOTD",
+  "displays the dircproxy message of the day that it gives",
+  "you when you attach",
+  0
+};
+
+/* help servers */
+static char *help_servers[] = {
+  "/DIRCPROXY SERVERS",
+  "displays a list of servers that dircproxy will cycle upon",
+  "disconnection.  Current server is marked with an arrow",
+  0
+};
+
+/* help jump (with new) */
+static char *help_jump_new[] = {
+  "/DIRCPROXY JUMP <num>",
+  "disconnect from the current server and jump to the server",
+  "in the /DIRCPROXY SERVERS list specified by number",
+  "",
+  "/DIRCPROXY JUMP <hostname>[:[port][:[password]]]",
+  "disconnect from the current server and jump to the server",
+  "specified",
+  0
+};
+
+/* help jump (without new) */
+static char *help_jump[] = {
+  "/DIRCPROXY JUMP <num>",
+  "disconnect from the current server and jump to the server",
+  "in the /DIRCPROXY SERVERS list specified by number",
+  "",
+  "/DIRCPROXY JUMP <hostname>[:[port][:[password]]]",
+  "disconnect from the current server and jump to the server",
+  "in the /DIRCPROXY SERVERS list specified by the full",
+  "details",
+  0
+};
+
+/* help host */
+static char *help_host[] = {
+  "/DIRCPROXY HOST <hostname>",
+  "disconnect from the current server, and reconnect to it",
+  "again with a different locally available hostname.  This",
+  "basically changes the local_address config option on the",
+  "fly",
+  "",
+  "/DIRCPROXY HOST NONE",
+  "disconnect from the current server, and reconnect to it",
+  "again with the best available hostname.",
+  "",
+  "/DIRCPROXY HOST",
+  "disconnect from the current server, and reconnect to it",
+  "again with the hostname originally specified in the",
+  "local_address config option (if any)",
   0
 };
 

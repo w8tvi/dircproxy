@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.35 2000/09/26 11:52:48 keybuk Exp $
+ * @(#) $Id: main.c,v 1.36 2000/10/10 13:08:35 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 #include <pwd.h>
 #include <stdio.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <sys/stat.h>
 #include <string.h>
 #include <stdlib.h>
@@ -46,6 +47,7 @@
 /* forward declarations */
 static void sig_term(int);
 static void sig_hup(int);
+static void sig_child(int);
 #ifdef DEBUG_MEMORY
 static void sig_usr(int);
 #endif /* DEBUG_MEMORY */
@@ -54,7 +56,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.35 2000/09/26 11:52:48 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.36 2000/10/10 13:08:35 keybuk Exp $";
 
 /* The name of the program */
 static char *progname;
@@ -220,6 +222,7 @@ int main(int argc, char *argv[]) {
   signal(SIGTERM, sig_term);
   signal(SIGINT, sig_term);
   signal(SIGHUP, sig_hup);
+  signal(SIGCHLD, sig_child);
 #ifdef DEBUG_MEMORY
   signal(SIGUSR1, sig_usr);
   signal(SIGUSR2, sig_usr);
@@ -254,9 +257,6 @@ int main(int argc, char *argv[]) {
 
       /* Become process group leader */
       setsid();
-
-      /* Ignore HUP signals */
-      signal(SIGHUP, SIG_IGN);
 
       switch (fork()) {
         case -1:
@@ -385,7 +385,7 @@ static void sig_hup(int sig) {
     p = ircnet_fetchclass(c);
     if (p) {
       p->conn_class = 0;
-      ircserver_send_peercmd(p, "QUIT", ":No longer permitted - %s %s",
+      ircserver_send_peercmd(p, "QUIT", ":Permission revoked - %s %s",
                              PACKAGE, VERSION);
       ircserver_close_sock(p);
 
@@ -403,6 +403,19 @@ static void sig_hup(int sig) {
   /* Restore the signal */
   signal(sig, sig_hup);
 }
+
+/* Signal to reap child process */
+static void sig_child(int sig) {
+  int pid, status;
+
+  debug("Received signal %d to reap", sig);
+  pid = wait(&status);
+  debug("Reaped process %d, exit status %d", pid, status);
+
+  /* Restore the signal */
+  signal(sig, sig_child);
+}
+
 
 #ifdef DEBUG_MEMORY
 /* On USR signals, dump debug information */

@@ -5,7 +5,7 @@
  * irc_log.c
  *  - Handling of log files
  * --
- * @(#) $Id: irc_log.c,v 1.21 2000/09/04 13:22:27 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.22 2000/10/10 13:08:35 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -38,8 +38,11 @@ static void _irclog_close(struct logfile *);
 static struct logfile *_irclog_getlog(struct ircproxy *, const char *);
 static char *_irclog_read(struct logfile *);
 static int _irclog_write(struct logfile *, const char *, ...);
+static int _irclog_pipe(const char *, char, const char *, char, const char *,
+                        const char *);
 static int _irclog_writetext(struct logfile *, char, const char *, char,
-                             int, const char *, va_list);
+                             const char *, int, const char *,
+                             const char *, va_list);
 static int _irclog_text(struct ircproxy *, const char *, char, const char *,
                         char, const char *, va_list);
 static int _irclog_recall(struct ircproxy *, struct logfile *, unsigned long,
@@ -392,6 +395,63 @@ static int _irclog_write(struct logfile *log, const char *format, ...) {
   return 0;
 }
 
+/* Write a line through a pipe to a given program */
+static int _irclog_pipe(const char *program, char prefrom, const char *from,
+                        char postfrom, const char *to, const char *text) {
+  int p[2], pid;
+
+  if (!program)
+    return 1;
+
+  /* Prepare a pipe */
+  if (pipe(p)) {
+    syscall_fail("pipe", 0, 0);
+    return 1;
+  }
+
+  /* Do the fork() thing */
+  pid = fork();
+  if (pid == -1) {
+    syscall_fail("fork", 0, 0);
+    return 1;
+
+  } else if (pid) {
+    FILE *fd;
+
+    /* Parent - write text to a file descriptor of the pipe */
+    close(p[0]);
+    fd = fdopen(p[1], "w");
+    if (!fd) {
+      syscall_fail("fdopen", 0, 0);
+      close(p[1]);
+      return 1;
+    }
+    fprintf(fd, "%s\n", text);
+    fflush(fd);
+    fclose(fd);
+
+  } else {
+    char *nick;
+
+    /* Child, copy pipe to STDIN then exec the process */
+    close(p[1]);
+    if (dup2(p[0], STDIN_FILENO) != STDIN_FILENO) {
+      syscall_fail("dup2", 0, 0);
+      close(p[0]);
+      return 1;
+    }
+    
+    nick = x_sprintf("%c%s%c", prefrom, from, postfrom);
+    execlp(program, program, nick, to, 0);
+
+    /* We can't get here.  Well we can, it means something went wrong */
+    syscall_fail("execlp", program, 0);
+    exit(10);
+  }
+
+  return 0;
+}
+
 /* Write a PRIVMSG to log file(s) */
 int irclog_msg(struct ircproxy *p, const char *to, const char *from,
                const char *format, ...) {
@@ -419,9 +479,10 @@ int irclog_notice(struct ircproxy *p, const char *to, const char *from,
 }
 
 /* Write some text to a log file */
-static int _irclog_writetext(struct logfile *log,
-                             char prefrom, const char *from, char postfrom,
-                             int timestamp, const char *format, va_list ap) {
+static int _irclog_writetext(struct logfile *log, char prefrom,
+                             const char *from, char postfrom, const char *to,
+                             int timestamp, const char *prog,
+                             const char *format, va_list ap) {
   char *text;
 
   text = x_vsprintf(format, ap);
@@ -436,6 +497,7 @@ static int _irclog_writetext(struct logfile *log,
   } else {
     _irclog_write(log, "%c%s%c %s", prefrom, from, postfrom, text);
   }
+  _irclog_pipe(prog, prefrom, from, postfrom, to, text);
 
   free(text);
 
@@ -449,26 +511,35 @@ static int _irclog_text(struct ircproxy *p, const char *to, char prefrom,
   if (to) {
     struct logfile *log;
     int timestamp;
+    char *program;
     
     /* Write to one file */
     log = _irclog_getlog(p, to);
     if (!log)
       return -1;
 
-    timestamp = (log == &(p->other_log) ? p->conn_class->other_log_timestamp
-                                        : p->conn_class->chan_log_timestamp);
+    if (log == &(p->other_log)) {
+      timestamp = p->conn_class->other_log_timestamp;
+      program = p->conn_class->other_log_program;
+    } else {
+      timestamp = p->conn_class->chan_log_timestamp;
+      program = p->conn_class->chan_log_program;
+    }
 
-    _irclog_writetext(log, prefrom, from, postfrom, timestamp, format, ap);
+    _irclog_writetext(log, prefrom, from, postfrom, to, timestamp, program,
+                      format, ap);
   } else {
     struct ircchannel *c;
 
     /* Write to all files */
-    _irclog_writetext(&(p->other_log), prefrom, from, postfrom,
-                      p->conn_class->other_log_timestamp, format, ap);
+    _irclog_writetext(&(p->other_log), prefrom, from, postfrom, to,
+                      p->conn_class->other_log_timestamp,
+                      p->conn_class->other_log_program, format, ap);
     c = p->channels;
     while (c) {
-      _irclog_writetext(&(c->log), prefrom, from, postfrom,
-                        p->conn_class->chan_log_timestamp, format, ap);
+      _irclog_writetext(&(c->log), prefrom, from, postfrom, to,
+                        p->conn_class->chan_log_timestamp,
+                        p->conn_class->other_log_program, format, ap);
       c = c->next;
     }
   }

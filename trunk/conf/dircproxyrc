@@ -78,6 +78,17 @@
 #
 #server_pingtimeout 0
 
+# server_autoconnect
+#     Should dircproxy automatically connect to the first server in the list
+#     when you connect.  If you set this to 'no', then 'allow_jump' is 
+#     automatically sets 'allow_jump' to 'yes'.  If 'allow_jump_new' is also
+#     'yes', then you can create connection classes with no 'server' lines.
+#
+#     yes = Automatically connect to the first server
+#      no = Wait for a /DIRCPROXY JUMP from the client
+#
+#server_autoconnect yes
+
 
 # channel_rejoin
 #     If we are kicked off a channel, how many seconds do we wait before
@@ -87,6 +98,24 @@
 #      0 = Immediately
 #
 #channel_rejoin 15
+
+# channel_leave_on_detach
+#     Should dircproxy automatically make you leave all the channels you
+#     were on when you detach?
+#
+#     yes = Leave them
+#      no = Remain on them
+#
+#channel_leave_on_detach no
+
+# channel_rejoin_on_attach
+#     If 'channel_leave_on_detach' is 'yes' then should dircproxy rejoin
+#     those channels when you attach again?
+#
+#     yes = Rejoin the channels dircproxy automatically left
+#      no = Leave permanently on detach
+#
+#channel_rejoin_on_attach yes
 
 
 # idle_maxtime
@@ -125,9 +154,21 @@
 # drop_modes
 #     Which user modes to drop automatically when you detach, handy to
 #     limit the impact that your client has while connected, or for extra
-#     security if you're an IRCop.  Set to "" to not drop any modes.
+#     security if you're an IRCop.
+#
+#     Set to "" to not drop any modes.
 #
 #drop_modes "oOws"
+
+# refuse_modes
+#     Which user modes to refuse to accept from a server.  If the server
+#     attempts to set one of these, then the connection to it will be dropped
+#     and the next server in the list will be tried.
+#
+#     Set to "" to not refuse any modes.
+#
+#refuse_modes "r"
+
 
 # local_address
 #     Local hostname to use when connecting to an IRC server.  This provides
@@ -168,6 +209,14 @@
 #detach_message "none"
 
 
+# chan_log_enabled
+#     Whether logging of channel text to files should take place.
+#
+#     yes = Channel text is logged to files
+#      no = Channel text is NOT logged to files
+#
+#chan_log_enabled = yes
+
 # chan_log_dir
 #     Directory to keep channel logs in.  If you don't use this, dircproxy
 #     stores them in a temporary directory and deletes them when finished.
@@ -177,6 +226,22 @@
 #     none = Store in temporary directory and delete when finished
 #
 #chan_log_dir "none"
+
+# chan_log_program
+#     Program to pipe channel text into.  If given, dircproxy will run this
+#     program for each log file entry giving the full source information as
+#     the first argument, the destination as the second and the text as a
+#     single line on standard input.
+#
+#     The program can be anywhere in your $PATH, or you can start it with
+#     "~/" if its in a directory under your home directory.
+#
+#     This is done completely seperately to logging to files, even if
+#     they are disabled.
+#
+#     none = Do not pipe log messages to a program
+#
+#chan_log_program "none"
 
 # chan_log_always
 #     Channel text will always be logged while you are offline, so when you
@@ -222,6 +287,16 @@
 #
 #chan_log_recall 128
 
+
+# other_log_enabled
+#     Whether logging of server and private messages to files should take
+#     place.
+#
+#     yes = Server/private messages are logged to files
+#      no = Server/private messages are NOT logged to files
+#
+#other_log_enabled = yes
+
 # other_log_dir
 #     Directory to keep the server/private message log in.  If you don't use
 #     this, dircproxy stores it in a temporary directory and deletes it when
@@ -232,6 +307,22 @@
 #     none = Store in temporary directory and delete when finished
 #
 #other_log_dir "none"
+
+# other_log_program
+#     Program to pipe server and private messages into.  If given, dircproxy
+#     will run this program for each log file entry giving the full source
+#     information as the first argument, the destination as the second and
+#     the text as a single line on standard input.
+#
+#     The program can be anywhere in your $PATH, or you can start it with
+#     "~/" if its in a directory under your home directory.
+#
+#     This is done completely seperately to logging to files, even if
+#     they are disabled.
+#
+#     none = Do not pipe log messages to a program
+#
+#other_log_program "none"
 
 # other_log_always
 #     Server and private messages will always be logged while you are offline,
@@ -288,6 +379,16 @@
 #
 #motd_logo yes
 
+# motd_file
+#     Custom message of the day file to send when users connect to dircproxy.
+#     The contents of this file will be sent after the logo and before the
+#     stats.  If you start this with a "~/" then it refers to a file in
+#     a directory under your home directory.
+#
+#     none = No custom motd
+#
+#motd_file "none"
+
 # motd_stats
 #     Display information on what channels you were on, and log file sizes
 #     etc in the message of the day.  This is handy, and lets you know how
@@ -308,6 +409,34 @@
 #
 #allow_persist yes
 
+# allow_jump
+#     You can disable the /DIRCPROXY JUMP command here if you do not want
+#     people to do that.
+#
+#     yes = Command enabled
+#     no = Command disabled
+#
+#allow_jump yes
+
+# allow_jump_new
+#     If the /DIRCPROXY JUMP commmand is enabled, then you can disable it being
+#     used to jump to a server:port not in the list specified in the
+#     configuration file.
+#
+#     yes = Can jump to any server
+#     no = Only ones in the config file
+#
+#allow_jump_new yes
+
+# allow_host
+#     You can disable the /DIRCPROXY HOST command here if you do not want
+#     people to do that.
+#
+#     yes = Command enabled
+#     no = Command disabled
+#
+#allow_host yes
+
 
 # Connection Classes
 #     Okay, thats the easy bit of the config file over and done with, now
@@ -318,10 +447,12 @@
 #     You can define as many of these as you like!
 #
 #     A connection class must have a password, and the address of at least
-#     one server to connect to.  The password is compared with the one
-#     you configure your IRC client to use, and if they match then the
-#     connection class is used.  Don't have two classes with the same password,
-#     as the second one will never be seen.
+#     one server (except as noted above) to connect to.  The password is
+#     compared with the one you configure your IRC client to use, and if they
+#     match then the connection class is used.
+#
+#     Don't have two classes with the same password, as the second one will
+#     never be seen.
 #
 #     Please note that although the passwords are shown here in plain text,
 #     they must be encrypted (unless you manually edit src/dircproxy.h and
@@ -340,10 +471,14 @@
 #     a ':'.  To use a default port, and a specific password, separate it
 #     from the server with a '::'.  (These passwords are *not* encrypted!)
 #
-#     You can also specify hostname and/or IP address masks with * or ?
-#     wildcards.  These add security for your proxy by limiting the possible
-#     places you can connect from.
+#     To provide extra security you can limit the places you can connect from
+#     using the 'from' keyword, specifying the hostname and/or IP address
+#     masks with * or ?.
 # 
+#     You can also specify an initial channel set to be joined using the
+#     'join' keyword.  Note that the list of channels MUST be surrounded
+#     by quotes (to distinguish from a comment) and seperated by commas.
+#
 #     Additionally, as already noted, any option from above can be included
 #     to further configure the class.
 #
@@ -358,6 +493,9 @@
 #
 #    from "*.myisp.com"
 #    from "*.mywork.net"
+#
+#    join "#foo,#bar"
+#    join "#baz"
 #
 #    local_address "i.am.a.virtual.host.com"
 #    away_message "I'm not here, go away!"

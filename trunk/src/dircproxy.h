@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.25 2000/09/29 15:51:35 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.26 2000/10/10 13:08:35 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -47,6 +47,20 @@
  * no other characters left, this value will be used.
  */
 #define FALLBACK_USERNAME "user"
+
+/* CLIENT_TIMEOUT
+ * Maxmimum amount of time (in seconds) to allow a client to take to login.
+ * If we don't get password, nickname and username by this time then we
+ * close their connection.
+ */
+#define CLIENT_TIMEOUT 60
+
+/* CONNECT_TIMEOUT
+ * Maxmimum amount of time (in seconds) to allow a client to choose the
+ * server to connect to if server_autoconnect is no.  This starts counting
+ * once they've logged in.
+ */
+#define CONNECT_TIMEOUT 60
 
 /* FALLBACK_NICKNAME
  * When sending a nickname while detached, its possible that we can get
@@ -127,6 +141,13 @@
  */
 #define DEFAULT_SERVER_PINGTIMEOUT 0
 
+/* DEFAULT_SERVER_AUTOCONNECT
+ * Should we automatically connect to a server on startup?
+ *  1 = Yes
+ *  0 = No
+ */
+#define DEFAULT_SERVER_AUTOCONNECT 1
+
 /* DEFAULT_CHANNEL_REJOIN
  * If we are kicked off a channel, how many seconds do we wait before attempting
  * to rejoin.
@@ -134,6 +155,20 @@
  *  0 = Immediately
  */
 #define DEFAULT_CHANNEL_REJOIN 15
+
+/* DEFAULT_CHANNEL_LEAVE_ON_DETACH
+ * Do we PART from all the channels when the user detaches?
+ *  1 = Yes
+ *  0 = No
+ */
+#define DEFAULT_CHANNEL_LEAVE_ON_DETACH 0
+
+/* DEFAULT_CHANNEL_REJOIN_ON_ATTACH
+ * If we PARTed on detach, do we automatically rejoin again on attach?
+ *  1 = Yes
+ *  0 = No
+ */
+#define DEFAULT_CHANNEL_REJOIN_ON_ATTACH 1
 
 /* DEFAULT_IDLE_MAXTIME
  * How many seconds since last PRIVMSG/NOTICE should dircproxy reset idle
@@ -160,8 +195,15 @@
 
 /* DEFAULT_DROP_MODES
  * User modes to automatically drop when the client detaches.
+ * 0 = don't do this
  */
 #define DEFAULT_DROP_MODES "oOws"
+
+/* DEFAULT_REFUSE_MODES
+ * User modes that cause the server connection to be dropped.
+ * 0 = don't do this
+ */
+#define DEFAULT_REFUSE_MODES "r"
 
 /* DEFAULT_LOCAL_ADDRESS
  * This can be set to a domain name on the local machine that dircproxy
@@ -193,11 +235,24 @@
  */
 #define DEFAULT_DETACH_MESSAGE 0
 
+/* DEFAULT_CHAN_LOG_ENABLED
+ * Whether to log channel text
+ * 1 = Yes
+ * 0 = No
+ */
+#define DEFAULT_CHAN_LOG_ENABLED 1
+
 /* DEFAULT_CHAN_LOG_DIR
  * Default directory to log channel text to.
  * 0 = Place in temporary directory and delete after use
  */
 #define DEFAULT_CHAN_LOG_DIR 0
+
+/* DEFAULT_CHAN_LOG_PROGRAM
+ * Default program to pass log text through.
+ * 0 = Don't do this
+ */
+#define DEFAULT_CHAN_LOG_PROGRAM 0
 
 /* DEFAULT_CHAN_LOG_ALWAYS
  * Log channel text even while the client is online?
@@ -229,11 +284,24 @@
  */
 #define DEFAULT_CHAN_LOG_RECALL 128
 
+/* DEFAULT_OTHER_LOG_ENABLED
+ * Whether to log server/private messages
+ * 1 = Yes
+ * 0 = No
+ */
+#define DEFAULT_OTHER_LOG_ENABLED 1
+
 /* DEFAULT_OTHER_LOG_DIR
  * Default directory to log private messages and notices to.
  * 0 = Place in temporary directory and delete after use
  */
 #define DEFAULT_OTHER_LOG_DIR 0
+
+/* DEFAULT_OTHER_LOG_PROGRAM
+ * Default program to pass log text through.
+ * 0 = Don't do this
+ */
+#define DEFAULT_OTHER_LOG_PROGRAM 0
 
 /* DEFAULT_OTHER_LOG_ALWAYS
  * Log private messages and notices even while the client is online?
@@ -273,6 +341,13 @@
  */
 #define DEFAULT_MOTD_LOGO 1
 
+/* DEFAULT_MOTD_FILE
+ * Path to file containing a custom message of the day to send to client.
+ * If defined, its displayed between the logo and the stats.
+ *  0 = Don't have one
+ */
+#define DEFAULT_MOTD_FILE 0
+
 /* DEFAULT_MOTD_STATS
  * Display what channels you were on, and the log file sizes etc in the
  * message of the day when you reconnect.
@@ -287,6 +362,27 @@
  *  0 = Disabled
  */
 #define DEFAULT_ALLOW_PERSIST 1
+
+/* DEFAULT_ALLOW_JUMP
+ * Whether the /DIRCPROXY JUMP command can be used.
+ *  1 = Enabled
+ *  0 = Disabled
+ */
+#define DEFAULT_ALLOW_JUMP 1
+
+/* DEFAULT_ALLOW_JUMP_NEW
+ * Whether the /DIRCPROXY JUMP command can be used to add a new server
+ *  1 = Enabled
+ *  0 = Disabled
+ */
+#define DEFAULT_ALLOW_JUMP_NEW 1
+
+/* DEFAULT_ALLOW_HOST
+ * Whether the /DIRCPROXY HOST command can be used.
+ *  1 = Enabled
+ *  0 = Disabled
+ */
+#define DEFAULT_ALLOW_HOST 1
 
 
 /* functions in main.c */
