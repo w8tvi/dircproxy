@@ -4,7 +4,7 @@
  *
  * irc_client.h
  * --
- * @(#) $Id: irc_client.h,v 1.1 2000/05/13 02:14:12 keybuk Exp $
+ * @(#) $Id: irc_client.h,v 1.2 2000/08/22 13:08:08 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -25,6 +25,7 @@ extern int ircclient_generate_nick(struct ircproxy *, const char *);
 extern int ircclient_change_mode(struct ircproxy *, const char *);
 extern int ircclient_close(struct ircproxy *);
 extern int ircclient_welcome(struct ircproxy *);
+extern int ircclient_dedicated_port(struct ircproxy *);
 extern int ircclient_send_numeric(struct ircproxy *, short, const char *, ...);
 extern int ircclient_send_notice(struct ircproxy *, const char *, ...);
 extern int ircclient_send_channotice(struct ircproxy *, const char *,

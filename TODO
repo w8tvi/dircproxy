@@ -7,11 +7,9 @@ For the next release (0.7.0)
 	  QUIT <msg>		(change /DQUIT to this)
 
 	* Function to make a new listening socket, delete all other proxy
-	  configs.  (Sets dedicated_proxy to 1)
-	  -dircproxy- Reconnect to this session at hostname.domain.tld:46702
+	  configs, set dedicated_proxy to 1 and announce port.
 
-	* If dedicated_proxy = 1 then reannounce above on reconnect or
-	  DETACH
+	* If dedicated_proxy = 1 then announce port on DETACH
 
 	* PERSIST is available if die_on_close is 1, runs above function
 	  and sets die_on_close to 0
