@@ -1,0 +1,27 @@
+Hacking dircproxy
+-----------------
+
+If you want to hack on dircproxy, it will make your life easier to have
+the following packages installed:
+
+	GNU autoconf 2.5x
+	GNU automake 1.6.x
+
+
+Hacker's configure options
+--------------------------
+
+'--enable-debug'
+	Run on the foreground and output a log of debugging information
+	about what dircproxy is doing.
+
+'--enable-maintainer-mode'
+	Causes the various autotool-generated files to be automatically
+	regenerated if you modify their sources.
+
+
+dircproxy is distributed according to the GNU General Public License.
+See the file COPYING for details.
+
+Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.
+All Rights Reserved.
