@@ -9,7 +9,7 @@
  *  - Signal handling
  *  - Debug functions
  * --
- * @(#) $Id: main.c,v 1.53 2002/07/14 09:53:32 scott Exp $
+ * @(#) $Id: main.c,v 1.54 2002/08/17 17:35:27 scott Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,7 +63,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.53 2002/07/14 09:53:32 scott Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.54 2002/08/17 17:35:27 scott Exp $";
 
 /* The name of the program */
 static char *progname;
@@ -306,12 +306,21 @@ int main(int argc, char *argv[]) {
   
   /* Main loop! */
   while (!stop_poll) {
-    int ns, nt;
+    int ns, nt, status;
+    pid_t pid;
 
     ircnet_expunge_proxies();
     dccnet_expunge_proxies();
     ns = net_poll();
     nt = timer_poll();
+
+    /* Reap any children */
+    while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
+      debug("Reaped process %d, exit status %d", pid, status);
+      
+      /* Handle any DNS children */
+      dns_endrequest(pid, status);
+    }
 
     if (!ns && !nt)
       break;
@@ -446,19 +455,11 @@ static void _sig_hup(int sig) {
   signal(sig, _sig_hup);
 }
 
-/* Signal to reap child process */
+/* Signal to reap child process.  Don't do anything other than interrupt
+ * whatever we're doing so we reach the waitpid loop in the main loop quicker
+ */
 static void _sig_child(int sig) {
-  int status;
-  pid_t pid;
-
   debug("Received signal %d to reap", sig);
-
-  while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
-    debug("Reaped process %d, exit status %d", pid, status);
-    
-    /* Handle any DNS children */
-    dns_endrequest(pid, status);
-  }
 
   /* Restore the signal */
   signal(sig, _sig_child);
