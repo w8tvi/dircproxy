@@ -2,7 +2,7 @@
 .\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.5 2000/08/23 13:38:35 keybuk Exp $
+.\" @(#) $Id: dircproxy.1,v 1.6 2000/08/24 09:17:17 keybuk Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -11,7 +11,10 @@
 \fBdircproxy\fR \- Detachable Internal Relay Chat Proxy Server
 
 .SH SYNOPSIS
-\fBdircproxy\fR [\fIoptions\fR]
+\fBdircproxy\fR
+[\fB\-hvDI\fR]
+[\fB-f\fR \fIconfig_file\fR]
+[\fB-P\fR \fIlisten_port\fR]
 
 .SH DESCRIPTION
 .B dircproxy
@@ -19,55 +22,89 @@ is an IRC proxy server designed for people who use IRC from lots of
 different workstations or clients, but wish to remain connected and
 see what they missed while they were away.
 .PP
-You connect to IRC through
-.B dircproxy
-, and it keeps you connected to the server, even after you detach your
-client from it.  While you're detached, it logs channel and private
-messages as well as important events, and when you re-attach it'll let
-you know what you missed.
+You connect to IRC through \fBdircproxy\fR, and it keeps you connected
+to the server, even after you detach your client from it.  While you're
+detached, it logs channel and private messages as well as important
+events, and when you re-attach it'll let you know what you missed.
 .PP
 This can be used to give you roughly the same functionality as using
 ircII and
 .BR screen (8)
 together, except you can use whatever IRC client you like, including
 X ones!
+.PP
+Authentication is provided by a password, and optional hostname checking.
+This links it to a \fIconnection class\fR specified in the configuration
+file.  Only one user may use a connection class at one time, when that
+user detaches, the connection to the server is kept open.  When someone
+(usually the user) subsequently connects to \fBdircproxy\fR and provides
+the same password, they are reconnected to the connection to the server,
+instead of having a new connection created for them.
+.PP
+Multiple connection classes can be defined, allowing multiple people to
+use the same proxy.
+.PP
+\fBdircproxy\fR can use either a \fI.dircproxyrc\fR file in the user's
+home directory, or a system-wide \fIdircproxyrc\fR file.  It will load
+the first it finds (home directory first, then system-wide).  If no
+configuration file is specified, it will not start.
 
 .SH OPTIONS
 .TP
-.I -D, --daemon
-Run in the foreground instead of becoming a daemon.
+.B -h
+Displays a brief help message detailing the command-line arguments,
+then exits.
 .TP
-.I -I, --inetd
-Indicates
-.B dircproxy
-is being run from the
+.B -f \fIconfig_file\fR
+Specifies the configuration file to be used, overriding the default
+search list.
+.TP
+.B -v
+Displays the \fBdircproxy\fR version number, then exits.
+.TP
+.B -D
+Run in the foreground and do not fork into the background.
+.TP
+.B -I
+Use to indicate \fBdircproxy\fR is being run from the
 .BR inetd (8)
-daemon.  This implies
-.I -D.
+daemon.  This implies \fB-D\fR.  For more information on running
+\fBdircproxy\fR under
+.BR inetd (8),
+see the \fIREADME.inetd\fR file.
 .TP
-.I -h, --help
-Displays a brief help message about the command-line options and exits.
-.TP
-.I -v, --version
-Displays the dircproxy version number and exits.
+.B -P \fIlisten_port\fR
+Specifies an alternate port to use, overriding the default and any
+value specified in the configuration file.
 
-.SH DETAILED DESCRIPTION
+.SH CONFIGURATION
+Put info on the configuration file here.
 
 .SH SIGNALS
+\fBdircproxy\fR will reread its configuration file whenever it receives
+the hangup signal, \fISIGHUP\fR.
+.PP
+Sending an interrupt signal, \fISIGINT\fR, or a terminate signal,
+\fISIGTERM\fR, will cause \fBdircproxy\fR to exit cleanly.
 
 .SH NOTES
-.B The dircproxy homepage can be found at:
-.IP
-http://dircproxy.sourceforge.net/
+More information, including announcements of new releases, can be found
+at:
+.PP
+.I http://dircproxy.sourceforge.net/
 
 .SH SEE ALSO
 .BR inetd (8)
 
 .SH BUGS
-.B Please submit bug reports at:
-.IP
-http://sourceforge.net/bugs/?group_id=5645
+Please submit and review bug reports at:
+.PP
+.I http://sourceforge.net/bugs/?group_id=5645
 
 .SH AUTHOR
-Written by Scott James Remnant <scott@netsplit.com>.  The copyright
-holder is Scott James Remnant.  See the file COPYING for details.
+Written by Scott James Remnant <scott@netsplit.com>.
+
+.SH COPYRIGHT
+Copyright (C) 2000 Scott James Remnant.  All Rights Reserved.
+\fBdircproxy\fR is distributed under the \fIGNU General Public
+License\fR.
