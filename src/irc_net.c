@@ -5,7 +5,7 @@
  * irc_net.c
  *  - Polling of sockets and acting on any data
  * --
- * @(#) $Id: irc_net.c,v 1.21 2000/09/01 12:58:16 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.22 2000/09/26 11:51:26 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -367,11 +367,14 @@ struct ircchannel *ircnet_freechannel(struct ircchannel *chan) {
 static void _ircnet_freeproxy(struct ircproxy *p) {
   debug("Freeing proxy %p", p);
 
+  if (p->server_status & IRC_SERVER_CONNECTED) {
+    ircserver_send_peercmd(p, "QUIT", ":Escaping IRC - %s %s",
+                           PACKAGE, VERSION);
+    ircserver_close_sock(p);
+  }
+
   if (p->client_status & IRC_CLIENT_CONNECTED)
     ircclient_close(p);
-
-  if (p->server_status & IRC_SERVER_CONNECTED)
-    ircserver_close_sock(p);
 
   timer_delall(p);
   free(p->client_host);

@@ -5,7 +5,7 @@
  * irc_server.c
  *  - Handling of servers connected to the proxy
  * --
- * @(#) $Id: irc_server.c,v 1.20 2000/09/14 12:07:56 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.21 2000/09/26 11:51:26 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -658,6 +658,8 @@ static int _ircserver_close(struct ircproxy *p) {
 static void _ircserver_stoned(struct ircproxy *p, void *data) {
   /* Server is, like, stoned.  Yeah man! */
   debug("Server is stoned, reconnecting");
+  ircserver_send_peercmd(p, "QUIT", ":Getting off stoned server - %s %s",
+                         PACKAGE, VERSION);
   _ircserver_close(p);
 }
 

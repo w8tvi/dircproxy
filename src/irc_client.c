@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.38 2000/09/26 11:45:42 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.39 2000/09/26 11:51:25 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -769,8 +769,11 @@ int ircclient_close(struct ircproxy *p) {
   /* No connection class, or no nick or user? Die! */
   if (!p->conn_class || !(p->client_status & IRC_CLIENT_GOTNICK)
       || !(p->client_status & IRC_CLIENT_GOTUSER)) {
-    if (p->server_status & IRC_SERVER_CREATED)
+    if (p->server_status & IRC_SERVER_CREATED) {
+      ircserver_send_peercmd(p, "QUIT", ":Leaving IRC in a hurry - %s %s",
+                             PACKAGE, VERSION);
       ircserver_close_sock(p); 
+    }
     p->dead = 1;
   }
 
