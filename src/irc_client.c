@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.71 2000/11/24 13:44:40 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.72 2000/12/03 21:44:15 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -1210,8 +1210,8 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
     return 0;
   }
 
-  ircclient_send_numeric(p, 464, ":Password incorrect");
-  ircclient_send_error(p, "Bad Password");
+  ircclient_send_numeric(p, 464, ":You are not permitted to use this proxy");
+  ircclient_send_error(p, "Permission Denied");
   ircclient_close(p);
   return -1;
 }
