@@ -1,11 +1,13 @@
 /* dircproxy
  * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
+ * Copyright (C) 2004 Francois Harvey <fharvey@securiweb.net> and
+ *                    Mike Taylor <bear@code-bear.com>.
  *
  * irc_client.c
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.91 2003/12/10 18:55:34 fharvey Exp $
+ * @(#) $Id: irc_client.c,v 1.92 2004/02/13 23:39:33 bear Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -722,7 +724,10 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
           } else {
             ircnet_announce_dedicated(p);
           }
-
+        } else if (!irc_strcasecmp(msg.params[0], "RELOAD")) {
+          /* User wants to reload the configuration file */
+          ircclient_send_notice(p, "RELOAD in progress");
+          reload();
         } else if (!irc_strcasecmp(msg.params[0], "DETACH")) {
           /* User wants to detach and can't be bothered to use /QUIT */
           ircnet_announce_status(p);
@@ -1064,6 +1069,8 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
             } else if (p->conn_class->allow_persist
                        && !irc_strcasecmp(msg.params[1], "PERSIST")) {
               help_page = help_persist;
+            } else if (!irc_strcasecmp(msg.params[1], "RELOAD")) {
+              help_page = help_reload;
             } else if (!irc_strcasecmp(msg.params[1], "DETACH")) {
               help_page = help_detach;
             } else if (!irc_strcasecmp(msg.params[1], "QUIT")) {
@@ -1117,6 +1124,8 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
                                     "(show dircproxy status information)");
               ircclient_send_notice(p, "-     RECALL    "
                                     "(recall text from log files)");
+              ircclient_send_notice(p, "-     RELOAD    "
+                                    "(reload configuration file)");
               ircclient_send_notice(p, "-     DETACH    "
                                     "(detach from dircproxy)");
               if (p->conn_class->allow_persist)

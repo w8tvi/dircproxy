@@ -1,9 +1,11 @@
 /* dircproxy
  * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
+ * Copyright (C) 2004 Francois Harvey <fharvey@securiweb.net> and
+ *                    Mike Taylor <bear@code-bear.com>
  *
  * help.h
  * --
- * @(#) $Id: help.h,v 1.12 2002/12/29 21:30:11 scott Exp $
+ * @(#) $Id: help.h,v 1.13 2004/02/13 23:39:33 bear Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -91,6 +93,14 @@ static char *help_recall[] = {
   "can specify the number of lines to recall and an optional",
   "starting point in the file, or you can specify ALL to",
   "recall all log messages",
+  0
+};
+
+/* help reload */
+static char *help_reload[] = {
+  "/DIRCPROXY RELOAD",
+  "sets the flag to reload the configuration file at the",
+  "opportunity.",
   0
 };
 

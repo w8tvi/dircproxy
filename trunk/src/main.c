@@ -1,5 +1,7 @@
 /* dircproxy
  * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
+ * Copyright (C) 2004 Francois Harvey <fharvey@securiweb.net> and
+ *                    Mike Taylor <bear@code-bear.com>.
  *
  * main.c
  *  - Program main loop
@@ -8,7 +10,7 @@
  *  - Signal handling
  *  - Debug functions
  * --
- * @(#) $Id: main.c,v 1.56 2002/12/29 21:30:12 scott Exp $
+ * @(#) $Id: main.c,v 1.57 2004/02/13 23:39:34 bear Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,7 +65,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.56 2002/12/29 21:30:12 scott Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.57 2004/02/13 23:39:34 bear Exp $";
 
 /* The name of the program */
 static char *progname;
@@ -605,6 +607,13 @@ int debug(const char *format, ...) {
 /* Called to stop dircproxy */
 int stop(void) {
   stop_poll = 1;
+
+  return 0;
+}
+
+/* Called to set queue config reload */
+int reload(void) {
+  reload_config = 1;
 
   return 0;
 }
