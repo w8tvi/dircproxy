@@ -5,7 +5,7 @@
  * irc_net.c
  *  - Polling of sockets and acting on any data
  * --
- * @(#) $Id: irc_net.c,v 1.11 2000/08/24 11:08:27 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.12 2000/08/24 11:22:01 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -56,6 +56,7 @@ static int listen_sock = -1;
 /* Create a socket to listen on. 0 = ok, other = error */
 int ircnet_listen(const char *port) {
   struct sockaddr_in local_addr;
+  int this_sock;
 
   local_addr.sin_family = AF_INET;
   local_addr.sin_addr.s_addr = INADDR_ANY;
@@ -64,27 +65,26 @@ int ircnet_listen(const char *port) {
   if (!local_addr.sin_port)
     return -1;
 
-  if (listen_sock != -1)
-    sock_close(listen_sock);
-
-  listen_sock = sock_make();
-  if (listen_sock == -1)
+  this_sock = sock_make();
+  if (this_sock == -1)
     return -1;
 
-  if (bind(listen_sock, (struct sockaddr *)&local_addr,
+  if (bind(this_sock, (struct sockaddr *)&local_addr,
            sizeof(struct sockaddr_in))) {
     DEBUG_SYSCALL_FAIL("bind");
-    sock_close(listen_sock);
-    listen_sock = -1;
+    sock_close(this_sock);
     return -1;
   }
 
-  if (listen(listen_sock, SOMAXCONN)) {
+  if (listen(this_sock, SOMAXCONN)) {
     DEBUG_SYSCALL_FAIL("listen");
-    sock_close(listen_sock);
-    listen_sock = -1;
+    sock_close(this_sock);
     return -1;
   }
+
+  if (listen_sock != -1)
+    sock_close(listen_sock);
+  listen_sock = this_sock;
 
   return 0;
 }
