@@ -131,9 +131,6 @@ Would be nice:
 	  available for write()ing.  Would remove the "dircproxy busy,
 	  ping timeout" problem that can happen.
 
-	* Non blocking dns lookups, need to read stevens to find out how
-	  to do this (seperate process and pipes?)
-
 	* XDCC stuff (possibly tying in with the file server above)
 
 	* mIRC DCC RESUME stuff
