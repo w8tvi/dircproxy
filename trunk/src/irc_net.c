@@ -5,7 +5,7 @@
  * irc_net.c
  *  - Polling of sockets and acting on any data
  * --
- * @(#) $Id: irc_net.c,v 1.4 2000/05/24 17:52:30 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.5 2000/05/24 20:20:43 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -39,6 +39,7 @@ static int _ircnet_client_connected(struct ircproxy *);
 static int _ircnet_acceptclient(int);
 static void _ircnet_freeproxy(struct ircproxy *);
 static int _ircnet_expunge_proxies(void);
+static void _ircnet_rejoin(struct ircproxy *, void *);
 
 /* list of connection classes */
 struct ircconnclass *connclasses = 0;
@@ -196,12 +197,6 @@ static struct ircproxy *_ircnet_newircproxy(void) {
 
 /* Finishes off the creation of an ircproxy structure */
 static int _ircnet_client_connected(struct ircproxy *p) {
-  if (irclog_makedir(p))
-    ircclient_send_notice(p, "(warning) Unable to create log directory, %s",
-                          "logging disabled");
-  if (irclog_open(p, "misc", &(p->misclog)))
-    ircclient_send_notice(p, "(warning) Unable to log non-channel msesages");
-
   p->next = proxies;
   proxies = p;
 
@@ -336,9 +331,6 @@ struct ircchannel *ircnet_freechannel(struct ircchannel *chan) {
 /* Free an ircproxy structure */
 static void _ircnet_freeproxy(struct ircproxy *p) {
   timer_delall(p);
-  irclog_close(&(p->misclog));
-  irclog_closedir(p);
-
   free(p->client_host);
 
   free(p->nickname);
@@ -361,6 +353,8 @@ static void _ircnet_freeproxy(struct ircproxy *p) {
       c = ircnet_freechannel(c);
   }
 
+  irclog_close(&(p->misclog));
+  irclog_closedir(p);
   free(p);
 }
 
@@ -451,4 +445,24 @@ void ircnet_freeconnclass(struct ircconnclass *class) {
   }
 
   free(class);
+}
+
+/* hook to rejoin a channel after a kick */
+static void _ircnet_rejoin(struct ircproxy *p, void *data) {
+  ircserver_send_command(p, "JOIN", ":%s", (char *)data);
+  free(data);
+}
+
+/* Set a timer to rejoin a channel */
+int ircnet_rejoin(struct ircproxy *p, const char *name) {
+  char *str;
+
+  str = x_strdup(name);
+  if (channel_rejoin == 0) {
+    _ircnet_rejoin(p, (void *)str);
+  } else if (channel_rejoin > 0) {
+    timer_new(p, 0, channel_rejoin, _ircnet_rejoin, (void *)str);
+  } 
+
+  return 0;
 }
