@@ -5,7 +5,8 @@ Some common requests (and their reasons for not including them) are:
 
 DCC RESUME support: This is implemented wrong by all IRC clients, which
 makes is tricky to catch.  It's also goes through dircproxy after it has
-already begun the transfer.
+already begun the transfer.  If somebody can figure this out, I will
+accept a third-party patch for it.
 
 WinNT/Win2000 support: This will never be supported.  If you can compile
 and run it there, go ahead, but I won't support it.  Get a real

@@ -1,3 +1,80 @@
+2002-01-01 18:05  Scott James Remnant <scott@netsplit.com>
+
+	* AUTHORS.map: Moved CVS server so adjusted AUTHORS.map to reflect
+	my different username
+
+2002-01-01 17:55  Scott James Remnant <scott@netsplit.com>
+
+	* src/net.c: Missed out an &
+
+2002-01-01 17:42  Scott James Remnant <scott@netsplit.com>
+
+	* RELEASING: Releasing has changed slightly
+
+2002-01-01 17:41  Scott James Remnant <scott@netsplit.com>
+
+	* FAQ: Changed a couple of URLs to the new netsplit ones
+
+2001-12-21 20:25  Scott James Remnant <scott@netsplit.com>
+
+	* RELEASING: Releasing has changed slightly
+
+2001-12-21 20:17  Scott James Remnant <scott@netsplit.com>
+
+	* src/: cfgfile.c, dcc_send.c: Removed hard tabs from source
+
+2001-12-21 20:15  Scott James Remnant <scott@netsplit.com>
+
+	* AUTHORS, FAQ, INSTALL, NEWS, PROTOCOL, README,
+	README.dcc-via-ssh, README.inetd, crypt/main.c,
+	doc/dircproxy-crypt.1, doc/dircproxy.1, src/cfgfile.c,
+	src/cfgfile.h, src/dcc_chat.c, src/dcc_chat.h, src/dcc_net.c,
+	src/dcc_net.h, src/dcc_send.c, src/dcc_send.h, src/dircproxy.h,
+	src/dns.c, src/dns.h, src/help.h, src/irc_client.c,
+	src/irc_client.h, src/irc_log.c, src/irc_log.h, src/irc_net.c,
+	src/irc_net.h, src/irc_prot.c, src/irc_prot.h, src/irc_server.c,
+	src/irc_server.h, src/irc_string.c, src/irc_string.h, src/logo.h,
+	src/main.c, src/match.c, src/match.h, src/memdebug.c,
+	src/memdebug.h, src/net.c, src/net.h, src/sprintf.c, src/sprintf.h,
+	src/stringex.c, src/stringex.h, src/timers.c, src/timers.h: Updated
+	the Copyright to 2002, since I plan to make the next release in the
+	first couple of days of January
+
+2001-12-21 20:07  Scott James Remnant <scott@netsplit.com>
+
+	* TODO, src/irc_server.c: ERRORs should now get sent to the client
+	before first authorisation
+
+2001-12-21 19:59  Scott James Remnant <scott@netsplit.com>
+
+	* TODO, conf/dircproxyrc, doc/dircproxy.1, src/cfgfile.c,
+	src/dircproxy.h, src/irc_net.h, src/irc_server.c, src/net.c,
+	src/net.h: Implented requested KEEPALIVE checking.
+
+2001-12-13 23:45  Scott James Remnant <scott@netsplit.com>
+
+	* INSTALL: Compiles on a MicroVAX, whee!
+
+2001-11-12 21:08  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: Added some stuff that needs doing
+
+2001-07-13 15:27  Scott James Remnant <scott@netsplit.com>
+
+	* RELEASING: E-mail the FreeBSD port maintainer as well
+
+2001-07-12 16:24  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in, contrib/dircproxy.spec: CVS version now 1.0.2
+
+2001-07-12 16:15  Scott James Remnant <scott@netsplit.com>
+
+	* ChangeLog, NEWS, TODO: Version 1.0.1 released.
+
+2001-07-12 16:15  Scott James Remnant <scott@netsplit.com>
+
+	* FAQ, README: Added "bouncer" to the text, changed bugs URL
+
 2001-07-12 14:47  Scott James Remnant <scott@netsplit.com>
 
 	* src/dcc_send.c: Used the wrong variable, heh
@@ -2563,7 +2640,6 @@
 	* autogen.sh: Imported version 0.5.2 into the CVS tree.  Its in a
 	CLEAN state that requires autoconf and automake (run autogen.sh) to
 	build.
-        
 
 2000-05-13 02:13  Scott James Remnant <scott@netsplit.com>
 
