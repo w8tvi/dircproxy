@@ -17,7 +17,7 @@ dnl Checks for libraries.
 
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(crypt.h fcntl.h sys/time.h syslog.h unistd.h)
+AC_CHECK_HEADERS(crypt.h fcntl.h poll.h sys/poll.h sys/time.h syslog.h unistd.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -27,7 +27,7 @@ AC_HEADER_TIME
 dnl Checks for library functions.
 AC_FUNC_ALLOCA
 AC_TYPE_SIGNAL
-AC_CHECK_FUNCS(mkdir rmdir select strcspn strerror strspn)
+AC_CHECK_FUNCS(mkdir poll rmdir select strcspn strerror strspn)
 AC_CHECK_FUNC(socket, , AC_CHECK_LIB(socket, socket, ,
 	AC_MSG_WARN([couldn't find your socket() function])))
 AC_CHECK_FUNC(gethostbyname, , AC_CHECK_LIB(nsl, gethostbyname, ,
