@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.35 2000/10/20 11:03:18 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.36 2000/10/23 12:32:33 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -111,7 +111,7 @@ int ircserver_connect(struct ircproxy *p) {
 
   debug("Connecting to server (stage 1)");
 
-  if (timer_exists(p, "server_recon")) {
+  if (timer_exists((void *)p, "server_recon")) {
     debug("Connection already in progress");
     if (IS_CLIENT_READY(p))
       ircclient_send_notice(p, "Connection already in progress...");
@@ -134,8 +134,8 @@ int ircserver_connect(struct ircproxy *p) {
     ircclient_send_notice(p, "Looking up %s...", server);
 
   /* DNS lookup the server */
-  dns_filladdr(p, server, p->conn_class->server_port, 1, &(p->server_addr),
-               _ircserver_connect2, 0);
+  dns_filladdr((void *)p, server, p->conn_class->server_port, 1,
+               &(p->server_addr), DNS_FUNCTION(_ircserver_connect2), 0);
   free(server);
   return 0;
 }
@@ -145,8 +145,8 @@ static void _ircserver_connect2(struct ircproxy *p, void *data,
                                 struct in_addr *addr, const char *host) {
   if (!host || !addr) {
     debug("DNS failure, retrying");
-    timer_new(p, "server_recon", p->conn_class->server_retry,
-              _ircserver_reconnect, (void *)0);
+    timer_new((void *)p, "server_recon", p->conn_class->server_retry,
+              TIMER_FUNCTION(_ircserver_reconnect), (void *)0);
     return;
   }
 
@@ -158,7 +158,8 @@ static void _ircserver_connect2(struct ircproxy *p, void *data,
   p->server_addr.sin_addr.s_addr = addr->s_addr;
   
   if (p->conn_class->local_address) {
-    dns_addrfromhost(p, 0, p->conn_class->local_address, _ircserver_connect3);
+    dns_addrfromhost((void *)p, 0, p->conn_class->local_address,
+                     DNS_FUNCTION(_ircserver_connect3));
   } else {
     _ircserver_connect3(p, 0, 0, 0);
   }
@@ -223,8 +224,8 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
     debug("Connection failed: %s", strerror(errno));
 
     net_close(p->server_sock);
-    timer_new(p, "server_recon", p->conn_class->server_retry,
-              _ircserver_reconnect, (void *)0);
+    timer_new((void *)p, "server_recon", p->conn_class->server_retry,
+              TIMER_FUNCTION(_ircserver_reconnect), (void *)0);
   } else {
     p->server_status |= IRC_SERVER_CREATED;
     net_hook(p->server_sock, SOCK_CONNECTING, (void *)p,
@@ -262,7 +263,8 @@ static void _ircserver_connected(struct ircproxy *p, int sock) {
 
     len = sizeof(struct sockaddr_in);
     if (!getsockname(p->server_sock, (struct sockaddr *)&sock_addr, &len)) {
-      dns_hostfromaddr(p, 0, sock_addr.sin_addr, _ircserver_connected2);
+      dns_hostfromaddr((void *)p, 0, sock_addr.sin_addr,
+                       DNS_FUNCTION(_ircserver_connected2));
       return;
     } else {
       syscall_fail("getsockname", "", 0);
@@ -291,16 +293,17 @@ static void _ircserver_connected2(struct ircproxy *p, void *data,
 
   /* Begin stoned server checking */
   if (p->conn_class->server_pingtimeout) {
-    timer_new(p, "server_ping", (int)(p->conn_class->server_pingtimeout / 2),
-              _ircserver_ping, (void *)0);
-    timer_new(p, "server_stoned", p->conn_class->server_pingtimeout,
-              _ircserver_stoned, (void *)0);
+    timer_new((void *)p, "server_ping",
+              (int)(p->conn_class->server_pingtimeout / 2),
+              TIMER_FUNCTION(_ircserver_ping), (void *)0);
+    timer_new((void *)p, "server_stoned", p->conn_class->server_pingtimeout,
+              TIMER_FUNCTION(_ircserver_stoned), (void *)0);
   }
 
   /* Begin anti-idle */
   if (p->conn_class->idle_maxtime)
-    timer_new(p, "server_antiidle", p->conn_class->idle_maxtime,
-              _ircserver_antiidle, (void *)0);
+    timer_new((void *)p, "server_antiidle", p->conn_class->idle_maxtime,
+              TIMER_FUNCTION(_ircserver_antiidle), (void *)0);
 }
 
 /* Called when a connection fails */
@@ -319,8 +322,8 @@ static void _ircserver_connectfailed(struct ircproxy *p, int sock, int bad) {
   net_close(p->server_sock);
   p->server_status &= ~(IRC_SERVER_CREATED);
 
-  timer_new(p, "server_recon", p->conn_class->server_retry,
-            _ircserver_reconnect, (void *)0);
+  timer_new((void *)p, "server_recon", p->conn_class->server_retry,
+            TIMER_FUNCTION(_ircserver_reconnect), (void *)0);
 }
 
 /* Called when a server sends us stuff. */
@@ -334,7 +337,8 @@ static void _ircserver_data(struct ircproxy *p, int sock) {
   }
 
   str = 0;
-  while (net_gets(p->server_sock, &str, "\r\n") > 0) {
+  while (!p->dead && (p->server_status & IRC_SERVER_CONNECTED)
+         && net_gets(p->server_sock, &str, "\r\n") > 0) {
     debug("<< '%s'", str);
     _ircserver_gotmsg(p, str);
     free(str);
@@ -673,9 +677,9 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       squelch = 0;
 
     if (p->conn_class->server_pingtimeout) {
-      timer_del(p, "server_stoned");
-      timer_new(p, "server_stoned", p->conn_class->server_pingtimeout,
-                _ircserver_stoned, (void *)0);
+      timer_del((void *)p, "server_stoned");
+      timer_new((void *)p, "server_stoned", p->conn_class->server_pingtimeout,
+                TIMER_FUNCTION(_ircserver_stoned), (void *)0);
       p->allow_pong = 0;
     }
 
@@ -776,7 +780,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     } else {
       if (msg.numparams >= 1)
         irclog_notice(p, msg.params[0], p->servername,
-                      "%s joined the channel", msg.src.fullname);
+                      "%s joined the channel",
+                      msg.src.fullname ? msg.src.fullname : p->servername);
       squelch = 0;
     }
 
@@ -795,7 +800,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     } else {
       if (msg.numparams >= 1)
         irclog_notice(p, msg.params[0], p->servername,
-                      "%s left the channel", msg.src.fullname);
+                      "%s left the channel",
+                      msg.src.fullname ? msg.src.fullname : p->servername);
       squelch = 0;
     }
 
@@ -811,7 +817,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
           chan = ircnet_fetchchannel(p, msg.params[0]);
           if (chan) {
             irclog_notice(p, msg.params[0], p->servername,
-                          "Kicked off by %s", msg.src.fullname);
+                          "Kicked off by %s",
+                          msg.src.fullname ? msg.src.fullname : p->servername);
             chan->inactive = 1;
             ircnet_rejoin(p, chan->name);
           }
@@ -898,14 +905,14 @@ int ircserver_close_sock(struct ircproxy *p) {
 
   /* Make sure these don't get triggered */
   if (p->conn_class->server_pingtimeout) {
-    timer_del(p, "server_ping");
-    timer_del(p, "server_stoned");
+    timer_del((void *)p, "server_ping");
+    timer_del((void *)p, "server_stoned");
   }
 
   if (p->conn_class->idle_maxtime)
-    timer_del(p, "server_antiidle");
+    timer_del((void *)p, "server_antiidle");
 
-  timer_del(p, "server_recon");
+  timer_del((void *)p, "server_recon");
 
   return 0;
 }
@@ -919,8 +926,8 @@ static int _ircserver_close(struct ircproxy *p) {
     _ircserver_lost(p);
   }
 
-  timer_new(p, "server_recon", p->conn_class->server_retry,
-            _ircserver_reconnect, (void *)0);
+  timer_new((void *)p, "server_recon", p->conn_class->server_retry,
+            TIMER_FUNCTION(_ircserver_reconnect), (void *)0);
 
   return 0;
 }
@@ -974,8 +981,9 @@ static void _ircserver_ping(struct ircproxy *p, void *data) {
     debug("=> PING :%s", p->servername);
   }
 
-  timer_new(p, "server_ping", (int)(p->conn_class->server_pingtimeout / 2),
-            _ircserver_ping, (void *)0);
+  timer_new((void *)p, "server_ping",
+            (int)(p->conn_class->server_pingtimeout / 2),
+            TIMER_FUNCTION(_ircserver_ping), (void *)0);
 }
 
 /* hook for timer code to close a stoned server */
@@ -997,15 +1005,15 @@ static void _ircserver_antiidle(struct ircproxy *p, void *data) {
     ircserver_send_command(p, "PRIVMSG", "");
   }
 
-  timer_new(p, "server_antiidle", p->conn_class->idle_maxtime,
-            _ircserver_antiidle, (void *)0);
+  timer_new((void *)p, "server_antiidle", p->conn_class->idle_maxtime,
+            TIMER_FUNCTION(_ircserver_antiidle), (void *)0);
 }
 
 /* Reset idle timer */
 void ircserver_resetidle(struct ircproxy *p) {
-  timer_del(p, "server_antiidle");
-  timer_new(p, "server_antiidle", p->conn_class->idle_maxtime,
-            _ircserver_antiidle, (void *)0);
+  timer_del((void *)p, "server_antiidle");
+  timer_new((void *)p, "server_antiidle", p->conn_class->idle_maxtime,
+            TIMER_FUNCTION(_ircserver_antiidle), (void *)0);
 }
 
 /* Check if a message is bound for us, and if so check our username and
