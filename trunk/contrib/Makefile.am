@@ -2,8 +2,10 @@
 
 pkgdata_DATA = \
 	log.pl \
-	privmsg-log.pl
+	privmsg-log.pl \
+	cronchk.sh
 
 EXTRA_DIST = \
+	README \
 	dircproxy.spec \
 	$(pkgdata_DATA)
