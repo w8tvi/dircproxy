@@ -12,7 +12,7 @@
  * get accidentally overrun.  This is purely debug, you should
  * NEVER use this in a real program.
  * --
- * @(#) $Id: memdebug.c,v 1.3 2000/05/25 13:59:46 keybuk Exp $
+ * @(#) $Id: memdebug.c,v 1.4 2000/09/27 16:11:38 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -196,6 +196,7 @@ void *mem_realloc(void *ptr, size_t size, char *file, int line) {
   memfreecount++;
   memusage -= ms->size;
   _mem_delete(ms);
+  free(ms->file);
   free(ms);
   return block;
 }
