@@ -1,51 +1,5 @@
 For the next release (0.7.0)
 
-	* the /DIRCPROXY command.
-	  RECALL <chan/msg> [from] nlines
-	  DETACH <away-msg>
-          PERSIST
-	  QUIT <msg>		(change /DQUIT to this)
-
-	* If dedicated_proxy = 1 then announce port on DETACH
-	  and if p->die_on_close = 1 then announce too
-
-	* PERSIST is available if die_on_close is 1, runs above function
-	  and sets die_on_close to 0
-
-	* using above, a debug() function to replace all the others lying
-	  around.  Outputs to stderr if debug mode.
-
-	  debug(level, msg, ...)
-
-	* new syscall_fail() function, outputs to stderr if not in background
-	  or in debug
-
-	* Reload configuration file on a HUP
-
-	* Rewrite irc_log.c to make it a little less primitive.
-
-	  irclog_channel_msg(p, chan, from, msg, ...)
-	  irclog_channel_notice(p, chan, msg, ...)
-	  irclog_channel_info(p, chan, msg, ...)
-	  irclog_private_msg(p, from, msg, ...)
-	  irclog_notice(p, msg, ...)
-	  irclog_notice_all(p, msg, ...)
-
-	* Log configuration options to make it very cool
-
-	  log_chan_while_online		1/0
-	  keep_chan_logs		1/0
-	  timestamp_chan_logs		1/0
-
-	  log_other_while_online	1/0
-	  keep_other_logs		1/0
-	  timestamp_other_logs		1/0
-	  
-	  chan_log_max_size		lines
-	  chan_log_default_recall	lines
-	  other_log_max_size		lines
-	  other_log_default_recall	lines
-
 	* When a user comes in and is already connected, disconnect the
 	  existing user?
 
@@ -55,10 +9,18 @@ For the next release (0.7.0)
 
 	  drop_modes			"+o"
 
-	* Locate mysterious "+iw" channel bug.
+	* Reload configuration file on a HUP.  Probably the best way is to
+	  reassociate everyone who's password hasn't been changed.  Password
+	  changes will kick people off.
 
-	* Server passwords, so we can connect to an IRC server that
-	  needs a password
+	* Rewrite irc_log.c to make it a little less primitive.
+
+	  irclog_msg(p, to, from, msg, ...)
+	  irclog_notice(p, to, from, msg, ...)
+
+	  to = "#channel"  (to channel)
+	  to = ""          (to user)
+	  to = 0           (to all)
 
 	* New log file format:
 
@@ -66,6 +28,35 @@ For the next release (0.7.0)
 	  -Keybuk- [12:48] edfklj dgdg          (notice)
 	  -ircnet.demon.co.uk- [13:00] x quit   (server)
 	  -dircproxy- [13:05] bar               (dircproxy)
+
+	* Log configuration options to make it very cool (these will be able
+	  to go in connection classes of course)
+
+	  log_chan_while_online		1/0
+	  keep_chan_logs		1/0  (where?)
+	  timestamp_chan_logs		1/0
+
+	  log_other_while_online	1/0
+	  keep_other_logs		1/0  (where?)
+	  timestamp_other_logs		1/0
+	  
+	  chan_log_max_size		lines
+	  chan_log_default_recall	lines
+	  other_log_max_size		lines
+	  other_log_default_recall	lines
+
+	* the /DIRCPROXY command.
+	  HELP
+	  RECALL [#chan] [from] nlines
+	  DETACH [away-msg]
+          PERSIST
+	  QUIT [msg]		(change /DQUIT to this)
+
+	* If dedicated_proxy = 1 then announce port on DETACH
+	  and if p->die_on_close = 1 then announce too
+
+	* PERSIST is available if die_on_close is 1, runs above function
+	  and sets die_on_close to 0
 
 
 Whenever time permits:
@@ -89,4 +80,12 @@ Would be nice:
 	* How can we change the username being presented?  Team up with an
 	  identd perhaps, or we could fork(), setuid() and then run the
 	  function to make new listening socket.
+
+
+Odd Behaviour that might need sorting:
+
+	* If you connect to a server that's down, then disconnect, and try
+	  to reconnect, you won't be allowed to.  This is because your
+	  connection class is tied up reconnecting to the server.  The
+	  way around this is to set server_maxinitattempts to 0 of course.
 
