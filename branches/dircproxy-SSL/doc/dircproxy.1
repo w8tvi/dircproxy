@@ -1,0 +1,1025 @@
+.TH dircproxy 1 "11 Jan 2001"
+.\" Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
+.\" Copyright (C) 2004 Francois Harvey <fharvey@securiweb.net> and 
+.\"                    Mike Taylor <bear@code-bear.com>.
+.\"
+.\" @(#) $Id: dircproxy.1,v 1.43 2004/02/13 23:39:33 bear Exp $
+.\"
+.\" This file is distributed according to the GNU General Public
+.\" License.  For full details, read the top of 'main.c' or the
+.\" file called COPYING that was distributed with this code.
+.SH NAME
+\fBdircproxy\fR \- Detachable Internal Relay Chat Proxy Server
+
+.SH SYNOPSIS
+\fBdircproxy\fR
+[\fB\-hvDI\fR]
+[\fB-f\fR \fIconfig_file\fR]
+[\fB-P\fR \fIlisten_port\fR]
+[\fB-p\fR \fIpid_file\fR]
+
+.SH DESCRIPTION
+.B dircproxy
+is an IRC proxy server designed for people who use IRC from lots of
+different workstations or clients, but wish to remain connected and
+see what they missed while they were away.
+.PP
+You connect to IRC through \fBdircproxy\fR, and it keeps you connected
+to the server, even after you detach your client from it.  While you're
+detached, it logs channel and private messages as well as important
+events, and when you re-attach it'll let you know what you missed.
+.PP
+This can be used to give you roughly the same functionality as using
+ircII and
+.BR screen (8)
+together, except you can use whatever IRC client you like, including
+X ones!
+.PP
+Authentication is provided by a password, and optional hostname checking.
+This links it to a \fIconnection class\fR specified in the configuration
+file.  Only one user may use a connection class at one time, when that
+user detaches, the connection to the server is kept open.  When someone
+(usually the user) subsequently connects to \fBdircproxy\fR and provides
+the same password, they are reconnected to the connection to the server,
+instead of having a new connection created for them.
+.PP
+Multiple connection classes can be defined, allowing multiple people to
+use the same proxy.
+.PP
+\fBdircproxy\fR can use either a \fI.dircproxyrc\fR file in the user's
+home directory, or a system-wide \fIdircproxyrc\fR file.  It will load
+the first it finds (home directory first, then system-wide).  If no
+configuration file is specified, it will not start.
+
+.SH OPTIONS
+.TP
+.B -f \fIconfig_file\fR
+Specifies the configuration file to be used, overriding the default
+search list.
+.TP
+.B -h
+Displays a brief help message detailing the command-line arguments,
+then exits.
+.TP
+.B -v
+Displays the \fBdircproxy\fR version number, then exits.
+.TP
+.B -D
+Run in the foreground and do not fork into the background.
+.TP
+.B -I
+Use to indicate \fBdircproxy\fR is being run from the
+.BR inetd (8)
+daemon.  This implies \fB-D\fR.  For more information on running
+\fBdircproxy\fR under
+.BR inetd (8),
+see the \fIREADME.inetd\fR file.
+.TP
+.B -P \fIlisten_port\fR
+Specifies an alternate port to use, overriding the default and any
+value specified in the configuration file. You can also add the IP-address of the adapter you want dircproxy to bind to, e.g.: 192.168.64.1:7007
+.TP
+.B -p \fIpid_file\fR
+Specifies a file to write the process id to, overriding the default
+and any value specified in the configuration file.
+
+.SH CONFIGURATION
+The configuration file has the following format:
+.PP
+Empty lines and lines starting with '#' are comments.
+.PP
+Connection classes start with 'connection {' and end with '}'.  They obtain
+default values from all the entries above them in the configuration file,
+and may contain values of their own.
+.PP
+Otherwise a line is of the format 'keywords arguments'.  If the argument
+contains spaces it should be contained in double quotes ('"with spaces"').
+The possible keywords and their meanings are as follows (note that the
+configuration file is not case-sensitive):
+
+.PP
+.B GLOBAL OPTIONS
+.PP
+These options may not be placed inside a connection class as they affect
+the operation of the entire \fBdircproxy\fR server.
+
+.TP
+.B listen_port
+What port should \fBdircproxy\fR listen for connections from IRC clients
+on?
+
+This can be a numeric port number, or a service name from /etc/services.
+You can also enter the IP-address of the adapter you want dircproxy to
+bind to, e.g.: 192.168.64.1:7007
+
+.TP
+.B pid_file
+File to write the \fBdircproxy\fR process id to on startup.  If you start
+this with a "~/" then it refers to a file in a directory under your
+home directory.
+
+ none = Don't write pid file
+
+.TP
+.B client_timeout
+Maxmimum amount of time (in seconds) a client can take to connect to
+\fBdircproxy\fR and provide their password and nickname etc.
+
+.TP
+.B connect_timeout
+Maximum amount of time (in seconds) a client has to provide a server
+to connect to after they've logged in.  This only applies
+if '\fBserver_autoconnect\fR' is 'no' for that class.
+
+.TP
+.B dns_timeout
+Maximum amount of time (in seconds) to wait for a reply from a DNS
+server.  If the time exceeds this then the lookup is cancelled.
+
+.PP
+.B LOCAL OPTIONS
+.PP
+These options may be placed in a connection class, or outside of one.  If
+they are outside then they only affect those connection classes defined
+afterwards.
+
+.PP
+.B SERVER OPTIONS
+.PP
+Options affecting the connection to the IRC server.
+
+.TP
+.B server_port
+What port do we connect to IRC servers on if the server string doesn't
+explicitly set one
+
+This can be a numeric port number, or a service name from /etc/services
+
+.TP
+.B server_retry
+How many seconds after disconnection or last connection attempt do we
+wait before retrying again?
+
+.TP
+.B server_maxattempts
+If we are disconnected from the server, how many times should we iterate
+the server list before giving up and declaring the proxied connection
+dead?
+
+0 = iterate forever
+
+.TP
+.B server_maxinitattempts
+On first connection, how many times should we iterate the server list
+before giving up and declaring the proxied connection dead?
+
+ 0 = iterate forever.  This isn't recommended.
+
+.TP
+.B server_keepalive
+This checks whether the \fBdircproxy\fR to server connection is alive at the TCP
+level.  If no data is sent in either direction for a period of time, a TCP
+keepalive probe is sent.
+
+ yes = send keepalive probes
+ no = don't send keepalive probes
+
+.TP
+.B server_pingtimeout
+For some people, \fBdircproxy\fR doesn't notice that the connection to the
+server has been dropped because the socket remains open.  For example,
+those behind a NAT'd firewall.  \fBdircproxy\fR can ping the server and make
+sure it gets replies back.  If the time since the last reply was
+received exceeds the number of seconds below the server is assumed to be
+"stoned" and \fBdircproxy\fR leaves it.  If you have a high latency connection
+to the server, it can wrongly assume the server is stoned because the PINGs
+don't arrive in time.  Either raise the value, or use
+the '\fBserver_keepalive\fR' option instead.
+
+
+ 0 = don't send PINGs
+
+.TP
+.B server_throttle
+To prevent you from being flooded off the IRC network, \fBdircproxy\fR can
+throttle the connection to the server to prevent too much being sent
+within a certain time period.
+
+For this you specify a number of bytes, then optionally a time period
+in seconds seperated by a colon.  If the time period is ommitted then
+per second is assmued.
+
+ server_throttle 10        # 10 bytes per second
+ server_throttle 10:2      # 10 bytes per 2 seconds (5 per second)
+
+ 0 = do not throttle the connection
+
+.TP
+.B server_autoconnect
+Should \fBdircproxy\fR automatically connect to the first server in the list
+when you connect.  If you set this to 'no', then '\fBallow_jump\fR' is 
+automatically set to 'yes'.  If '\fBallow_jump_new\fR' is also 'yes', then
+you can create connection classes with no '\fBserver\fR' lines.
+
+ yes = Automatically connect to the first server
+ no = Wait for a /DIRCPROXY JUMP from the client
+
+.PP
+.B CHANNEL OPTIONS
+.PP
+Options affecting channels you join.
+
+.TP
+.B channel_rejoin
+If we are kicked off a channel, how many seconds do we wait before
+attempting to rejoin.
+
+ -1 = Don't rejoin
+ 0 = Immediately
+
+.TP
+.B channel_leave_on_detach
+Should \fBdircproxy\fR automatically make you leave all the channels you
+were on when you detach?
+
+ yes = Leave them
+ no = Remain on them
+
+.TP
+.B channel_rejoin_on_attach
+If '\fBchannel_leave_on_detach\fR' is '\fByes\fR' then should \fBdircproxy\fR
+rejoin those channels when you attach again?
+
+ yes = Rejoin the channels \fBdircproxy\fR automatically left
+ no = Leave permanently on detach
+
+.PP
+.B IDLE OPTIONS
+.PP
+Options affecting idle times on IRC.
+
+.TP
+.B idle_maxtime
+Set this to the maximum amount of time you want to appear idle for
+while on IRC, if you set this then \fBdircproxy\fR will reset your idle
+time if it reaches this limit (in seconds).
+
+ 0 = Don't reset idle time
+
+.PP
+.B DISCONNECTiON OPTIONS
+.PP
+Options affecting when \fBdircproxy\fR disconnects you.
+
+.TP
+.TP
+.B disconnect_existing_user
+If, when you connect to \fBdircproxy\fR, another client is already using
+your connection class (ie, if you forgot to close that one), then
+this option lets you automatically kill that one off.  Make sure you
+turn any "automatic reconnect to server" options off before using
+this, otherwise you'll have a fight on your hands.
+
+ yes = Yes, disconnect
+ no = No, don't let me on
+
+.TP
+.B disconnect_on_detach
+When you detach from \fBdircproxy\fR it usually keeps you connected to the
+server until you connect again.  If you don't want this, and you want
+it to close your server connection as well, then set this.
+
+ yes = Close session on disconnection
+ no = Stay connected to server until reattachment
+
+.PP
+.B MODE OPTIONS
+.PP
+Options affecting user modes set by the IRC server.
+
+.TP
+.B initial_modes
+Which user modes should we automatically set when you first connect
+to a server.  Just in case you forget to do it yourself with your
+irc client.
+
+Set to "" to not set any modes.
+
+.TP
+.B drop_modes
+Which user modes to drop automatically when you detach, handy to
+limit the impact that your client has while connected, or for extra
+security if you're an IRCop.
+
+Set to "" to not drop any modes.
+
+.TP
+.B refuse_modes
+Which user modes to refuse to accept from a server.  If the server
+attempts to set one of these, then the connection to it will be dropped
+and the next server in the list will be tried.
+
+A good setting for many people would be "+r", as most servers use that
+to mean your connection is restricted.  Don't set it to this if you're
+on DALnet however, DALnet uses +r to indicate you have registered with
+NickServ (gee, thanks guys!).
+
+Set to "" to not refuse any modes.
+
+.PP
+.B ADDRESS OPTIONS
+.PP
+Options affecting your address on IRC.
+
+.TP
+.B local_address
+Local hostname to use when connecting to an IRC server.  This provides
+the same functionality as the ircII -H parameter.
+
+ none = Do not bind any specific hostname
+
+.PP
+.B MESSAGE OPTIONS
+.PP
+Options affecting messages sent or set by \fBdircproxy\fR on behalf of you.
+
+.TP
+.B away_message
+If you don't explicitly set an /AWAY message before you detach, \fBdircproxy\fR
+can for you, so people don't think you are really at your keyboard
+when you're not.
+
+ none = Do not set an away message for you
+
+.TP
+.B quit_message
+If you don't explicitly give a message when you /DIRCPROXY QUIT, this
+will be used instead.  Also used for when you've sent \fBdircproxy\fR not to
+remain attached to the server on detachment.
+
+ none = Use \fBdircproxy\fR version number as QUIT message
+
+.TP
+.B attach_message
+\fBdircproxy\fR can send an announcement onto every channel you are on when
+you reattach to it, just to let everyone know you are back.  If you
+start this with "/ME " then it will be sent as an ACTION CTCP message
+(just like the ircII /me command).
+
+ none = Do not announce attachment
+
+.TP
+.B detach_message
+\fBdircproxy\fR can send an announcement onto every channel you are on when
+you detach from it, just to let everyone know you are gone.  If you
+start this with "/ME " then it will be sent as an ACTION CTCP message
+(just like the ircII /me command).
+
+ none = Do not announce detachment
+
+.TP
+.B detach_nickname
+Nickname to change to automatically after you detach, to indicate you
+are away for example.  If this contains a '*' character, then that
+character is replaced with whataver your nickname was before you
+detached (ie "*_away" adds "_away" to the end of your nickname);
+ 
+ none = Leave nickname as it is
+
+.PP
+.B NICKNAME OPTIONS
+.PP
+Options affecting your nickname
+
+.TP
+.B nick_keep
+Whether \fBdircproxy\fR should attempt to keep the nickname you last set
+using your client.  If this is 'yes' and your nickname is lost while
+your client is disconnected, then it will keep on trying to get it back
+until a client connects again.
+
+ yes = try to keep my nickname while I'm disconnected
+ no = if it changes, leave it
+
+.PP
+.B CTCP OPTIONS
+.PP
+Options affecting CTCP replies
+
+.TP
+.B ctcp_replies
+Whether \fBdircproxy\fR should reply to the standard set of CTCP messages
+while the client is detached.
+
+ yes = reply to ctcp messages while client is detached
+ no = nothing but silence
+
+.PP
+.B LOGGING OPTIONS
+.PP
+These options affect both the internal logging inside \fBdircproxy\fR so
+messages can be recalled to you when you return from being disconnected,
+and general logging for your own personal use.
+
+.TP
+.B log_timestamp
+Log messages can have a timestamp added to the front to let you know
+exactly when a message was logged.  The format of this timestamp depends
+on the setting of '\fBlog_relativetime\fR'.
+
+ yes = Include a timestamp in all log messages
+ no = Do not include a timestamp
+
+.TP
+.B log_relativetime
+If '\fBlog_timestamp\fR' is '\fByes\fR' then you have the option of using
+either intelligent relative timestamps, or ordinary fixed timestamps.
+If you choose relative, then the timestamp shown when log information is
+recalled to your client depends on how old that line is, with possible
+date information if it is a really old message.  If you do not choose
+relative then only the time (in HH:MM format) will be logged.
+
+This obviously has no effect on the log files under the directory
+specified by '\fBlog_dir\fR'.
+
+ yes = Use relative timestamps
+ no = Use fixed timestamps
+
+.TP
+.B log_timeoffset
+Difference in minutes from your IRC client to the \fBdircproxy\fR machine.
+So if you'\fBre in GMT, but your \fBdircproxy\fR machine is in PST (which
+is 8 hours behind), then this would be -(8 * 60) = -480.  Used to adjust
+log file timestamps so they\fR're in the right time zone for you.
+
+ 0 = Don't adjust log timestamps.
+
+.TP
+.B log_events
+Events you want \fBdircproxy\fR to log for you.  This is a comma seperated
+list of event names, prefixed with '\fB+\fR' to add the event to the
+list or '\fB-\fR' to remove an event.  You can also specify '\fBall\fR'
+to log all events (the default) or '\fBnone\fR' to not log anything.
+
+Example, to just log text and action's:
+
+ log_events "\fBnone,+text,+action\fR"
+
+Example, to log everything but server messages:
+
+ log_events "\fBall,-server\fR"
+ # you don'\fBt need to specify \fR'all'
+ log_events -server
+
+The possible events are:
+
+\fBtext\fR
+ Channel text and private messages
+
+\fBaction\fR
+ CTCP ACTION events (/me) sent to you or channels
+
+\fBctcp\fR
+ Whether to record whether a CTCP was sent to you
+
+\fBjoin\fR
+ People (including you) joining channels
+
+\fBpart\fR
+ People (including you) leaving channels
+
+\fBkick\fR
+ People (including you) being kicked from channels
+
+\fBquit\fR
+ People quit'ing from IRC
+
+\fBnick\fR
+ People (including you) changing nickname
+
+\fBmode\fR
+ Changes in channel modes or your own personal mode
+
+\fBtopic\fR
+ Changes to the channel topic
+
+\fBclient\fR
+ You detaching and attaching
+
+\fBserver\fR
+ Connections and disconnections from servers
+
+\fBerror\fR
+ Problems and errors \fBdircproxy\fR encounters (recommended!)
+
+.TP
+.B log_dir
+\fBdircproxy\fR keeps it's own internal log files (under /tmp) so it
+can recall information to your client when you reconnect.  It can also
+log messages to files for your own use.
+
+Under this directory a file will be created named after each channel you
+join, a file will be created named after each nickname that sends you
+private messages, or you send, and a final file called "\fBserver\fR"
+will be created containing server events.
+
+This logging is done regardless of the enabled or always settings, which
+only affect the internal logging.  However the log_events settings do
+affect what is logged.
+
+If you start with "\fB~/\fR" then it will use a directory under your
+home directory.
+
+ none = Do not create log files for your own use
+
+.TP
+.B log_program
+Program to pipe log messages into.  If given, \fBdircproxy\fR will run
+this program for each log message giving the full source information as
+the first argument, the destination as the second and the message itself
+as a single line on standard input.
+
+The program can be anywhere in your $PATH, or you can start it with
+"\fB~/\fR" if its in a directory under your home directory.
+
+This logging is done regardless of the enabled or always settings, which
+only affect the internal logging.  However the log_events settings do
+affect what is logged.
+
+ none = Do not pipe log messages to a program
+
+.PP
+.B INTERNAL CHANNEL LOG OPTIONS
+.PP
+Options affecting the internal logging of channel text so it can be
+recalled to your client when you reconnect.  These options only apply
+if the '\fBchan_log_enabled\fR' option is set to '\fByes\fR'.
+
+.TP
+.B chan_log_enabled
+Whether logging of channel text for later recall, so you can see what
+you missed, should take place.
+
+ yes = Channel text is logged for recall
+ no = Channel text is NOT logged for recall
+
+.TP
+.B chan_log_always
+Channel text will always be logged for later recall while you are offline,
+so when you come back you can see what you missed.  You can also, if
+you wish, log channel text while you are online, so if you're only away
+a short time you can get an idea of any context.
+
+ yes = Log channel text for recall while offline and online
+ no = Log channel text for recall only while offline
+
+.TP
+.B chan_log_maxsize
+To preserve your harddisk space, you can limit the size of the internal
+channel log file, which is stored in the /tmp directory.  Once the log
+file reaches this number of lines, every line added will result in a
+line being removed from the top.  If you know you are never going to
+want all that logged information, this might be a good setting for you.
+
+ 0 = No limit to internal log file size
+
+.TP
+.B chan_log_recall
+Number of lines from the bottom of each internal channel log to
+automatically recall to your IRC client when you reconnect.  If this is
+low, you may not get much useful information, if this is high, it may
+take a long time for all the information to arrive.
+
+ -1 = Recall the whole log (not recommended if chan_log_always is yes)
+ 0 = Don't automatically recall anything
+
+.PP
+.B INTERNAL PRIVATE LOG OPTIONS
+.PP
+Options affecting the internal logging of private messages, notices, CTCP
+and DCC events so they can be recalled to your client when you reconnect.
+These options only apply if the '\fBprivate_log_enabled\fR' option is
+set to '\fByes\fR'.
+
+.TP
+.B private_log_enabled
+Whether logging of private messages for later recall, so you can see
+what you missed, should take place.
+
+ yes = Private messages are logged for recall
+ no = Private messages are NOT logged for recall
+
+.TP
+.B private_log_always
+Private messages will always be logged for later recall while you are
+offline, so when you come back you can see what you missed.  You can
+also, if you wish, log private messages while you are online, so if
+you're only away a short time you can get an idea of any context.
+
+ yes = Log private messages for recall while offline and online
+ no = Log private messages for recall only while offline
+
+.TP
+.B private_log_maxsize
+To preserve your harddisk space, you can limit the size of the internal
+private message log file, which is stored in the /tmp directory.  Once the
+log file reaches this number of lines, every line added will result in
+a line being removed from the top.  If you know you are never going to
+want all that logged information, this might be a good setting for you.
+
+ 0 = No limit to internal log file size
+
+.TP
+.B private_log_recall
+Number of lines from the bottom of the internal private message log to
+automatically recall to your IRC client when you reconnect.  If this is
+low, you may not get much useful information, if this is high, it may
+take a long time for all the information to arrive.
+
+ -1 = Recall the whole log (not recommended if private_log_always is yes)
+ 0 = Don't automatically recall anything
+
+.PP
+.B INTERNAL SERVER LOG OPTIONS
+.PP
+Options affecting the internal logging of server messages so they can
+be recalled to your client when you reconnect.  These options only apply
+if the '\fBserver_log_enabled\fR' option is set to '\fByes\fR'.
+
+.TP
+.B server_log_enabled
+Whether logging of server messages for later recall, so you can see what
+you missed, should take place.
+
+ yes = Server messages are logged for recall
+ no = Server messages are NOT logged for recall
+
+.TP
+.B server_log_always
+Server messages will always be logged for later recall while you are
+offline, so when you come back you can see what you missed.  You can also,
+if you wish, log server messages while you are online, so if you're only
+away a short time you can get an idea of any context.
+
+ yes = Log server messages for recall while offline and online
+ no = Log server messages for recall only while offline
+
+.TP
+.B server_log_maxsize
+To preserve your harddisk space, you can limit the size of the internal
+server message log file, which is stored in the /tmp directory.  Once the
+log file reaches this number of lines, every line added will result in
+a line being removed from the top.  If you know you are never going to
+want all that logged information, this might be a good setting for you.
+
+ 0 = No limit to internal log file size
+
+.TP
+.B server_log_recall
+Number of lines from the bottom of the internal server message log to
+automatically recall to your IRC client when you reconnect.  If this is
+low, you may not get much useful information, if this is high, it may
+take a long time for all the information to arrive.
+
+ -1 = Recall the whole log (not recommended if server_log_always is yes)
+ 0 = Don't automatically recall anything
+
+.PP
+.B DCC PROXY OPTIONS
+.PP
+Options affecting proxying and capturing of DCC chat and send requests.
+
+.TP
+.B dcc_proxy_incoming
+Whether \fBdircproxy\fR should proxy DCC chat and send requests sent
+\fBto\fR you by others on IRC.
+
+ yes = Proxy incoming requests.
+ no = Do not proxy incoming requests.
+
+.TP
+.B dcc_proxy_outgoing
+Whether \fBdircproxy\fR should proxy DCC chat and send requests sent
+\fBby\fR you to others on IRC.
+
+ yes = Proxy outgoing requests.
+ no = Do not proxy outgoing requests.
+
+.TP
+.B dcc_proxy_ports
+Ports that \fBdircproxy\fR can use to listen for DCC connections on.
+This is for when you're behind a firewall that only allows certain
+ports through, or when doing DCC-via-ssh.
+
+It is a comma seperated list of port numbers or ranges of ports,
+for example '57100-57199,57400,57500,57600-57800'
+
+ any = Use any port given to us by the kernel.
+
+.TP
+.B dcc_proxy_timeout
+Maxmimum amount of time (in seconds) to allow for both sides of
+a DCC proxy to be connected.
+
+.TP
+.B dcc_proxy_sendreject
+Whether to send a physical REJECT message via CTCP back to the
+source of the request in event of failure.
+
+ yes = Send reject CTCP message back.
+ no = Do not send any message back.
+
+.TP
+.B dcc_send_fast
+Whether to ignore the "acknowledgment" packets from the client and
+just send the file to them as fast as possible.  There should be no
+real danger in doing this.
+
+ yes = Send as fast as possible.
+ no = Wait for each packet to be acknowledged.
+
+.TP
+.B dcc_capture_directory
+\fBdircproxy\fR can capture files sent via DCC and store them on the
+server.  Especially useful while you are detached, whether it
+does it while attached or not depends on '\fBdcc_capture_always\fR'.
+This is the directory to store those captured files in.
+
+If start with "~/" then it will use a directory under your home
+directory.
+
+ none = Do not capture files.
+
+.TP
+.B dcc_capture_always
+If we're capturing DCC send's, should we do it while the client
+is connected as well?  If 'yes', then the client will never see
+the file, it'll be just stored on the server with a notice sent
+to the client telling them where.
+
+ yes = Capture even when a client is connected.
+ no = Capture only when client detached.
+
+.TP
+.B dcc_capture_withnick
+Whether to start the filename of the captured file with the
+nickname of the sender, so you know who it came from.
+
+ yes = Start with nickname.
+ no = Do not alter the filename.
+
+.TP
+.B dcc_capture_maxsize
+Maximum size (in kilobytes) that a captured file can be.  If
+a captured file is larger than this, or becomes larger than
+this, then the capture will be aborted and the file removed
+from the disk.  Prevents people from filling your disk up while
+you're detached with a massive file.
+
+ 0 = No limit to file size.
+
+.TP
+.B dcc_tunnel_incoming
+Port of a local ssh tunnel leading to another \fBdircproxy\fR client that
+we should use for incoming DCC requests.  This should not be set
+if '\fBdcc_tunnel_outgoing\fR' is set.
+
+See the README.dcc-via-ssh file included with the \fBdircproxy\fR
+distribution for more information.
+
+This can be a numeric port number, or a service name from /etc/services
+
+ none = There is no tunnel.
+
+.TP
+.B dcc_tunnel_outgoing
+Port of a local ssh tunnel leading to another \fBdircproxy\fR client that
+we should use for outgoing DCC requests.  This should not be set
+if '\fBdcc_tunnel_incoming\fR' is set.
+
+See the README.dcc-via-ssh file included with the \fBdircproxy\fR
+distribution for more information.
+
+This can be a numeric port number, or a service name from /etc/services
+
+ none = There is no tunnel.
+
+.PP
+.B ADVANCED OPTIONS
+.PP
+Options for the advanced user.
+
+.TP
+.B switch_user
+If you're running \fBdircproxy\fR as root, it can switch to a different
+"effective user id" to create the server connection.  This means
+that your system ident daemon (and therefore IRC, if it queries it)
+will see your server connection as the user you put here, instead of
+root.
+
+This is most useful if you are sysadmin running a \fBdircproxy\fR server
+for multiple people and want them to all appear as different usernames
+without using a hacked identd.  Because \fBdircproxy\fR is still running as
+root, it will have those privileges for all operations, including the
+.BR bind (2)
+for the '\fBlocal_address\fR' config option if you're using Secure
+Linux patches.
+
+This can only be used if your system supports
+.BR seteuid (2)
+and if you are running \fBdircproxy\fR as the root user, and not just setuid.
+Attempting otherwise will generate a warning as \fBdircproxy\fR starts.
+
+This can be a numeric uid or a username from /etc/passwd.
+
+ none = Do not do this.
+
+.PP
+.B MOTD OPTIONS
+.PP
+Options affecting the \fBdircproxy\fR message of the day.
+
+.TP
+.B motd_logo
+If this is yes, then the \fBdircproxy\fR logo and version number will be
+included in the message of the day when you connect.  Only the picky
+would turn this off, its pretty!
+
+ yes = Show me the pretty logo
+ no = I don't like logos, I'm boring, I eat llamas.
+
+.TP
+.B motd_file
+Custom message of the day file to send when users connect to \fBdircproxy\fR.
+The contents of this file will be sent after the logo and before the
+stats.  If you start this with a "~/" then it refers to a file in
+a directory under your home directory.
+
+ none = No custom motd
+
+.TP
+.B motd_stats
+Display information on what channels you were on, and log file sizes
+etc in the message of the day.  This is handy, and lets you know how
+not only much information you missed, but how much will be sent to you.
+
+ yes = Show the stats
+ no = They don't interest me, don't show them.
+
+.PP
+.B COMMAND OPTIONS
+.PP
+Options allowing or disallowing the use of /DIRCPROXY commands.
+
+.TP
+.B allow_persist
+You can disable the /DIRCPROXY PERSIST command if you do not want
+people using your proxy to be able to do that.
+
+ yes = Command enabled
+ no = Command disabled
+
+.TP
+.B allow_jump
+You can disable the /DIRCPROXY JUMP command if you do not want
+people to do that.
+
+ yes = Command enabled
+ no = Command disabled
+
+.TP
+.B allow_jump_new
+If the /DIRCPROXY JUMP commmand is enabled, then you can disable it being
+used to jump to a server:port not in the list specified in the configuration
+file.
+
+ yes = Can jump to any server
+ no = Only ones in the config file
+
+.TP
+.B allow_host
+You can disable the /DIRCPROXY HOST command if you do not want
+people to do that.
+
+ yes = Command enabled
+ no = Command disabled
+
+.TP
+.B allow_die
+You can enable the /DIRCPROXY DIE command if you want people
+to be able to kill your proxy.  This isn't recommended as a global
+option, instead only enable it for a specific connection class (ie yours).
+
+ yes = Command enabled
+ no = Command disabled
+
+.TP
+.B allow_users
+You can enable the /DIRCPROXY USERS command if you want people
+to be able to see who's using your proxy.  This isn't recommended as
+a global option, instead only enable it for a specific connection class
+(ie yours).
+
+ yes = Command enabled
+ no = Command disabled
+
+.TP
+.B allow_kill
+You can enable the /DIRCPROXY KILL command if you want people
+to be able to disconnect anyone using your proxy (including you!).
+This isn't recommended as a global option, instead only enable it for
+a specific connection class (ie yours).
+
+ yes = Command enabled
+ no = Command disabled
+ 
+.TP
+.B allow_kill
+You can enable the /DIRCPROXY NOTIFY command if you want people
+to be able to send a notice to anyone using your proxy (including you!).
+This isn't recommended as a global option, instead only enable it for
+a specific connection class (ie yours).
+
+ yes = Command enabled
+ no = Command disabled
+  
+.PP
+Additionally, the following keywords may go only inside a connection
+class definition.  One '\fBpassword\fR' and at least one '\fBserver\fR'
+(unless '\fBserver_autoconnect\fR' is 'no' and '\fBallow_jump_new\fR' is 'yes')
+are mandatory.
+
+.TP
+.B password
+Password required to use this connection class.  This should be encrypted
+using your system's 
+.BR crypt (3)
+function.  It must be the same as the password supplied by the IRC client
+on connection for this connection class to be used.
+
+You can use the included
+.BR dircproxy-crypt (1)
+utility to generate these passwords.
+
+.TP
+.B server
+Server to connect to.  Multiple servers can be given, in which case they
+are iterated when the connection to one is dropped.  This has the following
+format:
+
+[\fBhostname\fR[:[\fBport\fR][:\fBpassword\fR]]
+
+.TP
+.B from
+The connection hostname must match this mask, multiple masks can be
+specified to allow more hosts to connect.  The * and ? wildcards may be
+used.
+
+.TP
+.B join
+Channels to join when you first connect.  Multiple channels can be given,
+either by seperating the names with a comma, or by specifying multiple
+'\fBjoin\fR' lines.  You may also include the channel key by seperating it
+from the channel name with a space.
+
+Note: You \fImust\fR surround the list of channels with quotes to
+distinguish from comments.
+
+For clarification, this is the format of this line:
+
+join "\fBchannel\fR[ \fBkey\fR][,\fBchannel\fR[ \fBkey\fR]]..."
+
+.SH SIGNALS
+\fBdircproxy\fR will reread its configuration file whenever it receives
+the hangup signal, \fISIGHUP\fR.
+.PP
+Sending an interrupt signal, \fISIGINT\fR, or a terminate signal,
+\fISIGTERM\fR, will cause \fBdircproxy\fR to exit cleanly.
+
+.SH NOTES
+More information, including announcements of new releases, can be found
+at:
+.PP
+.I http://dircproxy.securiweb.net.net/
+
+.SH SEE ALSO
+.BR dircproxy-crypt (1)
+.BR inetd (8)
+.BR crypt (3)
+
+.SH BUGS
+Please submit and review bug reports at:
+.PP
+.I http://dircproxy.securiweb.net/newticket
+
+.SH AUTHOR
+Written by Scott James Remnant <scott@netsplit.com>.
+Additions by Mike Taylor <bear@code-bear.com> and Francois Harvey
+<fharvey@securiweb.net>.
+
+.SH COPYRIGHT
+Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
+Copyright (C) 2004 Francois Harvey <fharvey@securiweb.net> and 
+                   Mike Taylor <bear@code-bear.com>.
+\fBdircproxy\fR is distributed under the \fIGNU General Public
+License\fR.
