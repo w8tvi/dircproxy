@@ -532,7 +532,7 @@
 #     yes = Log private messages for recall while offline and online
 #      no = Log private messages for recall only while offline
 #
-#private_log_always yes
+#private_log_always no
 
 # private_log_maxsize
 #     To preserve your harddisk space, you can limit the size of the internal
@@ -555,7 +555,7 @@
 #     -1 = Recall the whole log (not recommended if private_log_always is yes)
 #      0 = Don't automatically recall anything
 #
-#private_log_recall 128
+#private_log_recall -1
 
 
 # INTERNAL SERVER LOG OPTIONS
@@ -581,7 +581,7 @@
 #     yes = Log server messages for recall while offline and online
 #      no = Log server messages for recall only while offline
 #
-#server_log_always yes
+#server_log_always no
 
 # server_log_maxsize
 #     To preserve your harddisk space, you can limit the size of the internal
@@ -604,7 +604,7 @@
 #     -1 = Recall the whole log (not recommended if server_log_always is yes)
 #      0 = Don't automatically recall anything
 #
-#server_log_recall 128
+#server_log_recall -1
 
 
 # DCC PROXY OPTIONS
