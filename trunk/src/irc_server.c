@@ -5,7 +5,7 @@
  * irc_server.c
  *  - Handling of servers connected to the proxy
  * --
- * @(#) $Id: irc_server.c,v 1.15 2000/08/25 09:49:15 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.16 2000/08/25 09:50:55 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -415,19 +415,21 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
              || !strcasecmp(msg.cmd, "476") || !strcasecmp(msg.cmd, "405")) {
     if (msg.numparams >= 2) {
       /* Can't join a channel, permanent error */
-
-      /* No client connected?  Better notify it */
-      if (p->client_status != IRC_CLIENT_ACTIVE) {
-        if (msg.numparams >= 3) {
+      if (ircnet_fetchchannel(p, msg.params[1])) {
+        /* No client connected?  Better notify it */
+        if (p->client_status != IRC_CLIENT_ACTIVE) {
+          if (msg.numparams >= 3) {
           irclog_notice_to(p, p->nickname, "Couldn't rejoin %s: %s (%s)",
-                           msg.params[1], msg.params[2], msg.cmd);
-        } else {
-          irclog_notice_to(p, p->nickname, "Couldn't rejoin %s (%s)",
-                           msg.params[1], msg.cmd);
+                             msg.params[1], msg.params[2], msg.cmd);
+          } else {
+            irclog_notice_to(p, p->nickname, "Couldn't rejoin %s (%s)",
+                             msg.params[1], msg.cmd);
+          }
         }
+
+        ircnet_delchannel(p, msg.params[1]);
       }
 
-      ircnet_delchannel(p, msg.params[1]);
       squelch = 0;
     }
 
