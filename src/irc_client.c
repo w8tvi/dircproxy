@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.17 2000/08/23 11:47:18 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.18 2000/08/23 11:48:41 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <crypt.h>
 
 #include <dircproxy.h>
 #include "sprintf.h"
@@ -304,17 +305,18 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
 /* Got a password */
 static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
   struct ircconnclass *cc;
-  char *cmp;
-
-  cmp = password;
 
   cc = connclasses;
   while (cc) {
 #ifdef ENCRYPTED_PASSWORDS
+    char *cmp;
+
     cmp = crypt(password, cc->password);
-#endif
 
     if (!strcmp(cc->password, cmp)) {
+#else
+    if (!strcmp(cc->password, password)) {
+#endif
       if (cc->masklist) {
         struct strlist *m;
 
