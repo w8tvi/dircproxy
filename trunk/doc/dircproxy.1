@@ -2,7 +2,7 @@
 .\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.7 2000/08/25 09:15:41 keybuk Exp $
+.\" @(#) $Id: dircproxy.1,v 1.8 2000/09/01 12:17:12 keybuk Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -78,7 +78,250 @@ Specifies an alternate port to use, overriding the default and any
 value specified in the configuration file.
 
 .SH CONFIGURATION
-Put info on the configuration file here.
+The configuration file has the following format:
+.PP
+Empty lines and lines starting with '#' are comments.
+.PP
+Connection classes start with 'connection {' and end with '}'.  They obtain
+default values from all the entries above them in the configuration file,
+and may contain values of their own.
+.PP
+Otherwise a line is of the format 'keywords arguments'.  If the argument
+contains spaces it should be contained in double quotes ('"with spaces"').
+The possible keywords and their meanings are as follows (note that the
+configuration file is not case-sensitive):
+
+.TP
+.B listen_port
+What port should dircproxy listen for connections from IRC clients
+on?
+
+This can be a numeric port number, or a service name from /etc/services
+This directive cannot go inside a connection class.
+
+.TP
+.B server_port
+What port do we connect to IRC servers on if the server string doesn't
+explicitly set one
+
+This can be a numeric port number, or a service name from /etc/services
+
+.TP
+.B server_retry
+How many seconds after disconnection or last connection attempt do we
+wait before retrying again?
+
+.TP
+.B server_dnsretry
+How many seconds after last connection attempt do we wait before trying
+again if the error was DNS related?
+
+.TP
+.B server_maxattempts
+If we are disconnected from the server, how many times should we iterate
+the server list before giving up and declaring the proxied connection
+dead?
+
+0 = iterate forever
+
+.TP
+.B server_maxinitattempts
+On first connection, how many times should we iterate the server list
+before giving up and declaring the proxied connection dead?
+
+0 = iterate forever.  This isn't recommended.
+
+.TP
+.B server_pingtimeout
+For some people, dircproxy doesn't notice that the connection to the
+server has been dropped because the socket remains open.  For example,
+those behind a NAT'd firewall.  dircproxy can monitor the amount of time
+between PINGs received from a server, and when it exceeds the number of
+seconds below assume the server is "stoned" and reconnect to it.
+
+0 = don't monitor PINGs
+
+.TP
+.B channel_rejoin
+If we are kicked off a channel, how many seconds do we wait before
+attempting * to rejoin.
+
+-1 = Don't rejoin
+0 = Immediately
+
+.TP
+.B disconnect_existing_user
+If, when you connect to dircproxy, another client is already using
+your connection class (ie, if you forgot to close that one), then
+this option lets you automatically kill that one off.  Make sure you
+turn any "automatic reconnect to server" options off before using
+this, otherwise you'll have a fight on your hands.
+
+yes = Yes, disconnect
+no = No, don't let me on
+
+.TP
+.B drop_modes
+Which user modes to drop automatically when you detach, handy to
+limit the impact that your client has while connected, or for extra
+security if you're an IRCop.
+
+.TP
+.B local_address
+Local hostname to use when connecting to an IRC server.  This provides
+the same functionality as the ircII -H parameter.
+
+none = Do not bind any specific hostname
+
+.TP
+.B away_message
+If you don't explicitly set an /AWAY message before you detach, dircproxy
+can for you, so people don't think you are really at your keyboard
+when you're not.
+
+none = Do not set an away message for you
+
+.TP
+.B chan_log_dir
+Directory to keep channel logs in.  If you don't use this, dircproxy
+stores them in a temporary directory and deletes them when finished.
+If you do define it, it'll add to each log as you use it.  If you
+start with "~/" then it will use a directory under your home directory.
+
+none = Store in temporary directory and delete when finished
+
+.TP
+.B chan_log_always
+Channel text will always be logged while you are offline, so when you
+come back you can see what you missed.  You can also, if you wish, log
+channel text while online, so if you're only away a short time you can
+get an idea of any context etc.  This is also useful if you're using
+dircproxy's logs yourself, and wish to log everything.
+
+yes = Log channel text while offline and online
+no = Log channel text only while offline
+
+.TP
+.B chan_log_timestamp
+Channel text can have a timestamp added to the front to let you know
+exactly when a message was logged.  These timestamps are displayed when
+you recall the log files, or when automatially dumped.
+
+yes = Include timestamp
+no = Do not include timestamp
+
+.TP
+.B chan_log_maxsize
+To preserve your harddisk space, you can limit the size of a channel
+log file.  Once the log file reaches this number of lines, every line
+added will result in a line removed from the top.  If you know you are
+never going to want all that logged information, this might be a good
+setting for you.
+
+0 = No limit to log files
+
+.TP
+.B chan_log_recall
+Number of lines from each channel log file to automatically recall
+to your IRC client when you attach.  If this is low, you may not get
+much useful information, if this is high, it may take a long time for
+all the information to arrive.
+
+-1 = Recall the whole log (not recommended if chan_log_always is yes)
+0 = Don't automatically recall anything
+
+.TP
+.B other_log_dir
+Directory to keep the server/private message log in.  If you don't use
+this, dircproxy stores it in a temporary directory and deletes it when
+finished.  If you do define it, it'll add to the log as you use it.
+If you start with "~/" then it will use a directory under your home
+directory.
+
+none = Store in temporary directory and delete when finished
+
+.TP
+.B other_log_always
+Server and private messages will always be logged while you are offline,
+so when you come back you can see what you missed.  You can also, if you
+wish, log these messages while online, so if you're only away a short
+time you can get an idea of any context etc.  This is also useful if
+you're using dircproxy's logs yourself, and wish to log everything.
+
+yes = Log server/private messages while offline and online
+no = Log server/private messages only while offline
+
+.TP
+.B other_log_timestamp
+Server and private messages can have a timestamp added to the front to
+let you know exactly when a message was logged.  These timestamps are
+displayed when you recall the log files, or when automatially dumped.
+
+yes = Include timestamp
+no = Do not include timestamp
+
+.TP
+.B other_log_maxsize
+To preserve your harddisk space, you can limit the size of the
+server/private message log file.  Once the log file reaches this number
+of lines, every line added will result in a line removed from the top.
+If you know you are never going to want all that logged information,
+this might be a good setting for you.
+
+0 = No limit to log file
+
+.TP
+.B other_log_recall
+Number of lines from the server/private message log file to automatically
+recall to your IRC client when you attach.  If this is low, you may not
+get much useful information, if this is high, it may take a long time for
+all the information to arrive.
+
+-1 = Recall the whole log (not recommended if other_log_always is yes)
+0 = Don't automatically recall anything
+
+.TP
+.B motd_logo
+If this is yes, then the dircproxy logo and version number will be
+included in the message of the day when you connect.  Only the picky
+would turn this off, its pretty!
+
+yes = Show me the pretty logo
+no = I don't like logos, I'm boring, I eat llamas.
+
+.TP
+.B motd_stats
+Display information on what channels you were on, and log file sizes
+etc in the message of the day.  This is handy, and lets you know how
+not only much information you missed, but how much will be sent to you.
+
+yes = Show the stats
+no = They don't interest me, don't show them.
+.PP
+Additionally, the following keywords may go only inside a connection
+class definition.  One 'password' and at least one 'server' are
+mandatory.
+
+.TP
+.B password
+Password required to use this connection class.  This should be encrypted
+using your system's crypt() function.  It must be the same as the password
+supplied by the IRC client on connection for this connection class to be
+used.
+
+.TP
+.B server
+Server to connect to.  Multiple servers can be given, in which case they
+are iterated when the connection to one is dropped.  This has the following
+format:
+
+[\fBhostname\fR[:[\fBport\fR][:\fBpassword\fR]]
+
+.TP
+.B from
+The connection hostname must match this mask, multiple masks can be
+specified to allow more hosts to connect.  The * and ? wildcards may be
+used.
 
 .SH SIGNALS
 \fBdircproxy\fR will reread its configuration file whenever it receives
