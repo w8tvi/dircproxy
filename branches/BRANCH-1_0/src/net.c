@@ -1,6 +1,5 @@
 /* dircproxy
- * Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.
- * All Rights Reserved.
+ * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
  *
  * net.c
  *  - handy functions to make/close sockets
@@ -10,7 +9,7 @@
  *  - functions to retrieve data from buffers up to delimiters (newlines?)
  *  - main poll()/select() function
  * --
- * @(#) $Id: net.c,v 1.15 2002/01/01 17:55:23 scott Exp $
+ * @(#) $Id: net.c,v 1.15.4.1 2002/12/29 21:33:39 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the

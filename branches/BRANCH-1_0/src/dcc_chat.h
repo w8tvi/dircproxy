@@ -1,10 +1,9 @@
 /* dircproxy
- * Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.
- * All Rights Reserved.
+ * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
  *
  * dcc_chat.h
  * --
- * @(#) $Id: dcc_chat.h,v 1.5 2001/12/21 20:15:55 keybuk Exp $
+ * @(#) $Id: dcc_chat.h,v 1.5.4.1 2002/12/29 21:33:37 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the

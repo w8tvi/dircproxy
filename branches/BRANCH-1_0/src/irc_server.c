@@ -1,13 +1,12 @@
 /* dircproxy
- * Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.
- * All Rights Reserved.
+ * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
  *
  * irc_server.c
  *  - Handling of servers connected to the proxy
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.60 2002/01/31 14:56:37 scott Exp $
+ * @(#) $Id: irc_server.c,v 1.60.4.1 2002/12/29 21:33:38 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the

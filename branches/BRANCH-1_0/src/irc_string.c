@@ -1,12 +1,11 @@
 /* dircproxy
- * Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.
- * All Rights Reserved.
+ * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
  *
  * irc_string.c
  *  - Case conversion functions for IRC protocol
  *  - Comparison and match functions for IRC protocol
  * --
- * @(#) $Id: irc_string.c,v 1.8 2001/12/21 20:15:55 keybuk Exp $
+ * @(#) $Id: irc_string.c,v 1.8.4.1 2002/12/29 21:33:38 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the

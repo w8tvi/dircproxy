@@ -1,6 +1,5 @@
 /* dircproxy-crypt
- * Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.
- * All Rights Reserved.
+ * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
  *
  * main.c
  *  - Encyrpt a password taken from stdin or the command line
@@ -8,7 +7,7 @@
  * This is deliberately simple, it doesn't even malloc() anything (which,
  * for something I wrote, is amazing).
  * --
- * @(#) $Id: main.c,v 1.3 2001/12/21 20:15:54 keybuk Exp $
+ * @(#) $Id: main.c,v 1.3.4.1 2002/12/29 21:33:35 scott Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,7 +52,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - userful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.3 2001/12/21 20:15:54 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.3.4.1 2002/12/29 21:33:35 scott Exp $";
 
 /* The name of the program */
 static char *progname;

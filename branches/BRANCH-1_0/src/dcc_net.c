@@ -1,6 +1,5 @@
 /* dircproxy
- * Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.
- * All Rights Reserved.
+ * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
  *
  * dcc_net.c
  *  - Creating new DCC connections
@@ -8,7 +7,7 @@
  *  - The list of currently active DCC proxies
  *  - Miscellaneous DCC functions
  * --
- * @(#) $Id: dcc_net.c,v 1.12 2001/12/21 20:15:55 keybuk Exp $
+ * @(#) $Id: dcc_net.c,v 1.12.4.1 2002/12/29 21:33:37 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
