@@ -4,7 +4,7 @@
  *
  * dcc_net.h
  * --
- * @(#) $Id: dcc_net.h,v 1.5 2000/12/07 17:03:23 keybuk Exp $
+ * @(#) $Id: dcc_net.h,v 1.6 2000/12/21 13:24:59 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -41,6 +41,10 @@ struct dccproxy {
   int sendee_status;
   struct sockaddr_in sendee_addr;
 
+  int (*notify_func)(void *, const char *);
+  void *notify_data;
+  char *notify_msg;
+
   /* DCC SEND only */
   uint32_t bytes_sent, bytes_ackd, bytes_rcvd;
   char *buf;
@@ -53,6 +57,9 @@ struct dccproxy {
 
   struct dccproxy *next;
 };
+
+/* handy defines */
+#define DCCN_FUNCTION(_FUNC) ((int (*)(void *, const char *)) _FUNC)
 
 /* types of dcc proxy */
 #define DCC_CHAT             0x01
@@ -77,7 +84,8 @@ struct dccproxy {
 
 /* functions */
 extern int dccnet_new(int, long, int *, size_t, int *,
-                      struct in_addr, int, const char *, long);
+                      struct in_addr, int, const char *, long,
+                      int (*)(void *, const char *), void *, const char *);
 extern int dccnet_expunge_proxies(void);
 extern void dccnet_flush(void);
 
