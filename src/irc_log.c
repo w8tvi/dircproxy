@@ -5,7 +5,7 @@
  * irc_log.c
  *  - Handling of log files
  * --
- * @(#) $Id: irc_log.c,v 1.14 2000/08/30 11:36:04 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.15 2000/08/30 13:09:10 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -29,6 +29,8 @@
 #include "sprintf.h"
 #include "irc_net.h"
 #include "irc_prot.h"
+#include "irc_client.h"
+#include "irc_string.h"
 #include "irc_log.h"
 
 /* forward declarations */
@@ -40,9 +42,8 @@ static int _irclog_writetext(struct logfile *, char, const char *, char, int,
                              const char *, va_list);
 static int _irclog_text(struct ircproxy *, const char *, char, const char *,
                         char, const char *, va_list);
-
-static int _irclog_recall(struct logfile *, unsigned long, unsigned long,
-                          const char *);
+static int _irclog_recall(struct ircproxy *, struct logfile *, unsigned long,
+                          unsigned long, const char *, const char *);
 
 /* Log time format for strftime(3) */
 #define LOG_TIME_FORMAT "%H:%M"
@@ -464,22 +465,25 @@ int irclog_autorecall(struct ircproxy *p, const char *to) {
   start = (recall > log->nlines ? 0 : log->nlines - recall);
   lines = log->nlines - start;
 
-  return _irclog_recall(log, start, lines, 0);
+  return _irclog_recall(p, log, start, lines, to, 0);
 }
 
 /* Called to do the recall from a log file */
-static int _irclog_recall(struct logfile *log, unsigned long start,
-                          unsigned long lines, const char *from) {
+static int _irclog_recall(struct ircproxy *p, struct logfile *log,
+                          unsigned long start, unsigned long lines,
+                          const char *to, const char *from) {
   FILE *file;
   int close;
 
+  /* If the file isn't open, we have to open it and remember to close it
+     later */
   if (log->open) {
     file = log->file;
     close = 0;
   } else if (log->filename) {
     file = fopen(log->filename, "r");
     if (!file) {
-      /* SNARF: Warn user here */
+      ircclient_send_notice(p, "Couldn't open log file %s", log->filename);
       syscall_fail("fopen", log->filename, 0);
       return -1;
     }
@@ -488,6 +492,7 @@ static int _irclog_recall(struct logfile *log, unsigned long start,
     return -1;
   }
 
+  /* Jump to the beginning */
   fseek(file, 0, SEEK_SET);
 
   if (start < log->nlines) {
@@ -501,16 +506,64 @@ static int _irclog_recall(struct logfile *log, unsigned long start,
 
     /* Recall lines */
     while (lines-- && (l = _irclog_read(log))) {
-      /* SNARF: Do stuff with lines here */
-      debug("[%s]", l);
+      /* Message or Notice lines, these require a bit of parsing */
+      if ((*l == '<') || (*l == '-')) {
+        char *src, *msg;
+
+        /* Source starts one character in */
+        src = l + 1;
+        if (!*src) {
+          free(l);
+          continue;
+        }
+
+        /* Message starts after a space and the correct closing character */
+        msg = strchr(l, ' ');
+        if (!msg || (*(msg - 1) != (*l == '<' ? '>' : '-'))) {
+          free(l);
+          continue;
+        }
+
+        /* Delete the closing character and skip the space */
+        *(msg - 1) = 0;
+        msg++;
+
+        /* Do filtering */
+        if (from) {
+          char *comp, *ptr;
+
+          /* We just check the nickname, so strip off anything after the ! */
+          comp = x_strdup(src);
+          if ((ptr = strchr(comp, '!')))
+            *ptr = 0;
+
+          /* Check the nicknames are the same */
+          if (irc_strcasecmp(comp, from)) {
+            free(comp);
+            free(l);
+            continue;
+          }
+        }
+
+        /* Send the line */
+        sock_send(p->client_sock, ":%s %s %s :%s\r\n", src,
+                  (*l == '<' ? "PRIVMSG" : "NOTICE"), to, msg);
+
+      } else if (strncmp(l, "* ", 2)) {
+        /* Anything thats not a comment gets sent as a notice */
+        ircclient_send_notice(p, "%s", l);
+
+      }
+
       free(l);
     }
   }
-  
-  fseek(file, 0, SEEK_END);
 
-  if (close)
+  /* Either close, or skip back to the end */
+  if (close) {
     fclose(file);
-
+  } else {
+    fseek(file, 0, SEEK_END);
+  }
   return 0;
 }
