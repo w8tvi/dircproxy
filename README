@@ -105,14 +105,6 @@ For example, to end your proxy session, disconnecting you from the
 server, use '/dircproxy quit'.  For more information on what other
 commands are available, see '/dircproxy help'.
 
-There are scripts and configuration files for a number of different
-IRC clients in the contrib directory that will add this command
-to the client.  If you do it manually, you may find that you
-need to quote it in some way for it to reach dircproxy correctly.
-For example to quit with a message you may find you actually need
-to do '/quote dircproxy quit :This is my message' (the : indicates
-that this is the last parameter, and it may contain spaces).
-
 
 More Information
 ================
