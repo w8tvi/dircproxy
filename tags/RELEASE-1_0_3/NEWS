@@ -1,0 +1,171 @@
+NEWS about changes for existing users.
+--------------------------------------
+
+Version 1.0.3 - Fri Feb  8 17:44:42 GMT 2002
+
+	* New 'pid_file', 'allow_users' and 'allow_kill' config
+	  directives.
+	* New -p command line parameter (adjusts pid_file).
+	* Included contrib scripts, cronchk.sh and privmsg-log.pl
+
+Version 1.0.2 - Tue Jan  1 18:15:00 GMT 2001
+
+	* New 'server_keepalive' config directive.
+
+Version 1.0.1 - Wed Jul 12 17:00:00 BST 2001
+
+	* Just bug fixes.  No changes to worry about.
+
+Version 1.0.0 - Thu Jan 11 15:20:00 GMT 2001
+
+	* Just bug fixes.  No changes to worry about.
+
+Version 0.99.0 - Tue Dec 26 17:55:00 GMT 2000
+
+	* New 'nick_keep' config directive.  The nickname code has been
+	  reworked to accomodate this, as such if the connecting client
+	  has a different nickname to dircproxy, the connecting client is
+	  now corrected (not dircproxy, as it used to be).
+
+	* New 'ctcp_replies' config directive.
+
+Version 0.8.4 - Thu Dec  7 17:35:00 GMT 2000
+
+	* New 'initial_modes' config directive.
+
+Version 0.8.3 - Thu Nov 24 13:45:00 GMT 2000
+
+	* Just bug fixes.  No changes to worry about.
+
+Version 0.8.2 - Thu Nov 23 12:30:00 GMT 2000
+
+	* Just bug fixes.  No changes to worry about.
+
+Version 0.8.1 - Wed Nov 15 16:25:00 GMT 2000
+
+	* Just bug fixes.  No changes to worry about.
+
+Version 0.8.0 - Fri Nov 10 15:20:00 GMT 2000
+
+	* 'chan_log_dir' and 'other_log_dir' have been removed because
+	  they cause usage and security problems.  These have been replaced
+	  with 'chan_log_copydir' and 'other_log_copydir' which have a
+	  slightly different purpose.
+
+	* The log file format on disk has changed slightly to allow for the
+	  new 'relative timestamping'.
+
+	* DCC chat's and send's are now proxied by default through dircproxy.
+
+	* Removed config file options:
+		server_dnsretry
+
+	* New config file options:
+		client_timeout
+		connect_timeout
+		dns_timeout
+		server_throttle
+		server_autoconnect
+		channel_leave_on_detach
+		channel_rejoin_on_attach
+		idle_maxtime
+		refuse_modes
+		quit_message
+		attach_message
+		detach_message
+		chan_log_enabled
+		chan_log_relativetime
+		chan_log_program
+		other_log_enabled
+		other_log_relativetime
+		other_log_program
+		log_timeoffset
+		log_events
+		dcc_proxy_incoming
+		dcc_proxy_outgoing
+		dcc_proxy_ports
+		dcc_proxy_timeout
+		dcc_proxy_sendreject
+		dcc_send_fast
+		dcc_capture_directory
+		dcc_capture_always
+		dcc_capture_withnick
+		dcc_capture_maxsize
+		dcc_tunnel_incoming
+		dcc_tunnel_outgoing
+		switch_user
+		motd_file
+		allow_persist
+		allow_jump
+		allow_jump_new
+		allow_host
+		allow_die
+		
+Version 0.7.3 - Wed Sep 27 17:55:00 BST 2000
+
+	* New config file option - "disconnect_on_detach"
+
+Version 0.7.2 - Mon Sep 25 13:13:00 BST 2000
+
+	* If you use a .dircproxyrc in your home directory, this must
+	  now have no more then 0700 permissions.  If this is not the
+	  case then dircproxy will not start.  This does not apply to
+	  the global config file or any supplied with the -f parameter.
+
+Version 0.7.1 - Thu Sep 14 13:15:00 BST 2000
+
+	* Just bug fixes.  No changes to worry about.
+
+Version 0.7.0 - Fri Sep  1 15:00:00 BST 2000
+
+	* The global configuration file is now called dircproxyrc not
+	  dircproxy.conf
+
+	* dircproxy is now installed in 'bin' not 'sbin', its a user
+	  program after all.
+
+	* Passwords for connection classes must be encrypted in the
+	  configuration file using the crypt() function (or contrib/crypt),
+	  if you don't like this then edit src/dircproxy.h and turn it off,
+	  but thats silly.
+
+	* /DQUIT is gone, try /DIRCPROXY QUIT instead
+
+	* Try /DIRCPROXY HELP
+
+	* Try "man dircproxy" :-)
+
+Version 0.6.2 - Mon Jun 26 16:58:00 BST 2000
+
+	* Changed the logic behind how configuration files are loaded.
+	  If you supply one with -f, that is loaded.  If you don't it
+	  first tries ~/.dircproxyrc and then tries etc/dircproxy.conf.
+	  This means that the config file is no longer installed, and
+	  can be found as dircproxy.conf in share/dircproxy or the conf
+	  dir of the source.  Also the -G option is no longer valid.
+
+Version 0.6.1 - Thu May 25 15:04:00 BST 2000
+
+	* Just bug fixes.  No changes to worry about.
+
+Version 0.6.0 - Wed May 24 22:33:00 BST 2000
+
+	* There is now a configuration file.  Copy the dircproxyrc.example
+	  from the conf directory to your home directory and call it
+	  .dircproxyrc - this file contains all the documentation for
+	  configuring dircproxy.
+
+Version 0.5.3 - Sat May 13 16:32:00 BST 2000
+
+	* Many of the TODO_CFG_* options defined in dircproxy.h have now
+	  been given documentation and renamed.  You'll need to recheck this
+	  file if you've changed them.  The PASS/SERVER/BIND ones are still
+	  at the bottom and still the same however.
+
+Version 0.5.2 - Fri May 12 23:00:00 BST 2000
+
+	* Initial public release
+
+
+Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.
+All Rights Reserved.
