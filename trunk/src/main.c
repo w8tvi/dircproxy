@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.7 2000/05/24 17:42:48 keybuk Exp $
+ * @(#) $Id: main.c,v 1.8 2000/05/24 17:45:30 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.7 2000/05/24 17:42:48 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.8 2000/05/24 17:45:30 keybuk Exp $";
 
 /* The name of the program */
 char *progname;
@@ -143,6 +143,43 @@ int main(int argc, char *argv[]) {
   if (show_help) {
     _print_help();
     return 0;
+  }
+
+  /* Read global config file */
+  if (!no_global_config) {
+    char *global_file;
+
+    global_file = x_sprintf("%s/%s", SYSCONFDIR, GLOBAL_CONFIG_FILENAME);
+    cfg_read(global_file);
+    free(global_file);
+  }
+
+  /* If no -f was specified use the home directory */
+  if (!local_file) {
+    struct passwd *pw;
+
+    pw = getpwuid(geteuid());
+    if (pw && pw->pw_dir) {
+      local_file = x_sprintf("%s/%s", pw->pw_dir, USER_CONFIG_FILENAME);
+      cfg_read(local_file);
+      free(local_file);
+    }
+  } else {
+    if (cfg_read(local_file)) {
+      fprintf(stderr, "%s: Couldn't read configuration from %s: %s\n",
+              progname, local_file, strerror(errno));
+      free(local_file);
+      return 2;
+    }
+
+    free(local_file);
+  }
+
+  /* Check we got some connection classes */
+  if (!connclasses) {
+    fprintf(stderr, "No configuration classes are defined.  You need to "
+            "create a\nconfiguration file and define some in it.\n");
+    return 2;
   }
 
   /* Set signal handlers */
