@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.4 2000/05/24 17:30:07 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.5 2000/05/24 17:31:34 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -93,7 +93,7 @@
  */
 #define DEFAULT_SERVER_DNSRETRY 60
 
-/* DEFAULT_MAXATTEMPTS
+/* DEFAULT_SERVER_MAXATTEMPTS
  * If we are disconnected from the server, how many times should we iterate
  * the server list before giving up and declaring the proxied connection
  * dead?
