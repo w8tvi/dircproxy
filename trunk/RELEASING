@@ -10,7 +10,7 @@ Release checklist
  4.  Check it compiles and runs without any flags
  5.  Fix any bugs/warnings, commit them, and return to 1
  6.  Perform a `make maintainer-clean` and remove any litter
- 7.  Run `cvs2cl.pl --gmt --prune -U AUTHORS.map -l '-b'` to create new
+ 7.  Run `cvs2cl --gmt --prune -U AUTHORS.map -l '-b'` to create new
      ChangeLog.  If this is a non-head branch replace the "-l 'b'" with
      "-F BRANCH-x_x".
  8.  `rm ChangeLog.bak`
@@ -31,19 +31,19 @@ Release checklist
 21.  FTP dist file to ftp://upload.sourceforge.net/incoming
 22.  `gpg --armor --comment 'See http://dircproxy.sourceforge.net/\
       download.html for more information' --detach-sign DISTFILE`
-23.  scp dist file and asc file to keybuk@dircproxy.sourceforge.net:\
-     /home/groups/ftp/pub/dircproxy/source
-24.  Remove 'src' directory from dircproxy and replace with new version
-25.  Add new file release on sourceforge supplying changes.txt and summary.txt
-26.  Add new news item title "dircproxy x.x.x released" containing release.txt
-27.  Run build-site.pl on dircproxy.sourceforge.net to ensure the site always
+23.  scp dist file and asc file to repton:~ftp/pub/dircproxy/stable
+24.  scp dist file to keybuk@dircproxy.sourceforge.net:
+25.  Remove 'src' directory from dircproxy and replace with new version
+26.  Add new file release on sourceforge supplying changes.txt and summary.txt
+27.  Add new news item title "dircproxy x.x.x released" containing release.txt
+28.  Run build-site.pl on dircproxy.sourceforge.net to ensure the site always
      carries the latest information.
-28.  Check the site front page, news page and download page.
-29.  Announce new version on freshmeat using summary.txt
-30.  E-mail dircproxy-announce list with release.txt making sure to sign
+29.  Check the site front page, news page and download page.
+30.  Announce new version on freshmeat using summary.txt
+31.  E-mail dircproxy-announce list with release.txt making sure to sign
      the e-mail.
-31.  E-Mail nidd@debian.org and greid@ukug.uk.freebsd.org with any significant
-     changes that could affect packaging (new files etc), making sure to sign
-     the e-mail.
-32.  Edit configure.in & contrib/dircproxy.spec and increment the version
+32.  E-Mail greid@ukug.uk.freebsd.org with any significant changes that could
+     affect packaging (new files etc), making sure to sign the e-mail.
+33.  Update and upload the new Debian package to master
+34.  Edit configure.in & contrib/dircproxy.spec and increment the version
      number, commit with message "CVS version now x.x.x"
