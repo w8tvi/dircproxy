@@ -4,7 +4,7 @@
  *
  * dcc_net.h
  * --
- * @(#) $Id: dcc_net.h,v 1.4 2000/11/15 16:10:25 keybuk Exp $
+ * @(#) $Id: dcc_net.h,v 1.5 2000/12/07 17:03:23 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -42,7 +42,9 @@ struct dccproxy {
   struct sockaddr_in sendee_addr;
 
   /* DCC SEND only */
-  uint32_t bytes_sent, bytes_ackd;
+  uint32_t bytes_sent, bytes_ackd, bytes_rcvd;
+  char *buf;
+  unsigned long bufsz;
 
   /* DCC SEND (Capture) only */
   char *cap_filename;
@@ -63,6 +65,7 @@ struct dccproxy {
 #define DCC_SENDER_NONE      0x00
 #define DCC_SENDER_CREATED   0x01
 #define DCC_SENDER_CONNECTED 0x02
+#define DCC_SENDER_GONE      0x04
 #define DCC_SENDER_ACTIVE    0x03
 
 /* states a sendee can be in */
