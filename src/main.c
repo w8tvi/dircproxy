@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.18 2000/08/23 11:43:45 keybuk Exp $
+ * @(#) $Id: main.c,v 1.19 2000/08/23 14:30:27 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,15 +40,15 @@
 
 /* forward declarations */
 static void sig_term(int);
-#ifdef DEBUG
+#ifdef DEBUG_MEMORY
 static void sig_usr(int);
-#endif /* DEBUG */
+#endif /* DEBUG_MEMORY */
 static int _print_usage(void);
 static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.18 2000/08/23 11:43:45 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.19 2000/08/23 14:30:27 keybuk Exp $";
 
 /* The name of the program */
 char *progname;
@@ -274,9 +274,9 @@ int main(int argc, char *argv[]) {
   free(server_port);
   free(listen_port);
 
-#ifdef DEBUG
+#ifdef DEBUG_MEMORY
   mem_report("termination");
-#endif /* DEBUG */
+#endif /* DEBUG_MEMORY */
 
   return 0;
 }
@@ -286,7 +286,7 @@ static void sig_term(int sig) {
   stop_poll = 1;
 }
 
-#ifdef DEBUG
+#ifdef DEBUG_MEMORY
 /* On USR signals, dump debug information */
 static void sig_usr(int sig) {
   mem_report(sig == SIGUSR1 ? 0 : "signal");
