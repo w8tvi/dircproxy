@@ -6,10 +6,8 @@ For the next release (0.7.0)
           PERSIST
 	  QUIT <msg>		(change /DQUIT to this)
 
-	* Function to make a new listening socket, delete all other proxy
-	  configs, set dedicated_proxy to 1 and announce port.
-
 	* If dedicated_proxy = 1 then announce port on DETACH
+	  and if p->die_on_close = 1 then announce too
 
 	* PERSIST is available if die_on_close is 1, runs above function
 	  and sets die_on_close to 0
@@ -40,14 +38,16 @@ For the next release (0.7.0)
 
 	  log_chan_while_online		1/0
 	  keep_chan_logs		1/0
+	  timestamp_chan_logs		1/0
 
-	  log_msg_while_online		1/0
-	  keep_msg_logs			1/0
+	  log_other_while_online	1/0
+	  keep_other_logs		1/0
+	  timestamp_other_logs		1/0
 	  
 	  chan_log_max_size		lines
 	  chan_log_default_recall	lines
-	  msg_log_max_size		lines
-	  msg_log_default_recall	lines
+	  other_log_max_size		lines
+	  other_log_default_recall	lines
 
 	* When a user comes in and is already connected, disconnect the
 	  existing user?
@@ -62,6 +62,13 @@ For the next release (0.7.0)
 
 	* Server passwords, so we can connect to an IRC server that
 	  needs a password
+
+	* New log file format:
+
+	  <Keybuk> [12:47] xx yy zz             (msg)
+	  -Keybuk- [12:48] edfklj dgdg          (notice)
+	  -ircnet.demon.co.uk- [13:00] x quit   (server)
+	  -dircproxy- [13:05] bar               (dircproxy)
 
 
 Whenever time permits:
