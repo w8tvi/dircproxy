@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.57 2001/12/21 20:15:55 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.58 2002/01/24 01:00:52 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -895,6 +895,28 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
         } else {
           /* Bizarre, joined a channel we thought we were already on */
           squelch = 0;
+        }
+
+        if ((p->client_status != IRC_CLIENT_ACTIVE)
+            && (p->conn_class->detach_message)) {
+          int slashme;
+          char *msg;
+
+          msg = p->conn_class->detach_message;
+          if ((strlen(msg) >= 5) && !strncasecmp(msg, "/me ", 4)) {
+            /* Starts with /me */
+            slashme = 1;
+            msg += 4;
+          } else {
+            slashme = 0;
+          }
+
+          if (slashme) {
+            ircserver_send_command(p, "PRIVMSG", "%s :\001ACTION %s\001",
+                                   c->name, msg);
+          } else {
+            ircserver_send_command(p, "PRIVMSG", "%s :%s", c->name, msg);
+          }
         }
 
         if (p->conn_class->log_events & IRC_LOG_JOIN)
