@@ -4,8 +4,9 @@
  *
  * sprintf.c
  *  - various ways of doing allocating sprintf() functions to void b/o
+ *  - wrapper around strdup()
  * --
- * @(#) $Id: sprintf.c,v 1.7 2000/08/25 09:38:23 keybuk Exp $
+ * @(#) $Id: sprintf.c,v 1.8 2000/10/13 12:53:10 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -22,14 +23,30 @@
 #include "stringex.h"
 #include "sprintf.h"
 
+#ifdef DEBUG_MEMORY
+/* What to use next */
+static char *nextfile = 0;
+static int nextline = 0;
+#endif /* DEBUG_MEMORY */
+
 /* The sprintf() version is just a wrapper around whatever vsprintf() we
    decide to implement. */
+#ifdef DEBUG_MEMORY
+char *xx_sprintf(const char *format, ...) {
+#else /* DEBUG_MEMORY */
 char *x_sprintf(const char *format, ...) {
+#endif /* DEBUG_MEMORY */
   va_list ap;
   char *ret;
 
   va_start(ap, format);
+#ifdef DEBUG_MEMORY
+  ret = xx_vsprintf(nextfile, nextline, format, ap);
+  nextfile = 0;
+  nextline = 0;
+#else /* DEBUG_MEMORY */
   ret = x_vsprintf(format, ap);
+#endif /* DEBUG_MEMORY */
   va_end(ap);
 
   return ret;  
@@ -37,7 +54,8 @@ char *x_sprintf(const char *format, ...) {
 
 #ifdef HAVE_VASPRINTF
 
-/* Wrap around vasprintf() which exists in BSD */
+/* Wrap around vasprintf() which exists in BSD.  We can't memdebug() this,
+   so its disabled by configure.in if DEBUG_MEMORY is enabled. */
 char *x_vsprintf(const char *format, va_list ap) {
   char *str;
 
@@ -51,7 +69,9 @@ char *x_vsprintf(const char *format, va_list ap) {
 
 # ifdef HAVE_VSNPRINTF
 
-/* Does vsnprintf()s until its not truncated and returns the string */
+/* Does vsnprintf()s until its not truncated and returns the string.  We
+   can't memdebug this, so its disabled by configure.in if DEBUG_MEMORY is
+   enabled. */
 char *x_vsprintf(const char *format, va_list ap) {
   int buffsz, ret;
   char *buff;
@@ -79,8 +99,14 @@ char *x_vsprintf(const char *format, va_list ap) {
 
 /* Makes a string representation of a number which can have different
    lengths, bases and precisions etc. */
+#ifdef DEBUG_MEMORY
+static char *_x_makenum(char *file, int line,
+                        long num, int base, int minsize, int mindigits,
+                        char padchar, char signchar) {
+#else /* DEBUG_MEMORY */
 static char *_x_makenum(long num, int base, int minsize, int mindigits,
                         char padchar, char signchar) {
+#endif /* DEBUG_MEMORY */
   static char *digits = "0123456789abcdefghijklmnopqrstuvwxyz";
   unsigned long newstrlen;
   char *newstr;
@@ -90,7 +116,11 @@ static char *_x_makenum(long num, int base, int minsize, int mindigits,
     return NULL;
   }
 
+#ifdef DEBUG_MEMORY
+  newstr = xx_strdup(file, line, "");
+#else /* DEBUG_MEMORY */
   newstr = x_strdup("");
+#endif /* DEBUG_MEMORY */
   newstrlen = 1;
 
   if (signchar) {
@@ -104,12 +134,20 @@ static char *_x_makenum(long num, int base, int minsize, int mindigits,
   }
 
   if (!num) {
+#ifdef DEBUG_MEMORY
+    newstr = (char *)mem_realloc(newstr, newstrlen + 1, file, line);
+#else /* DEBUG_MEMORY */
     newstr = (char *)realloc(newstr, newstrlen + 1);
+#endif /* DEBUG_MEMORY */
     strcpy(newstr + newstrlen - 1, "0");
     newstrlen++;
   } else {
     while (num) {
+#ifdef DEBUG_MEMORY
+      newstr = (char *)mem_realloc(newstr, newstrlen + 1, file, line);
+#else /* DEBUG_MEMORY */
       newstr = (char *)realloc(newstr, newstrlen + 1);
+#endif /* DEBUG_MEMORY */
       newstr[newstrlen - 1] = digits[((unsigned long) num) % base];
       newstr[newstrlen] = 0;
       newstrlen++;
@@ -120,14 +158,22 @@ static char *_x_makenum(long num, int base, int minsize, int mindigits,
   if (strlen(newstr) < mindigits) {
     mindigits -= strlen(newstr);
     while (mindigits--) {
+#ifdef DEBUG_MEMORY
+      newstr = (char *)mem_realloc(newstr, newstrlen + 1, file, line);
+#else /* DEBUG_MEMORY */
       newstr = (char *)realloc(newstr, newstrlen + 1);
+#endif /* DEBUG_MEMORY */
       strcpy(newstr + newstrlen - 1, "0");
       newstrlen++;
     }
   }
 
   if (signchar && (padchar != '0')) {
+#ifdef DEBUG_MEMORY
+    newstr = (char *)mem_realloc(newstr, newstrlen + 1, file, line);
+#else /* DEBUG_MEMORY */
     newstr = (char *)realloc(newstr, newstrlen + 1);
+#endif /* DEBUG_MEMORY */
     newstr[newstrlen - 1] = signchar;
     newstr[newstrlen] = 0;
     newstrlen++;
@@ -137,7 +183,11 @@ static char *_x_makenum(long num, int base, int minsize, int mindigits,
   if ((strlen(newstr) < minsize) && padchar) {
     minsize -= strlen(newstr);
     while (minsize--) {
+#ifdef DEBUG_MEMORY
+      newstr = (char *)mem_realloc(newstr, newstrlen + 1, file, line);
+#else /* DEBUG_MEMORY */
       newstr = (char *)realloc(newstr, newstrlen + 1);
+#endif /* DEBUG_MEMORY */
       newstr[newstrlen - 1] = padchar;
       newstr[newstrlen] = 0;
       newstrlen++;
@@ -149,7 +199,11 @@ static char *_x_makenum(long num, int base, int minsize, int mindigits,
   }
 
   if (signchar) {
+#ifdef DEBUG_MEMORY
+    newstr = (char *)mem_realloc(newstr, newstrlen + 1, file, line);
+#else /* DEBUG_MEMORY */
     newstr = (char *)realloc(newstr, newstrlen + 1);
+#endif /* DEBUG_MEMORY */
     newstr[newstrlen - 1] = signchar;
     newstr[newstrlen] = 0;
     newstrlen++;
@@ -171,15 +225,28 @@ static char *_x_makenum(long num, int base, int minsize, int mindigits,
     char *tmpstr;
 
     i = minsize - strlen(newstr);
+#ifdef DEBUG_MEMORY
+    tmpstr = (char *)mem_malloc(i + 1, file, line);
+#else /* DEBUG_MEMORY */
     tmpstr = (char *)malloc(i + 1);
+#endif /* DEBUG_MEMORY */
     tmpstr[i--] = 0;
     while (i >= 0) {
       tmpstr[i--] = ' ';
     }
 
+#ifdef DEBUG_MEMORY
+    tmpstr = (char *)mem_realloc(tmpstr, strlen(tmpstr) + strlen(newstr) + 1,
+                                 file, line);
+#else /* DEBUG_MEMORY */
     tmpstr = (char *)realloc(tmpstr, strlen(tmpstr) + strlen(newstr) + 1);
+#endif /* DEBUG_MEMORY */
     strcpy(tmpstr + strlen(tmpstr), newstr);
+#ifdef DEBUG_MEMORY
+    mem_realloc(newstr, 0, file, line);
+#else /* DEBUG_MEMORY */
     free(newstr);
+#endif /* DEBUG_MEMORY */
     newstr = tmpstr;
   }
 
@@ -187,15 +254,27 @@ static char *_x_makenum(long num, int base, int minsize, int mindigits,
 }
 
 /* Basically vasprintf, except it doesn't do floating point or pointers */
+#ifdef DEBUG_MEMORY
+char *xx_vsprintf(char *file, int line, const char *format, va_list ap) {
+#else /* DEBUG_MEMORY */
 char *x_vsprintf(const char *format, va_list ap) {
+#endif /* DEBUG_MEMORY */
   char *newdest, *formatcpy, *formatpos, padding, signchar, qualifier;
   int width, prec, base, special, len, caps;
   unsigned long newdestlen;
   long num;
 
+#ifdef DEBUG_MEMORY
+  newdest = xx_strdup(file, line, "");
+#else /* DEBUG_MEMORY */
   newdest = x_strdup("");
+#endif /* DEBUG_MEMORY */
   newdestlen = 1;
+#ifdef DEBUG_MEMORY
+  formatpos = formatcpy = xx_strdup(file, line, format);
+#else /* DEBUG_MEMORY */
   formatpos = formatcpy = x_strdup(format);
+#endif /* DEBUG_MEMORY */
 
   while (*formatpos) {
     if (*formatpos == '%') {
@@ -262,21 +341,33 @@ char *x_vsprintf(const char *format, va_list ap) {
       if (*formatpos == 'c') {
         if (padding) {
           while (--width > 0) {
+#ifdef DEBUG_MEMORY
+            newdest = (char *)mem_realloc(newdest, newdestlen + 1, file, line);
+#else /* DEBUG_MEMORY */
             newdest = (char *)realloc(newdest, newdestlen + 1);
+#endif /* DEBUG_MEMORY */
             newdest[newdestlen - 1] = padding;
             newdest[newdestlen] = 0;
             newdestlen++;
           }
         }
 
+#ifdef DEBUG_MEMORY
+        newdest = (char *)mem_realloc(newdest, newdestlen + 1, file, line);
+#else /* DEBUG_MEMORY */
         newdest = (char *)realloc(newdest, newdestlen + 1);
+#endif /* DEBUG_MEMORY */
         newdest[newdestlen - 1] = va_arg(ap, unsigned char);
         newdest[newdestlen] = 0;
         newdestlen++;
 
         if (!padding) {
           while (--width > 0) {
+#ifdef DEBUG_MEMORY
+            newdest = (char *)mem_realloc(newdest, newdestlen + 1, file, line);
+#else /* DEBUG_MEMORY */
             newdest = (char *)realloc(newdest, newdestlen + 1);
+#endif /* DEBUG_MEMORY */
             newdest[newdestlen - 1] = padding;
             newdest[newdestlen] = 0;
             newdestlen++;
@@ -285,26 +376,46 @@ char *x_vsprintf(const char *format, va_list ap) {
       } else if (*formatpos == 's') {
         char *tmpstr;
 
+#ifdef DEBUG_MEMORY
+        tmpstr = xx_strdup(file, line, va_arg(ap, char *));
+#else /* DEBUG_MEMORY */
         tmpstr = x_strdup(va_arg(ap, char *));
+#endif /* DEBUG_MEMORY */
         len = (prec && (prec < strlen(tmpstr))) ? prec : strlen(tmpstr);
         if (padding) {
           while (--width > len) {
+#ifdef DEBUG_MEMORY
+            newdest = (char *)mem_realloc(newdest, newdestlen + 1, file, line);
+#else /* DEBUG_MEMORY */
             newdest = (char *)realloc(newdest, newdestlen + 1);
+#endif /* DEBUG_MEMORY */
             newdest[newdestlen - 1] = padding;
             newdest[newdestlen] = 0;
             newdestlen++;
           }
         }
 
+#ifdef DEBUG_MEMORY
+        newdest = (char *)mem_realloc(newdest, newdestlen + len, file, line);
+#else /* DEBUG_MEMORY */
         newdest = (char *)realloc(newdest, newdestlen + len);
+#endif /* DEBUG_MEMORY */
         strncpy(newdest + newdestlen - 1, tmpstr, len);
         newdestlen += len;
         newdest[newdestlen - 1] = 0;
+#ifdef DEBUG_MEMORY
+        mem_realloc(tmpstr, 0, file, line);
+#else /* DEBUG_MEMORY */
         free(tmpstr);
+#endif /* DEBUG_MEMORY */
 
         if (!padding) {
           while (--width > len) {
+#ifdef DEBUG_MEMORY
+            newdest = (char *)mem_realloc(newdest, newdestlen + 1, file, line);
+#else /* DEBUG_MEMORY */
             newdest = (char *)realloc(newdest, newdestlen + 1);
+#endif /* DEBUG_MEMORY */
             newdest[newdestlen - 1] = padding;
             newdest[newdestlen] = 0;
             newdestlen++;
@@ -319,7 +430,11 @@ char *x_vsprintf(const char *format, va_list ap) {
             signchar = 0;
           }
           if (special) {
+#ifdef DEBUG_MEMORY
+            newdest = (char *)mem_realloc(newdest, newdestlen + 1, file, line);
+#else /* DEBUG_MEMORY */
             newdest = (char *)realloc(newdest, newdestlen + 1);
+#endif /* DEBUG_MEMORY */
             strcpy(newdest + newdestlen - 1, "0");
             newdestlen++;
           }
@@ -330,7 +445,11 @@ char *x_vsprintf(const char *format, va_list ap) {
             signchar = 0;
           }
           if (special) {
+#ifdef DEBUG_MEMORY
+            newdest = (char *)mem_realloc(newdest, newdestlen + 1, file, line);
+#else /* DEBUG_MEMORY */
             newdest = (char *)realloc(newdest, newdestlen + 1);
+#endif /* DEBUG_MEMORY */
             strcpy(newdest + newdestlen - 1, "0");
             newdestlen++;
           }
@@ -340,7 +459,11 @@ char *x_vsprintf(const char *format, va_list ap) {
             signchar = 0;
           }
           if (special) {
+#ifdef DEBUG_MEMORY
+            newdest = (char *)mem_realloc(newdest, newdestlen + 2, file, line);
+#else /* DEBUG_MEMORY */
             newdest = (char *)realloc(newdest, newdestlen + 2);
+#endif /* DEBUG_MEMORY */
             strcpy(newdest + newdestlen - 1, "0x");
             newdestlen += 2;
           }
@@ -368,22 +491,44 @@ char *x_vsprintf(const char *format, va_list ap) {
           num = va_arg(ap, unsigned int);
         }
 
+#ifdef DEBUG_MEMORY
+        tmpstr = _x_makenum(file, line,
+                            num, base, width, prec, padding, signchar);
+#else /* DEBUG_MEMORY */
         tmpstr = _x_makenum(num, base, width, prec, padding, signchar);
+#endif /* DEBUG_MEMORY */
         if (caps)
           strupr(tmpstr);
 
+#ifdef DEBUG_MEMORY
+        newdest = (char *)mem_realloc(newdest, newdestlen + strlen(tmpstr),
+                                      file, line);
+#else /* DEBUG_MEMORY */
         newdest = (char *)realloc(newdest, newdestlen + strlen(tmpstr));
+#endif /* DEBUG_MEMORY */
         strcpy(newdest + newdestlen - 1, tmpstr);
         newdestlen += strlen(tmpstr);
+#ifdef DEBUG_MEMORY
+        mem_realloc(tmpstr, 0, file, line);
+#else /* DEBUG_MEMORY */
         free(tmpstr);
+#endif /* DEBUG_MEMORY */
       } else if (*formatpos == '%') {
+#ifdef DEBUG_MEMORY
+        newdest = (char *)mem_realloc(newdest, newdestlen + 1, file, line);
+#else /* DEBUG_MEMORY */
         newdest = (char *)realloc(newdest, newdestlen + 1);
+#endif /* DEBUG_MEMORY */
         newdest[newdestlen - 1] = *formatpos;
         newdest[newdestlen] = 0;
         newdestlen++;
       }
     } else {
+#ifdef DEBUG_MEMORY
+      newdest = (char *)mem_realloc(newdest, newdestlen + 1, file, line);
+#else /* DEBUG_MEMORY */
       newdest = (char *)realloc(newdest, newdestlen + 1);
+#endif /* DEBUG_MEMORY */
       newdest[newdestlen - 1] = *formatpos;
       newdest[newdestlen] = 0;
       newdestlen++;
@@ -392,7 +537,11 @@ char *x_vsprintf(const char *format, va_list ap) {
     formatpos++;
   }
 
+#ifdef DEBUG_MEMORY
+  mem_realloc(formatcpy, 0, file, line);
+#else /* DEBUG_MEMORY */
   free(formatcpy);
+#endif /* DEBUG_MEMORY */
   return newdest;
 }
 
@@ -401,7 +550,8 @@ char *x_vsprintf(const char *format, va_list ap) {
 
 #ifdef HAVE_STRDUP
 
-/* Wrap around strdup() */
+/* Wrap around strdup().  We can't memdebug() this, so its disabled by
+   configure.in if DEBUG_MEMORY is enabled. */
 char *x_strdup(const char *s) {
   return strdup(s);
 }
@@ -409,13 +559,33 @@ char *x_strdup(const char *s) {
 #else /* HAVE_STRDUP */
 
 /* Do the malloc and strcpy() ourselves so we don't annoy memdebug.c */
+#ifdef DEBUG_MEMORY
+char *xx_strdup(char *file, int line, const char *s) {
+#else /* DEBUG_MEMORY */
 char *x_strdup(const char *s) {
+#endif /* DEBUG_MEMORY */
   char *ret;
 
+#ifdef DEBUG_MEMORY
+  ret = (char *)mem_malloc(strlen(s) + 1, file, line);
+#else /* DEBUG_MEMORY */
   ret = (char *)malloc(strlen(s) + 1);
+#endif /* DEBUG_MEMORY */
   strcpy(ret, s);
 
   return ret;
 }
 
 #endif /* HAVE_STRDUP */
+
+#ifdef DEBUG_MEMORY
+
+/* Set the nextfile and nextline */
+void *xx_set(char *file, int line) {
+  nextfile = file;
+  nextline = line;
+
+  return xx_sprintf;
+}
+
+#endif /* DEBUG_MEMORY */
