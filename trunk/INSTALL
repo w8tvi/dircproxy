@@ -3,86 +3,87 @@ Installing and Configuring dircproxy
 
 dircproxy is designed to run on any modern UNIX system, and should
 require little or no modification to work on yours.  The only
-requisites it has are a modern libc with TCP/IP networking code.
+requisite it has is a modern libc with TCP/IP networking code.
 
-I have seen or heard about it running on the following types of
-system:
+I have seen or heard about it running on the following types
+of system:
 	Linux 2.x on i386
-	Linux 2.4+ on ia64
-	FreeBSD
-	Solaris
+        Linux 2.4+ on ia64
+        FreeBSD
+        Solaris 2.7
 
-If (and you should) get it to work on any other type of system, please
-e-mail me so I can it to this list.
+If (and you should) get it to work on any other type of system,
+please e-mail me so I can it to this list.
 
 
 Compiling dircproxy
 ===================
 
-Installing dircproxy is fairly easy, and this overview will get it up
-and running for you in no time.
+Installing dircproxy is fairly easy, and this overview will get it
+up and running for you in no time.
 
 You'll need to unpack the distribution file 'dircproxy-X.X.X.tar.gz'
 (where X.X.X is the version number you have downloaded) somewhere on
-your machine, if you don't know where to do it, your home directory is
-a good bet.  (You've probably already done this to read this file
-anyway!)
+your machine, if you don't know where to do it, your home directory
+is a good bet.  (You've probably already done this to read this
+file anyway!)
 
 	$ gunzip -c dircproxy-X.X.X.tar.gz | tar xf -
 
 This will place the source code for dircproxy in a directory called
 'dircproxy-X.X.X'.  To compile the program, you should be in this
-directory, so change to it now (again you've probably already done
-this).
+directory, so change to it now (again you've probably already
+done this).
 
 	$ cd dircproxy-X.X.X
 
 You're now ready to begin.
 
 dircproxy uses the GNU standard 'configure' program to examine your
-system and find where required libraries and header files are.  Most
-of the time this needs little or no interaction to get it to work.
-You should be able to get away with the following command:
+system and find where required libraries and header files are.
+Most of the time this needs little or no interaction to get it
+to work.  You should be able to get away with the following command:
 
 	$ ./configure
 
-If it terminates with an error (it hopefully won't!) you should be
-able to use its output to discover what it needs, and fix the problem.
-By default, dircproxy is installed under the '/usr/local' heirarchy,
-if you wish to install it somewhere else you can pass the '--prefix'
-option to the 'configure' script.  If you only wish to run it from
-your home directory, don't worry about this bit, it'll work for you
-with the default option.
+If it terminates with an error (it hopefully won't!) you should
+be able to use its output to discover what it needs, and fix the
+problem.  By default, dircproxy is installed under the '/usr/local'
+hierarchy, if you wish to install it somewhere else you can pass
+the '--prefix' option to the 'configure' script.  If you only wish
+to run it from your home directory, don't worry about this bit,
+it'll work for you with the default option.
 
-'configure' accepts lots of other options, for more information run it
-with the --help option, or see "Configuring the Compilation" below.
+'configure' accepts lots of other options, for more information
+run it with the --help option, or see "Configuring the Compilation"
+below.
 
 If you want to tinker with some of the more advanced configuration
-options of dircproxy, you can edit the src/dircproxy.h file at this
-point.  This is not recommended unless you are an expert and wish to
-change something specific.
+options of dircproxy, you can edit the src/dircproxy.h file at
+this point.  This is not recommended unless you are an expert and
+wish to change something specific.
 
-You can now build the dircproxy binary, this is accompished by the
-following command:
+You can now build the dircproxy binary, this is accomplished by
+the following command:
 
 	$ make
 
-The dircproxy binary should now be in the src directory.  If you only
-want to run it from your home directory, copy it somewhere sensible
-and skip down to "Configuring dircproxy" below.
+The dircproxy binary should now be in the src directory.  If you
+only want to run it from your home directory, copy it somewhere
+sensible and skip down to "Configuring dircproxy" below.
 
 Otherwise, if you want to install dircproxy so it is available for
-anyone on the machine to use, then you will need to install it.  You
-will most-likely need to switch to the 'root' user, either by using
-your system's 'su' command, or by logging as 'root' on another
-terminal.  Once you are 'root', go to the dircproxy source directory
-(if necessary) and issue the following command:
+anyone on the machine to use, then you will need to install it.
+You will most-likely need to switch to the 'root' user, either
+by using your system's 'su' command, or by logging in as 'root'
+onto another terminal.  Once you are 'root', go to the dircproxy
+source directory (if necessary) and issue the following command:
 
 	# make install
 
 The default binaries have debugging symbols left in them as this
-tends to be more useful than not.  If you're tight on diskspace, you
-can compile 'stripped' versions of the binaries without these
+tends to be more useful than not.  If you're tight on disk-space,
+you can install 'stripped' versions of the binaries without these
 debugging symbols by using the following command instead:
 
 	# make install-strip
@@ -92,26 +93,27 @@ Configuring dircproxy
 =====================
 
 dircproxy requires a configuration file in order to run.  This
-configuration file includes information on who can use the proxy and
-other options such as log file locations etc.
+configuration file includes information on who can use the proxy
+and other options such as log file locations etc.
 
-An example file is in the 'conf' directory of the source code, and is
-called 'dircproxyrc'.  If you installed using 'make install', then it
-will also be available for you and other users in the
+An example file is in the 'conf' directory of the source code, and
+is called 'dircproxyrc'.  If you installed using 'make install',
+then it will also be available for you and other users in the
 '/usr/local/share/dircproxy' directory.
 
-This file contains documentation on each of the configuration options.
-It is recommended that to create your configuration file, you copy the
-example and edit it, rather than simply writing your own from scratch.
+This file contains documentation on each of the configuration
+options.  It is recommended that to create your configuration file,
+you copy the example and edit it, rather than simply writing your
+own from scratch.
 
 Exactly where you copy it depends on how you wish to run dircproxy.
 If you are going to be running it as a daemon on your system, for
 many people to use simultaneously, then '/usr/local/etc/dircproxyrc'
-is the recommended location.  If you want to run it under your own
-user account, then '~/.dircproxyrc' is the best location.  dircproxy
-automatically looks at these two locations for the config file, if
-you don't like either of them, then place the configuration file
-wherever you want and tell dircproxy using the '-f' command-line
+is the recommended location.  If you want to run it under your
+own user account, then '~/.dircproxyrc' is the best location.
+dircproxy automatically looks at these two locations for the config
+file, if you don't like either of them, then place the configuration
+file wherever you want and tell dircproxy using the '-f' command-line
 parameter, for example:
 
 	$ dircproxy -f ./dircproxyrc
@@ -131,21 +133,20 @@ useful ones are documented here.
 	Print a summary of all the options available.
 
 '--prefix=DIR'
-	This is the root directory dircproxy is installed under when
-	you do a 'make install'.  By default it is /usr/local.
+	This is the root directory dircproxy is installed under
+	when you do a 'make install'.  The default is '/usr/local'.
 
 '--enable-debug'
 	Enables the dircproxy debug mode, only useful if you want to
 	help fix a bug you've found.  Not recommended for normal use.
 
 
-If compilation fails for any reason, you can pass shell variables to
-the 'configure' script to tell it about your system.  A complete list
-of these variables can be found in the 'autoconf' documentation if
-variables as shell variables to './configure' to better tell it about
-your system.  You can do that on the command-line in a sh-like shell like
-this:
-     
+If compilation fails for any reason, you can pass shell variables
+to the 'configure' script to tell it about your system.  A complete
+list of these variables can be found in the 'autoconf' documentation
+if you have it.  You can do that on the command-line in a sh-like
+shell (such as bash) like this:
+
 	$ CC=c89 CFLAGS=-O2 LIBS=-lposix ./configure
 
 Or on systems that have the 'env' program, you can do it like this:

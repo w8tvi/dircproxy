@@ -1,15 +1,15 @@
-Authors and Acknowledgements
+Authors and Acknowledgments
 ----------------------------
 
-Most of dircproxy is written by Scott James Remnant <scott@netsplit.com>,
+dircproxy is written by Scott James Remnant <scott@netsplit.com>,
 with the occasional patch from the odd random individual.
 
-If you have contributed any major patches or enhancements, and you want
-to be credited for it, then just nag me to add you to this file.
+If you have contributed any major patches or enhancements, and you
+want to be credited for it, then just nag me to add you to this file.
 
 
-Also, a big thanks to Stephen Cope <kimihia@writeme.com> for doing the
-original documentation for dircproxy.
+Also, a big thanks to Stephen Cope <kimihia@writeme.com> for doing
+the original documentation for dircproxy.
 
 
 Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
