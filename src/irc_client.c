@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.67 2000/11/06 17:00:47 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.68 2000/11/10 15:08:35 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -373,7 +373,13 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
       } else if (!irc_strcasecmp(msg.cmd, "DIRCPROXY")) {
         /* Ignore DIRCPROXY (handled in a minute) */
       } else if (!irc_strcasecmp(msg.cmd, "QUIT")) {
-        /* Ignore QUIT */
+        /* User wants to detach */
+        ircnet_announce_status(p);
+        ircclient_send_error(p, "Detached from %s %s", PACKAGE, VERSION);
+        _ircclient_detach(p, 0);
+        ircprot_freemsg(&msg);
+        return 0;
+
       } else if (!irc_strcasecmp(msg.cmd, "PONG")) {
         /* Ignore PONG */
       } else if (!irc_strcasecmp(msg.cmd, "NICK")) {
@@ -532,7 +538,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
                 if (ptr && !dccnet_new(type, p->conn_class->dcc_proxy_timeout,
                                        p->conn_class->dcc_proxy_ports,
                                        p->conn_class->dcc_proxy_ports_sz,
-                                       &l_port, r_addr, r_port)) {
+                                       &l_port, r_addr, r_port, 0, 0)) {
                   dccmsg = x_sprintf("\001DCC %s %s %lu %u%s%s\001",
                                      cmsg.params[0], cmsg.params[1],
                                      l_addr.s_addr, l_port,
@@ -653,8 +659,8 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
     if (!irc_strcasecmp(msg.cmd, "DIRCPROXY")) {
       if (msg.numparams >= 1) {
         if (!irc_strcasecmp(msg.params[0], "RECALL")) {
-          unsigned long start, lines;
           char *src, *filter;
+          long start, lines;
 
           /* User wants to recall stuff from log files */
           src = filter = 0;
