@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.1 2000/05/13 02:14:05 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.2 2000/05/24 17:52:30 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -114,6 +114,7 @@ extern struct ircconnclass *connclasses;
 extern int ircnet_listen(const char *);
 extern int ircnet_poll(void);
 extern void ircnet_flush(void);
+extern void ircnet_freeconnclass(struct ircconnclass *);
 extern int ircnet_hooksocket(int);
 extern struct ircproxy *ircnet_fetchclass(struct ircconnclass *);
 extern struct ircchannel *ircnet_fetchchannel(struct ircproxy *, const char *);
