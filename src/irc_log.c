@@ -5,7 +5,7 @@
  * irc_log.c
  *  - Handling of log files
  * --
- * @(#) $Id: irc_log.c,v 1.8 2000/05/24 20:48:14 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.9 2000/05/24 21:03:19 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -179,8 +179,7 @@ static int _irclog_notice(struct ircproxy *p, struct logfile *log,
   msg = x_vsprintf(format, ap);
 
   fseek(log->file, 0, SEEK_END);
-  fprintf(log->file, ":%s %s %s :%s\n", 
-          (p->servername ? p->servername : PACKAGE), "NOTICE", to, msg);
+  fprintf(log->file, ":%s %s %s :%s\n", PACKAGE, "NOTICE", to, msg);
   fflush(log->file);
   log->nlines++;
 
