@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.10 2000/05/24 20:50:17 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.11 2000/05/24 20:58:06 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -536,9 +536,8 @@ int ircclient_welcome(struct ircproxy *p) {
   ircclient_send_numeric(p, 375, ":- %s Message of the Day -", p->servername);
   if (p->misclog.open && p->misclog.nlines) {
     ircclient_send_numeric(p, 372, ":- %s", "You missed:");
-    ircclient_send_numeric(p, 372, ":- %10ld %s", p->misclog.nlines,
-                           "server/private messages");
-    ircclient_send_numeric(p, 372, ":-   %s", "(all will be sent)");
+    ircclient_send_numeric(p, 372, ":-   %ld %s", p->misclog.nlines,
+                           "server/private messages (all will be sent)");
     ircclient_send_numeric(p, 372, ":-");
   }
   if (p->channels) {
