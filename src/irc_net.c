@@ -5,7 +5,7 @@
  * irc_net.c
  *  - Polling of sockets and acting on any data
  * --
- * @(#) $Id: irc_net.c,v 1.9 2000/08/23 11:43:45 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.10 2000/08/23 11:47:18 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -480,4 +480,92 @@ int ircnet_rejoin(struct ircproxy *p, const char *name) {
   } 
 
   return 0;
+}
+
+/* Dedicate this proxy and create a listening socket */
+int ircnet_dedicate(struct ircproxy *p) {
+  struct ircconnclass *c;
+
+  if (dedicated_proxy)
+    return 1;
+
+  if (listen_sock != -1)
+    close(listen_sock);
+
+  listen_sock = sock_make();
+  if (listen_sock == -1)
+    return -1;
+
+  if (listen(listen_sock, SOMAXCONN)) {
+    DEBUG_SYSCALL_FAIL("listen");
+    close(listen_sock);
+    listen_sock = -1;
+    return -1;
+  }
+
+  c = connclasses;
+  while (c) {
+    if (c == p->conn_class) {
+      c = c->next;
+    } else {
+      struct ircconnclass *t;
+      
+      t = c;
+      c = c->next;
+      ircnet_freeconnclass(t);
+    }
+  }
+  connclasses = p->conn_class;
+  connclasses->next = 0;
+
+  /* Okay we're dedicated */
+  dedicated_proxy = 1;
+  ircnet_announce_dedicated(p);
+  
+  return 0;
+}
+
+/* send the dedicated listening port to the user */
+int ircnet_announce_dedicated(struct ircproxy *p) {
+  struct sockaddr_in listen_addr;
+  int len;
+
+  if (!IS_CLIENT_READY(p))
+    return 1;
+
+  len = sizeof(struct sockaddr_in);
+  if (!getsockname(listen_sock, (struct sockaddr *)&listen_addr, &len)) {
+    char *hostname;
+
+    hostname = dns_hostfromaddr(listen_addr.sin_addr);
+    ircclient_send_notice(p, "Reconnect to this session at %s:%d",
+                          (hostname ? hostname : p->hostname),
+                          ntohs(listen_addr.sin_port));
+    free(hostname);
+  } else {
+    return 1;
+  }
+
+  return 0;
+}
+
+/* tell the client they can't reconnect */
+int ircnet_announce_nolisten(struct ircproxy *p) {
+  if (!IS_CLIENT_READY(p))
+    return 1;
+
+  ircclient_send_notice(p, "You cannot reconnect to this session");
+
+  return 0;
+}
+
+/* tell the client whether we're dedicated or not listening */
+int ircnet_announce_status(struct ircproxy *p) {
+  if (p->die_on_close) {
+    return ircnet_announce_nolisten(p);
+  } else if (dedicated_proxy) {
+    return ircnet_announce_dedicated(p);
+  } else {
+    return 0;
+  }
 }
