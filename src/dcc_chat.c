@@ -5,7 +5,7 @@
  * dcc_chat.c
  *  - DCC chat protocol
  * --
- * @(#) $Id: dcc_chat.c,v 1.3 2000/11/02 13:29:41 keybuk Exp $
+ * @(#) $Id: dcc_chat.c,v 1.4 2000/11/02 16:12:45 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -67,7 +67,7 @@ void dccchat_connectfailed(struct dccproxy *p, int sock, int bad) {
 
 /* Called when the sendee has been accepted */
 void dccchat_accepted(struct dccproxy *p) {
-  net_hook(p->sender_sock, SOCK_NORMAL, (void *)p,
+  net_hook(p->sendee_sock, SOCK_NORMAL, (void *)p,
            ACTIVITY_FUNCTION(dccchat_data),
            ERROR_FUNCTION(dccchat_error));
 
@@ -86,9 +86,15 @@ void dccchat_data(struct dccproxy *p, int sock) {
   if (sock == p->sender_sock) {
     dir = "}}";
     to = p->sendee_sock;
+
+    if (p->sendee_status != DCC_SENDEE_ACTIVE)
+      return;
   } else if (sock == p->sendee_sock) {
     dir = "{{";
     to = p->sender_sock;
+
+    if (p->sender_status != DCC_SENDER_ACTIVE)
+      return;
   } else {
     error("Unexpected socket %d in dccchat_data, expected %d or %d", sock,
           p->sender_sock, p->sendee_sock);
