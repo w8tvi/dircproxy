@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.4 2000/05/13 16:11:27 keybuk Exp $
+ * @(#) $Id: main.c,v 1.5 2000/05/24 17:34:44 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,8 +36,8 @@
 #include "timers.h"
 
 /* forward declarations */
+static void sig_term(int);
 #ifdef DEBUG
-static void sig_alarm(int);
 static void sig_usr(int);
 #endif /* DEBUG */
 static int _print_usage(void);
@@ -45,7 +45,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.4 2000/05/13 16:11:27 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.5 2000/05/24 17:34:44 keybuk Exp $";
 
 /* The name of the program */
 char *progname;
@@ -119,9 +119,9 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-#ifdef DEBUG
   /* Set signal handlers */
-  signal(SIGALRM, sig_alarm);
+  signal(SIGTERM, sig_term);
+#ifdef DEBUG
   signal(SIGUSR1, sig_usr);
   signal(SIGUSR2, sig_usr);
 #endif /* DEBUG */
@@ -198,13 +198,12 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-#ifdef DEBUG
 /* Signal to stop polling */
-static void sig_alarm(int sig) {
+static void sig_term(int sig) {
   stop_poll = 1;
-  printf("Received ALARM\n");
 }
 
+#ifdef DEBUG
 /* On USR signals, dump debug information */
 static void sig_usr(int sig) {
   mem_report(sig == SIGUSR1 ? 0 : "signal");
