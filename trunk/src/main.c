@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.24 2000/08/25 09:43:21 keybuk Exp $
+ * @(#) $Id: main.c,v 1.25 2000/08/25 09:46:25 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.24 2000/08/25 09:43:21 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.25 2000/08/25 09:46:25 keybuk Exp $";
 
 /* The name of the program */
 char *progname;
@@ -211,8 +211,18 @@ int main(int argc, char *argv[]) {
   signal(SIGPIPE, SIG_IGN);
 
   if (!inetd_mode) {
+    debug("Ordinary console dodge-monkey mode");
+
+    /* Make listening socket before we fork */
+    if (ircnet_listen(listen_port)) {
+      fprintf(stderr, "%s: Unable to establish listen port\n", progname);
+      return 2;
+    }
+
     /* go daemon here */
     if (!no_daemon) {
+      debug("Running in the background");
+
       switch (fork()) {
         case -1:
           syscall_fail("fork", "first", 0);
@@ -242,23 +252,23 @@ int main(int argc, char *argv[]) {
       /* Set our umask */    
       umask(0);
 
-      /* Open a connection to syslog */
-      openlog(progname, LOG_PID, LOG_USER);
-
       /* Okay, we're in the background now */
       in_background = 1;
     }
 
-    if (ircnet_listen(listen_port)) {
-      fprintf(stderr, "%s: Unable to establish listen port\n", progname);
-      return 2;
-    }
   } else {
+    debug("Inetd SuperTed mode!");
+
+    /* Hook STDIN into a new proxy */
     ircnet_hooksocket(STDIN_FILENO);
 
     /* running under inetd means we are backgrounded */
     in_background = 1;
   }
+ 
+  /* Open a connection to syslog if we're in the background */
+  if (in_background)
+    openlog(progname, LOG_PID, LOG_USER);
   
   /* Main loop! */
   while (!stop_poll) {
