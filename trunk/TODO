@@ -12,6 +12,10 @@ For version 0.8.4:
 	* Better warnings from the config file if its still considered
 	  valid.
 
+	* /DIRCPROXY JUMP
+	  without specifying a num will just jump to the next server in
+	  the list.
+
 
 For version 0.8.5:
 
