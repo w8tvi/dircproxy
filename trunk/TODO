@@ -1,5 +1,7 @@
 For the next release (0.7.0)
 
+	* Maximum log sizes
+
 	* the /DIRCPROXY command.
 	  HELP
 	  RECALL [ nickname | [#chan] [from] ] < nlines | all >
