@@ -12,13 +12,14 @@
  * get accidentally overrun.  This is purely debug, you should
  * NEVER use this in a real program.
  * --
- * @(#) $Id: memdebug.c,v 1.1 2000/05/13 02:14:14 keybuk Exp $
+ * @(#) $Id: memdebug.c,v 1.2 2000/05/24 20:47:38 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
  * file called COPYING that was distributed with this code.
  */
 
+#include <sys/param.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -68,8 +69,8 @@ static void _mem_delete(struct memstamp *ms) {
     msptr = memstamplist;
     while (msptr->next != NULL) {
       if (msptr->next == ms) {
-	msptr->next = ms->next;
-	return;
+        msptr->next = ms->next;
+        return;
       }
       msptr = msptr->next;
     }
@@ -172,7 +173,7 @@ void *mem_realloc(void *ptr, size_t size, char *file, int line) {
   ms = (struct memstamp *)((char *)ptr - data_off);
   if (ms->magic != MEMMAGIC) {
     fprintf(stderr, "MEM: %s of illegal block (%s/%d)\n",
-	    (size > 0) ? "realloc" : "free", file, line);
+            (size > 0) ? "realloc" : "free", file, line);
     return NULL;
   }
 
@@ -201,14 +202,32 @@ void mem_report(char *message) {
   
   msptr = memstamplist;
   printf("MEM:REPORT%s%s%s %lu bytes in use [%lu alloc][%lu free]\n",
-	 message ? " (" : "", message ? message : "", message ? ")" : "",
-	 memusage, memalloccount, memfreecount);
+         message ? " (" : "", message ? message : "", message ? ")" : "",
+         memusage, memalloccount, memfreecount);
 
   while (msptr) {
-    if (message)
+    if (message) {
+      int i;
+      
       printf("     %s/%d - %lu bytes alloc'd [an:%lu]\n",
              msptr->file, msptr->line, (unsigned long)msptr->size,
              msptr->allocnum);
+
+      printf("     [");
+      for (i = 0; i <= MIN(msptr->size, 70); i++) {
+        int c;
+
+        c = *((char *)msptr + sizeof(struct memstamp) + strlen(MEMPREBUFF) + i);
+        if ((c >= 32) && (c <= 127)) {
+          printf("%c", c);
+        } else if (c) {
+          printf("£");
+        } else {
+          break;
+        }
+      }
+      printf("]\n");
+    }
     _mem_checkpad(msptr, "report", 0);
     msptr = msptr->next;
   }
