@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.28 2000/10/20 12:44:13 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.29 2000/10/30 13:44:55 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -92,25 +92,25 @@ int cfg_read(const char *filename, char **listen_port,
   def->detach_nickname = (DEFAULT_DETACH_NICKNAME
                           ? x_strdup(DEFAULT_DETACH_NICKNAME) : 0);
   def->chan_log_enabled = DEFAULT_CHAN_LOG_ENABLED;
-  def->chan_log_dir = (DEFAULT_CHAN_LOG_DIR
-                       ? x_strdup(DEFAULT_CHAN_LOG_DIR) : 0);
-  def->chan_log_program = (DEFAULT_CHAN_LOG_PROGRAM
-                           ? x_strdup(DEFAULT_CHAN_LOG_PROGRAM) : 0);
   def->chan_log_always = DEFAULT_CHAN_LOG_ALWAYS;
-  def->chan_log_timestamp = DEFAULT_CHAN_LOG_TIMESTAMP;
-  def->chan_log_relativetime = DEFAULT_CHAN_LOG_RELATIVETIME;
   def->chan_log_maxsize = DEFAULT_CHAN_LOG_MAXSIZE;
   def->chan_log_recall = DEFAULT_CHAN_LOG_RECALL;
+  def->chan_log_timestamp = DEFAULT_CHAN_LOG_TIMESTAMP;
+  def->chan_log_relativetime = DEFAULT_CHAN_LOG_RELATIVETIME;
+  def->chan_log_copydir = (DEFAULT_CHAN_LOG_COPYDIR
+                           ? x_strdup(DEFAULT_CHAN_LOG_COPYDIR) : 0);
+  def->chan_log_program = (DEFAULT_CHAN_LOG_PROGRAM
+                           ? x_strdup(DEFAULT_CHAN_LOG_PROGRAM) : 0);
   def->other_log_enabled = DEFAULT_OTHER_LOG_ENABLED;
-  def->other_log_dir = (DEFAULT_OTHER_LOG_DIR
-                        ? x_strdup(DEFAULT_OTHER_LOG_DIR) : 0);
-  def->other_log_program = (DEFAULT_OTHER_LOG_PROGRAM
-                            ? x_strdup(DEFAULT_OTHER_LOG_PROGRAM) : 0);
   def->other_log_always = DEFAULT_OTHER_LOG_ALWAYS;
-  def->other_log_timestamp = DEFAULT_OTHER_LOG_TIMESTAMP;
-  def->other_log_relativetime = DEFAULT_OTHER_LOG_RELATIVETIME;
   def->other_log_maxsize = DEFAULT_OTHER_LOG_MAXSIZE;
   def->other_log_recall = DEFAULT_OTHER_LOG_RECALL;
+  def->other_log_timestamp = DEFAULT_OTHER_LOG_TIMESTAMP;
+  def->other_log_relativetime = DEFAULT_OTHER_LOG_RELATIVETIME;
+  def->other_log_copydir = (DEFAULT_OTHER_LOG_COPYDIR
+                            ? x_strdup(DEFAULT_OTHER_LOG_COPYDIR) : 0);
+  def->other_log_program = (DEFAULT_OTHER_LOG_PROGRAM
+                            ? x_strdup(DEFAULT_OTHER_LOG_PROGRAM) : 0);
   def->time_offset = DEFAULT_TIME_OFFSET;
   def->motd_logo = DEFAULT_MOTD_LOGO;
   def->motd_file = (DEFAULT_MOTD_FILE ? x_strdup(DEFAULT_MOTD_FILE) : 0);
@@ -426,11 +426,37 @@ int cfg_read(const char *filename, char **listen_port,
            chan_log_disabled no */
         _cfg_read_bool(&buf, &(class ? class : def)->chan_log_enabled);
 
-      } else if (!strcasecmp(key, "chan_log_dir")) {
-        /* chan_log_dir none
-           chan_log_dir ""    # same as none
-           chan_log_dir "/log"
-           chan_log_dir "~/logs" */
+      } else if (!strcasecmp(key, "chan_log_always")) {
+        /* chan_log_always yes
+           chan_log_always no */
+        _cfg_read_bool(&buf, &(class ? class : def)->chan_log_always);
+
+      } else if (!strcasecmp(key, "chan_log_maxsize")) {
+        /* chan_log_maxsize 128
+           chan_log_maxsize 0 */
+        _cfg_read_numeric(&buf, &(class ? class : def)->chan_log_maxsize);
+
+      } else if (!strcasecmp(key, "chan_log_recall")) {
+        /* chan_log_recall 128
+           chan_log_recall 0
+           chan_log_recall -1 */
+        _cfg_read_numeric(&buf, &(class ? class : def)->chan_log_recall);
+
+      } else if (!strcasecmp(key, "chan_log_timestamp")) {
+        /* chan_log_timestamp yes
+           chan_log_timestamp no */
+        _cfg_read_bool(&buf, &(class ? class : def)->chan_log_timestamp);
+
+      } else if (!strcasecmp(key, "chan_log_relativetime")) {
+        /* chan_log_relativetime yes
+           chan_log_relativetime no */
+        _cfg_read_bool(&buf, &(class ? class : def)->chan_log_relativetime);
+
+      } else if (!strcasecmp(key, "chan_log_copydir")) {
+        /* chan_log_copydir none
+           chan_log_copydir ""    # same as none
+           chan_log_copydir "/log"
+           chan_log_copydir "~/logs" */
         char *str;
 
         if (_cfg_read_string(&buf, &str))
@@ -456,8 +482,8 @@ int cfg_read(const char *filename, char **listen_port,
           }
         }
 
-        free((class ? class : def)->chan_log_dir);
-        (class ? class : def)->chan_log_dir = str;
+        free((class ? class : def)->chan_log_copydir);
+        (class ? class : def)->chan_log_copydir = str;
 
       } else if (!strcasecmp(key, "chan_log_program")) {
         /* chan_log_program none
@@ -492,42 +518,42 @@ int cfg_read(const char *filename, char **listen_port,
         free((class ? class : def)->chan_log_program);
         (class ? class : def)->chan_log_program = str;
 
-      } else if (!strcasecmp(key, "chan_log_always")) {
-        /* chan_log_always yes
-           chan_log_always no */
-        _cfg_read_bool(&buf, &(class ? class : def)->chan_log_always);
-
-      } else if (!strcasecmp(key, "chan_log_timestamp")) {
-        /* chan_log_timestamp yes
-           chan_log_timestamp no */
-        _cfg_read_bool(&buf, &(class ? class : def)->chan_log_timestamp);
-
-      } else if (!strcasecmp(key, "chan_log_relativetime")) {
-        /* chan_log_relativetime yes
-           chan_log_relativetime no */
-        _cfg_read_bool(&buf, &(class ? class : def)->chan_log_relativetime);
-
-      } else if (!strcasecmp(key, "chan_log_maxsize")) {
-        /* chan_log_maxsize 128
-           chan_log_maxsize 0 */
-        _cfg_read_numeric(&buf, &(class ? class : def)->chan_log_maxsize);
-
-      } else if (!strcasecmp(key, "chan_log_recall")) {
-        /* chan_log_recall 128
-           chan_log_recall 0
-           chan_log_recall -1 */
-        _cfg_read_numeric(&buf, &(class ? class : def)->chan_log_recall);
-
       } else if (!strcasecmp(key, "other_log_enabled")) {
         /* other_log_enabled yes
            other_log_disabled no */
         _cfg_read_bool(&buf, &(class ? class : def)->other_log_enabled);
 
-      } else if (!strcasecmp(key, "other_log_dir")) {
-        /* other_log_dir none
-           other_log_dir ""    # same as none
-           other_log_dir "/log"
-           other_log_dir "~/logs" */
+      } else if (!strcasecmp(key, "other_log_always")) {
+        /* other_log_always yes
+           other_log_always no */
+        _cfg_read_bool(&buf, &(class ? class : def)->other_log_always);
+
+      } else if (!strcasecmp(key, "other_log_maxsize")) {
+        /* other_log_maxsize 128
+           other_log_maxsize 0 */
+        _cfg_read_numeric(&buf, &(class ? class : def)->other_log_maxsize);
+
+      } else if (!strcasecmp(key, "other_log_recall")) {
+        /* other_log_recall 128
+           other_log_recall 0
+           other_log_recall -1 */
+        _cfg_read_numeric(&buf, &(class ? class : def)->other_log_recall);
+
+      } else if (!strcasecmp(key, "other_log_timestamp")) {
+        /* other_log_timestamp yes
+           other_log_timestamp no */
+        _cfg_read_bool(&buf, &(class ? class : def)->other_log_timestamp);
+
+      } else if (!strcasecmp(key, "other_log_relativetime")) {
+        /* other_log_relativetime yes
+           other_log_relativetime no */
+        _cfg_read_bool(&buf, &(class ? class : def)->other_log_relativetime);
+
+      } else if (!strcasecmp(key, "other_log_copydir")) {
+        /* other_log_copydir none
+           other_log_copydir ""    # same as none
+           other_log_copydir "/log"
+           other_log_copydir "~/logs" */
         char *str;
 
         if (_cfg_read_string(&buf, &str))
@@ -553,8 +579,8 @@ int cfg_read(const char *filename, char **listen_port,
           }
         }
 
-        free((class ? class : def)->other_log_dir);
-        (class ? class : def)->other_log_dir = str;
+        free((class ? class : def)->other_log_copydir);
+        (class ? class : def)->other_log_copydir = str;
 
       } else if (!strcasecmp(key, "other_log_program")) {
         /* other_log_program none
@@ -589,37 +615,11 @@ int cfg_read(const char *filename, char **listen_port,
         free((class ? class : def)->other_log_program);
         (class ? class : def)->other_log_program = str;
 
-      } else if (!strcasecmp(key, "other_log_always")) {
-        /* other_log_always yes
-           other_log_always no */
-        _cfg_read_bool(&buf, &(class ? class : def)->other_log_always);
-
-      } else if (!strcasecmp(key, "other_log_timestamp")) {
-        /* other_log_timestamp yes
-           other_log_timestamp no */
-        _cfg_read_bool(&buf, &(class ? class : def)->other_log_timestamp);
-
-      } else if (!strcasecmp(key, "other_log_relativetime")) {
-        /* other_log_relativetime yes
-           other_log_relativetime no */
-        _cfg_read_bool(&buf, &(class ? class : def)->other_log_relativetime);
-
-      } else if (!strcasecmp(key, "other_log_maxsize")) {
-        /* other_log_maxsize 128
-           other_log_maxsize 0 */
-        _cfg_read_numeric(&buf, &(class ? class : def)->other_log_maxsize);
-
       } else if (!strcasecmp(key, "time_offset")) {
         /* time_offset 0
            time_offset -60
            time_offset +60 */
         _cfg_read_numeric(&buf, &(class ? class : def)->time_offset);
-
-      } else if (!strcasecmp(key, "other_log_recall")) {
-        /* other_log_recall 128
-           other_log_recall 0
-           other_log_recall -1 */
-        _cfg_read_numeric(&buf, &(class ? class : def)->other_log_recall);
 
       } else if (!strcasecmp(key, "motd_logo")) {
         /* motd_logo yes
@@ -731,12 +731,12 @@ int cfg_read(const char *filename, char **listen_port,
                                  ? x_strdup(def->detach_message) : 0);
         class->detach_nickname = (def->detach_nickname
                                   ? x_strdup(def->detach_nickname) : 0);
-        class->chan_log_dir = (def->chan_log_dir
-                               ? x_strdup(def->chan_log_dir) : 0);
+        class->chan_log_copydir = (def->chan_log_copydir
+                                   ? x_strdup(def->chan_log_copydir) : 0);
         class->chan_log_program = (def->chan_log_program
                                    ? x_strdup(def->chan_log_program) : 0);
-        class->other_log_dir = (def->other_log_dir
-                                ? x_strdup(def->other_log_dir) : 0);
+        class->other_log_copydir = (def->other_log_copydir
+                                    ? x_strdup(def->other_log_copydir) : 0);
         class->other_log_program = (def->other_log_program
                                     ? x_strdup(def->other_log_program) : 0);
         class->motd_file = (def->motd_file ? x_strdup(def->motd_file) : 0);
@@ -918,9 +918,9 @@ int cfg_read(const char *filename, char **listen_port,
   free(def->attach_message);
   free(def->detach_message);
   free(def->detach_nickname);
-  free(def->chan_log_dir);
+  free(def->chan_log_copydir);
   free(def->chan_log_program);
-  free(def->other_log_dir);
+  free(def->other_log_copydir);
   free(def->other_log_program);
   free(def->motd_file);
   return (valid ? 0 : -1);

@@ -4,7 +4,7 @@
  *
  * irc_log.h
  * --
- * @(#) $Id: irc_log.h,v 1.4 2000/08/31 15:30:56 keybuk Exp $
+ * @(#) $Id: irc_log.h,v 1.5 2000/10/30 13:44:56 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -21,9 +21,10 @@
 /* functions */
 extern int irclog_maketempdir(struct ircproxy *);
 extern int irclog_closetempdir(struct ircproxy *);
+extern int irclog_init(struct ircproxy *, const char *);
+extern void irclog_free(struct logfile *);
 extern int irclog_open(struct ircproxy *, const char *);
 extern void irclog_close(struct ircproxy *, const char *);
-extern void irclog_free(struct logfile *);
 extern int irclog_msg(struct ircproxy *, const char *, const char *,
                       const char *, ...);
 extern int irclog_notice(struct ircproxy *, const char *, const char *,
