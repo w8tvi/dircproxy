@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.34 2000/09/26 11:45:42 keybuk Exp $
+ * @(#) $Id: main.c,v 1.35 2000/09/26 11:52:48 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.34 2000/09/26 11:45:42 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.35 2000/09/26 11:52:48 keybuk Exp $";
 
 /* The name of the program */
 static char *progname;
@@ -385,7 +385,7 @@ static void sig_hup(int sig) {
     p = ircnet_fetchclass(c);
     if (p) {
       p->conn_class = 0;
-      ircserver_send_peercmd(p, "QUIT", ":Leaving IRC - %s %s",
+      ircserver_send_peercmd(p, "QUIT", ":No longer permitted - %s %s",
                              PACKAGE, VERSION);
       ircserver_close_sock(p);
 
