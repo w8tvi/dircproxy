@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.72 2000/12/03 21:44:15 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.73 2000/12/06 15:15:05 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -798,9 +798,11 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
         } else if (p->conn_class->allow_jump
                    && (!irc_strcasecmp(msg.params[0], "JUMP")
                        || !irc_strcasecmp(msg.params[0], "CONNECT"))) {
+          struct strlist *server;
+
           /* User wants to jump to a new server */
           if (msg.numparams >= 2) {
-            struct strlist *s, *server;
+            struct strlist *s;
             int i;
 
             /* Check the server list to see whether its a plain jump */
@@ -817,42 +819,50 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
               s = s->next;
             }
 
-            /* Allocate new server if jump_new */
-            if (!server && p->conn_class->allow_jump_new) {
-              debug("New server");
-
-              server = (struct strlist *)malloc(sizeof(struct strlist));
-              server->str = x_strdup(msg.params[1]);
-              server->next = 0;
-
-              if (p->conn_class->servers) {
-                struct strlist *ss;
-
-                ss = p->conn_class->servers;
-                while (ss->next)
-                  ss = ss->next;
-
-                ss->next = server;
-              } else {
-                p->conn_class->servers = server;
-              }
-            } else if (!server) {
-              ircclient_send_numeric(p, 402, "No such server, "
-                                     "use /DIRCPROXY SERVERS to see them");
-            }
-
-            if (server) {
-              debug("Jumping to %s", server->str);
-
-              p->conn_class->next_server = server;
-              ircserver_connectagain(p);
-
-              /* We have no server now, so need to get out of here */
-              ircprot_freemsg(&msg);
-              return 0;
-            }
           } else {
-            ircclient_send_numeric(p, 461, ":Not enough parameters");
+            /* User wants to jump to the next server */
+            server = 0;
+            if (p->conn_class->next_server)
+              server = p->conn_class->next_server->next;
+            if (!server)
+              server = p->conn_class->servers;
+          }
+
+          /* Allocate new server if jump_new */
+          if (!server && p->conn_class->allow_jump_new
+              && (msg.numparams >= 2)) {
+            debug("New server");
+
+            server = (struct strlist *)malloc(sizeof(struct strlist));
+            server->str = x_strdup(msg.params[1]);
+            server->next = 0;
+
+            if (p->conn_class->servers) {
+              struct strlist *ss;
+
+              ss = p->conn_class->servers;
+              while (ss->next)
+                ss = ss->next;
+
+              ss->next = server;
+            } else {
+              p->conn_class->servers = server;
+            }
+
+          } else if (!server) {
+            ircclient_send_numeric(p, 402, "No such server, "
+                                   "use /DIRCPROXY SERVERS to see them");
+          }
+
+          if (server) {
+            debug("Jumping to %s", server->str);
+
+            p->conn_class->next_server = server;
+            ircserver_connectagain(p);
+
+            /* We have no server now, so need to get out of here */
+            ircprot_freemsg(&msg);
+            return 0;
           }
 
         } else if (p->conn_class->allow_host
@@ -1030,10 +1040,13 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
 #endif
       if (cc->masklist) {
         struct strlist *m;
+        char *ip;
 
+        ip = inet_ntoa(p->client_addr.sin_addr);
+        
         m = cc->masklist;
         while (m) {
-          if (strcasematch(p->client_host, m->str))
+          if (strcasematch(ip, m->str) || strcasematch(p->client_host, m->str))
             break;
 
           m = m->next;
@@ -1205,6 +1218,10 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
 
         s = s->next;
       }
+
+      /* Set initial modes */
+      if (p->conn_class->initial_modes)
+        ircclient_change_mode(p, p->conn_class->initial_modes);
     }
 
     return 0;
