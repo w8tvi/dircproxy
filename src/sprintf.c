@@ -5,7 +5,7 @@
  * sprintf.c
  *  - various ways of doing allocating sprintf() functions to void b/o
  * --
- * @(#) $Id: sprintf.c,v 1.2 2000/05/13 05:25:04 keybuk Exp $
+ * @(#) $Id: sprintf.c,v 1.3 2000/05/13 16:04:47 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -18,12 +18,6 @@
 
 #include <dircproxy.h>
 #include "sprintf.h"
-
-/* With memory debugging, we want to see our own mallocs take place */
-#ifdef MEM_DEBUG
-#undef HAVE_VASPRINTF
-#undef HAVE_STRDUP
-#endif
 
 /* The sprintf() version is just a wrapper around whatever vsprintf() we
    decide to implement. */
