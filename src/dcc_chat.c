@@ -5,7 +5,7 @@
  * dcc_chat.c
  *  - DCC chat protocol
  * --
- * @(#) $Id: dcc_chat.c,v 1.11 2001/12/21 20:15:55 keybuk Exp $
+ * @(#) $Id: dcc_chat.c,v 1.12 2002/08/17 19:38:35 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -69,6 +69,10 @@ void dccchat_connectfailed(struct dccproxy *p, int sock, int bad) {
   if (p->sendee_status == DCC_SENDEE_ACTIVE)
     net_send(p->sendee_sock, "--(%s)-- Connection to remote peer failed\n",
              PACKAGE);
+
+  if (p->notify_func)
+    p->notify_func(p->notify_data, p->notify_msg,
+                   "Connection to remote peer failed");
 
   debug("DCC Connection failed");
   p->sender_status &= ~(DCC_SENDER_CREATED);
