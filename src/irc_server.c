@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.39 2000/10/31 13:11:20 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.40 2000/11/01 15:02:00 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -229,8 +229,8 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
   } else {
     p->server_status |= IRC_SERVER_CREATED;
     net_hook(p->server_sock, SOCK_CONNECTING, (void *)p,
-             (void (*)(void *, int))_ircserver_connected,
-             (void (*)(void *, int, int))_ircserver_connectfailed);
+             ACTIVITY_FUNCTION(_ircserver_connected),
+             ERROR_FUNCTION(_ircserver_connectfailed));
     debug("Connection in progress");
   }
 }
@@ -246,8 +246,8 @@ static void _ircserver_connected(struct ircproxy *p, int sock) {
   debug("Connection succeeded");
   p->server_status |= IRC_SERVER_CONNECTED;
   net_hook(p->server_sock, SOCK_NORMAL, (void *)p,
-           (void (*)(void *, int))_ircserver_data,
-           (void (*)(void *, int, int))_ircserver_error);
+           ACTIVITY_FUNCTION(_ircserver_data),
+           ERROR_FUNCTION(_ircserver_error));
   if (p->conn_class->server_throttle)
     net_throttle(p->server_sock, p->conn_class->server_throttle[0], 
                  p->conn_class->server_throttle[1]);
@@ -946,10 +946,28 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
           s = n;
           if (r == -1)
             continue;
-         
-          if (p->conn_class->log_events & IRC_LOG_CTCP)
-            irclog_notice(p, msg.params[0], p->servername,
-                          "CTCP %s from %s", cmsg.cmd, msg.src.fullname);
+        
+          if (!strcmp(cmsg.cmd, "ACTION")) {
+            if (p->conn_class->log_events & IRC_LOG_ACTION) {
+              if ((msg.src.type & IRC_USER)
+                  && msg.src.username && msg.src.hostname) {
+                char *tmp;
+
+                tmp = x_sprintf("%s!%s@%s", msg.src.name, msg.src.username,
+                                msg.src.hostname);
+                irclog_ctcp(p, msg.params[0], tmp, "%s", cmsg.orig);
+                free(tmp);
+              } else if (msg.src.type & IRC_SERVER) {
+                irclog_msg(p, msg.params[0], msg.src.name, "%s", cmsg.orig);
+              } else {
+                irclog_msg(p, msg.params[0], p->servername, "%s", cmsg.orig);
+              }
+            }
+          } else {
+            if (p->conn_class->log_events & IRC_LOG_CTCP)
+              irclog_notice(p, msg.params[0], p->servername,
+                            "CTCP %s from %s", cmsg.cmd, msg.src.fullname);
+          }
 
           ircprot_freectcp(&cmsg);
         }
