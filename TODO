@@ -1,7 +1,7 @@
-Need to do
+For the next release (0.7.0)
 
-	* the /DIRCPROXY command. (0.7.0)
-	  RECALL <chan/nick/*> from nlines
+	* the /DIRCPROXY command.
+	  RECALL <chan/msg> from nlines
 	  DETACH <away-msg>
           PERSIST
 	  QUIT <msg>		(change /DQUIT to this)
@@ -15,6 +15,43 @@ Need to do
 	* the PERSIST command will set die_on_close to 0, and create a
 	  listen socket on a random port.
 	  -dircproxy- Reconnect to this session at hostname.domain.tld:46702
+
+	* New, improved, binary log files.  (Okay so they won't be human
+	  readable, but the current ones aren't really anyway!)
+
+	  [ magic ] [ version ] [ num msgs ] { [ msgsz ] [ msg... ] }...
+
+	  Should be relatively easy to rotate these and have maximum log file
+	  sizes and things.
+	
+	* Configuration:
+	     log_max_chan_size     } maximum number of messages
+	     log_max_msg_size      } in log files
+
+	     log_chan_while_online } log messages while online
+	     log_msg_while_online  } (always logs while offline)
+
+             log_chan_autorecall   } how many messages to recall
+	     log_msg_autorecall    } when reconnecting
+
+	* Re-read configuration file on HUP
+
+	* Disconnection and stuff when someone else comes in
+	     disconnect_existing_user 1
+
+	  Must note that this should NOT be used with auto-reconnect
+	  clients! :o)
+
+	* Drop modes when disconnecting
+
+	  drop_modes "+o"
+
+	* Passwords to be encrypted in the config file!
+	  maybe have a 'encrypted_password 0' option for those who don't like
+	  this
+
+
+Whenever time permits:
 
 
 Would be nice:
