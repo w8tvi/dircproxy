@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.70 2000/11/20 15:25:54 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.71 2000/11/24 13:44:40 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -82,6 +82,8 @@ int ircclient_connected(struct ircproxy *p) {
 static void _ircclient_connected2(struct ircproxy *p, void *data,
                                   struct in_addr *addr, const char *name) {
   p->client_host = x_strdup(name);
+  if (!p->hostname)
+    p->hostname = x_strdup(name);
   ircclient_send_notice(p, "Got your hostname.");
 
   p->client_status |= IRC_CLIENT_CONNECTED;
@@ -305,44 +307,22 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
   debug("c=%02x, s=%02x", p->client_status, p->server_status);
 
   if (!(p->client_status & IRC_CLIENT_AUTHED)) {
+    /* Accept PASS, NICK and USER commands only until we've authenticated */
     if (!irc_strcasecmp(msg.cmd, "PASS")) {
       if (msg.numparams >= 1) {
-        _ircclient_authenticate(p, msg.params[0]);
+        if (p->password)
+          free(p->password);
+        p->password = x_strdup(msg.params[0]);
+        p->client_status |= IRC_CLIENT_GOTPASS;
       } else {
         ircclient_send_numeric(p, 461, ":Not enough parameters");
       }
 
     } else if (!irc_strcasecmp(msg.cmd, "NICK")) {
-      /* The PASS command MUST be sent before the NICK/USER combo
-         (RFC 1459 section 4.11.1 and RFC 2812 section 3.1.1).
-         However ircII deliberately sends the NICK command first
-         *sigh*. */
       if (msg.numparams >= 1) {
         if (!(p->client_status & IRC_CLIENT_GOTNICK)
             || irc_strcmp(p->nickname, msg.params[0]))
           ircclient_change_nick(p, msg.params[0]);
-      } else {
-        ircclient_send_numeric(p, 431, ":No nickname given");
-      }
-    
-    } else {
-      ircclient_send_notice(p, "Please send /QUOTE PASS <password> to login");
-    }
-
-  } else if (!(p->client_status & IRC_CLIENT_GOTNICK)
-             || !(p->client_status & IRC_CLIENT_GOTUSER)) {
-    /* Full information not received yet. Only allow NICK or USER */
-
-    if (!irc_strcasecmp(msg.cmd, "NICK")) {
-      if (msg.numparams >= 1) {
-        /* If we already have a nick, only accept a change */
-        if (!(p->client_status & IRC_CLIENT_GOTNICK)
-            || irc_strcmp(p->nickname, msg.params[0])) {
-          if (IS_SERVER_READY(p))
-            ircserver_send_command(p, "NICK", ":%s", msg.params[0]);
-
-          ircclient_change_nick(p, msg.params[0]);
-        }
       } else {
         ircclient_send_numeric(p, 431, ":No nickname given");
       }
@@ -355,10 +335,30 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
       } else {
         ircclient_send_numeric(p, 461, ":Not enough parameters");
       }
+    
+    } else if (!(p->client_status & IRC_CLIENT_GOTPASS)) {
+      ircclient_send_notice(p, "Please send /QUOTE PASS <password> to login");
 
     } else {
       ircclient_send_notice(p, "Please send /QUOTE NICK and /QUOTE USER");
     }
+
+  } else if (!(p->client_status & IRC_CLIENT_GOTNICK)) {
+    /* We've lost the nickname */
+    if (!irc_strcasecmp(msg.cmd, "NICK")) {
+      if (msg.numparams >= 1) {
+        if (IS_SERVER_READY(p))
+          ircserver_send_command(p, "NICK", ":%s", msg.params[0]);
+        ircclient_send_selfcmd(p, "NICK", ":%s", msg.params[0]);
+
+        ircclient_change_nick(p, msg.params[0]);
+      } else {
+        ircclient_send_numeric(p, 431, ":No nickname given");
+      }
+
+   } else {
+     ircclient_send_notice(p, "Please send a /NICK command");
+   }
 
   } else {
     /* The server MUST be active to use most of the commands.  The only
@@ -974,11 +974,20 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
     }
   }
 
-  /* If as a result of this command, we have sufficient information for
-     the server, we can connect, or if we are connected then we can
-     send the welcome text back to the user */
-  if ((p->client_status & IRC_CLIENT_GOTNICK)
-      && (p->client_status & IRC_CLIENT_GOTUSER) && !p->dead) {
+  /* Do we have enough information to authenticate them? */
+  if (!(p->client_status & IRC_CLIENT_AUTHED)
+      && (p->client_status & IRC_CLIENT_GOTPASS)
+      && (p->client_status & IRC_CLIENT_GOTNICK)
+      && (p->client_status & IRC_CLIENT_GOTUSER))
+  {
+    _ircclient_authenticate(p, p->password);
+    free(p->password);
+    p->password = 0;
+    p->client_status &= ~(IRC_CLIENT_GOTPASS);
+  }
+
+  /* Do we have enough information to connect to a server? */
+  if (IS_CLIENT_READY(p) && !p->dead) {
     if (p->server_status != IRC_SERVER_ACTIVE) {
       if (!(p->server_status & IRC_SERVER_CREATED)) {
         if (p->conn_class && p->conn_class->server_autoconnect) {
@@ -1075,7 +1084,7 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
                ACTIVITY_FUNCTION(_ircclient_data),
                ERROR_FUNCTION(_ircclient_error));
 
-      /* Cope with NICK before PASS */
+      /* Cope with change of nickname */
       if ((p->client_status & IRC_CLIENT_GOTNICK)
           && (!tmp_p->nickname || irc_strcmp(p->nickname, tmp_p->nickname))) {
         if (tmp_p->server_status == IRC_SERVER_ACTIVE)
@@ -1085,7 +1094,7 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
 
       if (!tmp_p->awaymessage && (tmp_p->server_status == IRC_SERVER_ACTIVE)
           && tmp_p->conn_class->away_message)
-        ircserver_send_command(tmp_p, "AWAY", "");
+        ircserver_send_peercmd(tmp_p, "AWAY", "");
 
       /* Rejoin any channels we parted */
       if ((tmp_p->server_status == IRC_SERVER_ACTIVE) && tmp_p->channels) {
@@ -1095,9 +1104,9 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
         while (c) {
           if (c->unjoined) {
             if (c->key) {
-              ircserver_send_command(tmp_p, "JOIN", "%s :%s", c->name, c->key);
+              ircserver_send_peercmd(tmp_p, "JOIN", "%s :%s", c->name, c->key);
             } else {
-              ircserver_send_command(tmp_p, "JOIN", ":%s", c->name);
+              ircserver_send_peercmd(tmp_p, "JOIN", ":%s", c->name);
             }
           }
 
@@ -1125,10 +1134,10 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
           while (c) {
             if (!c->inactive) {
               if (slashme) {
-                ircserver_send_command(tmp_p, "PRIVMSG",
+                ircserver_send_peercmd(tmp_p, "PRIVMSG",
                                        "%s :\001ACTION %s\001", c->name, msg);
               } else {
-                ircserver_send_command(tmp_p, "PRIVMSG", "%s :%s",
+                ircserver_send_peercmd(tmp_p, "PRIVMSG", "%s :%s",
                                        c->name, msg);
               }
             }
@@ -1137,6 +1146,10 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
         }
       }
  
+      if ((tmp_p->server_status == IRC_SERVER_ACTIVE)
+          && !(tmp_p->client_status & IRC_CLIENT_SENTWELCOME))
+        ircclient_welcome(tmp_p);
+
       p->client_status = IRC_CLIENT_NONE;
       p->client_sock = -1;
       p->dead = 1;
@@ -1205,10 +1218,13 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
 
 /* Change the nickname */
 int ircclient_change_nick(struct ircproxy *p, const char *newnick) {
+  if (p->nickname)
+    debug("nickname WAS '%s'", p->nickname);
   free(p->nickname);
 
   p->nickname = x_strdup(newnick);
   p->client_status |= IRC_CLIENT_GOTNICK;
+  debug("nickname NOW '%s'", p->nickname);
 
   return 0;
 }
@@ -1540,8 +1556,8 @@ int ircclient_welcome(struct ircproxy *p) {
     while (c) {
       if (!c->inactive && !c->unjoined) {
         ircclient_send_selfcmd(p, "JOIN", ":%s", c->name);
-        ircserver_send_command(p, "TOPIC", ":%s", c->name);
-        ircserver_send_command(p, "NAMES", ":%s", c->name);
+        ircserver_send_peercmd(p, "TOPIC", ":%s", c->name);
+        ircserver_send_peercmd(p, "NAMES", ":%s", c->name);
 
         if (p->conn_class->chan_log_enabled) {
           irclog_autorecall(p, c->name);
@@ -1711,7 +1727,7 @@ int ircclient_send_error(struct ircproxy *p, const char *format, ...) {
   msg = x_vsprintf(format, ap);
   va_end(ap);
 
-  nick = p->nickname ? p->nickname : "AUTH";
+  nick = p->nickname ? p->nickname : "";
   user = p->username ? p->username : "user";
   host = p->hostname ? p->hostname : "host";
 

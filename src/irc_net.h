@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.37 2000/11/10 15:07:10 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.38 2000/11/24 13:44:40 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -171,6 +171,8 @@ struct ircproxy {
   char *servercmodes;
   char *serverpassword;
 
+  char *password;
+
   int allow_motd;
   int allow_pong;
   int squelch_411;
@@ -189,14 +191,15 @@ struct ircproxy {
 /* states a client can be in */
 #define IRC_CLIENT_NONE        0x00
 #define IRC_CLIENT_CONNECTED   0x01
-#define IRC_CLIENT_AUTHED      0x02
-#define IRC_CLIENT_GOTNICK     0x10
-#define IRC_CLIENT_GOTUSER     0x20
-#define IRC_CLIENT_SENTWELCOME 0x40
-#define IRC_CLIENT_ACTIVE      0x73
+#define IRC_CLIENT_GOTPASS     0x02
+#define IRC_CLIENT_GOTNICK     0x04
+#define IRC_CLIENT_GOTUSER     0x08
+#define IRC_CLIENT_AUTHED      0x10
+#define IRC_CLIENT_SENTWELCOME 0x20
+#define IRC_CLIENT_ACTIVE      0x3d
 
 /* Can we send data to the client? */
-#define IS_CLIENT_READY(_c) (((_c)->client_status & 0x33) == 0x33)
+#define IS_CLIENT_READY(_c) (((_c)->client_status & 0x1d) == 0x1d)
 
 /* states a server can be in */
 #define IRC_SERVER_NONE        0x00
