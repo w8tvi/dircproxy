@@ -75,7 +75,10 @@ command, specifying all three tunnels at the same time.  (Replace
 
 This will actually start a shell on the remote machine.  Exiting from
 it will end the tunnels.  For safety you may want to run this under
-screen or something, as it doesn't run in the background either.
+screen or something (if you've got that), as it doesn't run in the
+background either.  Its perfectly safe to close the tunnels while you
+are detatched though - so you could put these in a shell script or
+something instead and just run that when you want to attach.
 
 
 Configuring dircproxy on the Outside machine
