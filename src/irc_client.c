@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.81 2002/02/05 09:55:02 scott Exp $
+ * @(#) $Id: irc_client.c,v 1.82 2002/02/05 10:05:46 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -887,7 +887,92 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
           ircprot_freemsg(&msg);
           return 0;
 
-       } else if (!irc_strcasecmp(msg.params[0], "HELP")) {
+        } else if (!irc_strcasecmp(msg.params[0], "STATUS")) {
+          struct ircchannel *c;
+          struct strlist *s;
+
+          ircclient_send_notice(p, "%s %s status:", PACKAGE, VERSION);
+          ircclient_send_notice(p, "- Nickname on server: %s", p->nickname);
+          ircclient_send_notice(p, "- Nickname to guard: %s", p->setnickname);
+          ircclient_send_notice(p, "- Username for server: %s", p->username);
+          ircclient_send_notice(p, "- Hostname for server: %s", p->hostname);
+          ircclient_send_notice(p, "- Real name for server: %s", p->realname);
+          ircclient_send_notice(p, "-");
+
+          ircclient_send_notice(p, "- Client status: %s",
+                                IS_CLIENT_READY(p) ? "Ready" : "");
+	  if (p->client_status != IRC_CLIENT_ACTIVE) {
+            if (p->client_status & IRC_CLIENT_CONNECTED)
+              ircclient_send_notice(p, "-   Client connected");
+            if (p->client_status & IRC_CLIENT_GOTPASS)
+              ircclient_send_notice(p, "-   Received password");
+            if (p->client_status & IRC_CLIENT_GOTNICK)
+              ircclient_send_notice(p, "-   Received nickname");
+            if (p->client_status & IRC_CLIENT_GOTUSER)
+              ircclient_send_notice(p, "-   Received user information");
+            if (p->client_status & IRC_CLIENT_AUTHED)
+              ircclient_send_notice(p, "-   Authorised");
+            if (p->client_status & IRC_CLIENT_SENTWELCOME)
+              ircclient_send_notice(p, "-   Welcomed");
+          }
+          ircclient_send_notice(p, "-");
+
+          ircclient_send_notice(p, "- Server status: %s",
+                                IS_SERVER_READY(p) ? "Ready" : "");
+	  if (p->server_status != IRC_SERVER_ACTIVE) {
+            if (p->server_status & IRC_SERVER_CREATED)
+              ircclient_send_notice(p, "-   Socket created");
+            if (p->server_status & IRC_SERVER_SEEN)
+              ircclient_send_notice(p, "-   Server seen");
+            if (p->server_status & IRC_SERVER_CONNECTED)
+              ircclient_send_notice(p, "-   Connected to server");
+            if (p->server_status & IRC_SERVER_INTRODUCED)
+              ircclient_send_notice(p, "-   Introduced ourselves");
+            if (p->server_status & IRC_SERVER_GOTWELCOME)
+              ircclient_send_notice(p, "-   Have been welcomed");
+          }
+          ircclient_send_notice(p, "-");
+
+          ircclient_send_notice(p,  "- Servers.  Current/next marked by '->'");
+          s = p->conn_class->servers;
+          while (s) {
+            ircclient_send_notice(p, "-%s  %s",
+                                  (s == p->conn_class->next_server ? ">" : " "),
+                                  s->str);
+            s = s->next;
+          }
+          ircclient_send_notice(p, "-");
+
+          ircclient_send_notice(p, "- Channels");
+          c = p->channels;
+          while (c) {
+            ircclient_send_notice(p, "-   %s%s%s%s%s%s",
+                                  c->name,
+                                  c->key ? " (key: " : "",
+                                  c->key ? c->key : "",
+                                  c->key ? ")" : "",
+                                  c->inactive ? " (removed by force)" : "",
+                                  c->unjoined ? " (left on detach)" : "");
+            c = c->next;
+          }
+          ircclient_send_notice(p, "-");
+
+          ircclient_send_notice(p, "- Advanced:");
+          ircclient_send_notice(p, "-   Allow MOTD count: %d", p->allow_motd);
+          ircclient_send_notice(p, "-   Allow PONG count: %d", p->allow_pong);
+          ircclient_send_notice(p, "-   411 Squelch count: %d", p->squelch_411);
+          ircclient_send_notice(p, "-   Expecting NICK count: %d",
+                                p->expecting_nick);
+
+          if (p->squelch_modes)
+            ircclient_send_notice(p, "-   Squelching mode changes:");
+          s = p->squelch_modes;
+          while (s) {
+            ircclient_send_notice(p, "-     %s", s->str);
+            s = s->next;
+          }
+
+        } else if (!irc_strcasecmp(msg.params[0], "HELP")) {
           /* User needs a little help */
           char **help_page;
 
@@ -917,6 +1002,8 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
             } else if (p->conn_class->allow_host
                        && !irc_strcasecmp(msg.params[1], "HOST")) {
               help_page = help_host;
+            } else if (!irc_strcasecmp(msg.params[1], "STATUS")) {
+              help_page = help_status;
             } else if (!irc_strcasecmp(msg.params[1], "HELP")) {
               help_page = help_help;
             } else {
@@ -942,6 +1029,8 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
                                    "(help on /dircproxy commands)");
               ircclient_send_notice(p, "-     MOTD      "
                                    "(show dircproxy message of the day)");
+              ircclient_send_notice(p, "-     STATUS    "
+                                   "(show dircproxy status information)");
               ircclient_send_notice(p, "-     RECALL    "
                                     "(recall text from log files)");
               ircclient_send_notice(p, "-     DETACH    "
