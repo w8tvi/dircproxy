@@ -8,7 +8,7 @@
  *  - The list of currently active DCC proxies
  *  - Miscellaneous DCC functions
  * --
- * @(#) $Id: dcc_net.c,v 1.7 2000/11/28 15:52:38 keybuk Exp $
+ * @(#) $Id: dcc_net.c,v 1.8 2000/12/07 17:01:56 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -91,6 +91,7 @@ int dccnet_new(int type, long timeout, int *range, size_t range_sz,
       free(p->cap_filename);
     } else {
       net_close(p->sendee_sock);
+      p->sendee_sock = -1;
     }
     free(p);
     return -1;
@@ -141,6 +142,7 @@ static int _dccnet_listen(struct dccproxy *p, int *range, size_t range_sz,
     if (!bound) {
       debug("No free ports to bind DCC to");
       net_close(p->sendee_sock);
+      p->sendee_sock = -1;
       return -1;
     }
  
@@ -152,6 +154,7 @@ static int _dccnet_listen(struct dccproxy *p, int *range, size_t range_sz,
              sizeof(struct sockaddr_in))) {
       syscall_fail("bind", "dcc_listen", 0);
       net_close(p->sendee_sock);
+      p->sendee_sock = -1;
       return -1;
     }
   }
@@ -160,12 +163,14 @@ static int _dccnet_listen(struct dccproxy *p, int *range, size_t range_sz,
   if (getsockname(p->sendee_sock, (struct sockaddr *)&local_addr, &len)) {
     syscall_fail("getsockname", 0, 0);
     net_close(p->sendee_sock);
+    p->sendee_sock = -1;
     return -1;
   }
                   
   if (listen(p->sendee_sock, SOMAXCONN)) {
     syscall_fail("listen", 0, 0);
     net_close(p->sendee_sock);
+    p->sendee_sock = -1;
     return -1;
   }
 
@@ -196,6 +201,7 @@ static int _dccnet_connect(struct dccproxy *p, struct in_addr addr, int port) {
               sizeof(struct sockaddr_in)) && (errno != EINPROGRESS)) {
     syscall_fail("connect", inet_ntoa(addr), 0);
     net_close(p->sender_sock);
+    p->sender_sock = -1;
     return -1;
   }
 
@@ -216,18 +222,25 @@ static int _dccnet_connect(struct dccproxy *p, struct in_addr addr, int port) {
 
 /* Timer hook to check if we've timed out */
 static void _dccnet_timedout(struct dccproxy *p, void *data) {
-  if (p->sender_status != DCC_SENDER_ACTIVE) {
-    if (p->type & DCC_CHAT)
-      net_send(p->sendee_sock, "--(%s)-- Connection to remote peer timed out\n",
-               PACKAGE);
+  if ((p->sender_status == DCC_SENDER_ACTIVE) && (p->type & DCC_SEND_CAPTURE)) {
+    debug("Capturing, and we've connected to sender");
+    return;
+  }
 
-  } else if (p->sendee_status != DCC_SENDEE_ACTIVE) {
-    if (p->type & DCC_CHAT) {
+  if (p->sendee_status != DCC_SENDEE_ACTIVE) {
+    if (p->type & DCC_CHAT)
       net_send(p->sender_sock, "--(%s)-- Timed out awaiting connection from "
                                "remote peer\n", PACKAGE);
-    } else if (p->type & DCC_SEND_CAPTURE) {
-      debug("Capturing, and we've connected to sender");
-      return;
+
+  } else if (p->sender_status != DCC_SENDER_ACTIVE) {
+    if (p->type & DCC_CHAT) {
+      net_send(p->sendee_sock, "--(%s)-- Connection to remote peer timed out\n",
+               PACKAGE);
+    } else if (p->type & DCC_SEND) {
+      if (p->sender_status & DCC_SENDER_GONE) {
+        debug("Sender has come and gone, but sendee is connected");
+        return;
+      }
     }
 
   } else {
@@ -288,6 +301,7 @@ static void _dccnet_free(struct dccproxy *p) {
   }
   if (p->cap_file)
     fclose(p->cap_file);
+  free(p->buf);
 
   dns_delall((void *)p);
   timer_delall((void *)p);
