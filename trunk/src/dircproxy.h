@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.1 2000/05/13 02:13:42 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.2 2000/05/13 02:38:03 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -21,15 +21,10 @@
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
-#ifndef PACKAGE
+#else /* HAVE_CONFIG_H */
 #define PACKAGE "dircproxy"
-#endif
-
-#ifndef VERSION
-#define VERSION "0.0"
-#endif
+#define VERSION "-debug"
+#endif /* HAVE_CONFIG_H */
 
 #include "memdebug.h"
 
