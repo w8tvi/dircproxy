@@ -38,6 +38,7 @@ Questions
      3.11 Can I connect multiple clients to the same running session?
      3.12 Can one dircproxy connection class be used to connect to
           multiple servers?
+     3.13 Why doesn't dircproxy ever keep my nickname?
 
 4.  Logging
      4.1  Why does dircproxy by default log channels while I'm
@@ -46,6 +47,8 @@ Questions
           in years to come?
      4.3  Why does the permanent copy contain text from all the
           clients dircproxy is proxying?
+     4.4  How do I log private messages to individual files?
+     4.5  How do I log outgoing private messages?
 
 5.  DCC Proxying
      5.1  Why would I want dircproxy to proxy DCC requests as well?
@@ -117,7 +120,7 @@ Answers
 
  1.7  How do I add a question to the FAQ?
 
-     E-mail me at scott@netsplit.com and I'll see if its suitable
+     E-mail me at scott@dircproxy.net and I'll see if its suitable
      for inclusion.
 
 
@@ -357,6 +360,29 @@ Answers
      No.  It might sound fairly simple to implement at first, tracking
      channels is fairly easy, its tracking nicknames thats the problem.
 
+ 3.13 Why doesn't dircproxy ever keep my nickname?
+
+     First of all, check you've *not* got the following in your
+     configuration file.
+
+         nick_keep no
+
+     "yes" is the default, so if this option isn't set, then it will
+     be used.
+
+     dircproxy will attempt to keep whatever nickname your client
+     last set using the NICK command.  This means that if you connect
+     a client while dircproxy's attempting to restore your nickname,
+     and your client reacts to the server messages (as most "clever"
+     clients do) than dircproxy will accept the new nickname and stop
+     guarding the old one.
+
+     If it never restores your nickname when left without a client
+     connected, it may be that the server believes dircproxy is changing
+     it's nickname "too fast" or "too many times".  The default is to
+     attempt to restore the nickname once per minute.  You can adjust
+     this by changing the 'NICK_GUARD_TIME' #define in src/dircproxy.h.
+
 
  4.1  Why does dircproxy by default log channels while I'm attached?
 
@@ -421,6 +447,21 @@ Answers
 	     other_log_copydir /path/to/directory2
 	     :
 	 }
+
+ 4.4  How do I log private messages to individual files?
+
+     Use the 'privmsg-log.pl' script in the contrib directory of the
+     dircproxy source as a filter as an 'other_log_program'.  You'll need
+     to edit the script to set the directory to store these private
+     message log files, and need to add the following to your dircproxy
+     configuration file:
+
+         other_log_program "/usr/local/share/dircproxy/privmsg-log.pl"
+
+ 4.5  How do I log outgoing private messages?
+
+     You can't, there's no way for dircproxy to replay them for you
+     (every client I tested ignored them).
 
 
  5.1  Why would I want dircproxy to proxy DCC requests as well?
