@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.50 2002/10/17 18:39:19 scott Exp $
+ * @(#) $Id: irc_net.h,v 1.51 2002/11/02 17:32:49 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -25,7 +25,7 @@
 #include "stringex.h"
 
 /* a log file - there are good reasons why this isn't defined in irc_log.h */
-struct logfile {
+typedef struct logfile {
   int open, made;
   char *filename;
   FILE *file;
@@ -33,10 +33,10 @@ struct logfile {
   unsigned long nlines, maxlines;
 
   int always;
-};
+} LogFile;
 
 /* a description of an authorised connction */
-struct ircconnclass {
+typedef struct ircconnclass {
   char *server_port;
   long server_retry;
   long server_dnsretry;
@@ -136,10 +136,10 @@ struct ircconnclass {
   char *orig_local_address;
 
   struct ircconnclass *next;
-};
+} IRCConnClass;
 
 /* a channel someone is on */
-struct ircchannel {
+typedef struct ircchannel {
   char *name;
   char *key;
   int inactive;
@@ -147,10 +147,10 @@ struct ircchannel {
   struct logfile log;
 
   struct ircchannel *next;
-};
+} IRCChannel;
 
 /* a proxied connection */
-struct ircproxy {
+typedef struct ircproxy {
   int dead;
   struct ircconnclass *conn_class;
   int die_on_close;
@@ -197,7 +197,7 @@ struct ircproxy {
   struct logfile private_log, server_log;
 
   struct ircproxy *next;
-};
+} IRCProxy;
 
 /* states a client can be in */
 #define IRC_CLIENT_NONE        0x00
