@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.30 2000/08/30 10:48:40 keybuk Exp $
+ * @(#) $Id: main.c,v 1.31 2000/09/01 12:07:59 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.30 2000/08/30 10:48:40 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.31 2000/09/01 12:07:59 keybuk Exp $";
 
 /* The name of the program */
 static char *progname;
@@ -154,7 +154,7 @@ int main(int argc, char *argv[]) {
   }
 
   /* If no -f was specified use the home directory */
-  if (!local_file) {
+  if (!local_file && !inetd_mode) {
     struct passwd *pw;
 
     pw = getpwuid(geteuid());
@@ -170,7 +170,7 @@ int main(int argc, char *argv[]) {
         config_file = x_strdup(local_file);
       }
     }
-  } else {
+  } else if (local_file) {
     if (cfg_read(local_file, &listen_port)) {
       /* This is fatal! */
       fprintf(stderr, "%s: Couldn't read configuration from %s: %s\n",
