@@ -1,22 +1,25 @@
 Need to do
 
-	* the /DIRCPROXY command. (0.7.0 ?)
+	* the /DIRCPROXY command. (0.7.0)
 	  RECALL <chan/nick/*> from nlines
 	  DETACH <away-msg>
+          PERSIST
 	  QUIT <msg>		(change /DQUIT to this)
 
+	* global variable saying whether we went into the background or not
 
-Would be nice
+	* using above, a debug() function to replace all the others lying
+	  around.  neaten it up, so if in background it uses syslog, and if
+	  not stderr
 
-	* when -I is used, it won't close the socket, because it is waiting
-	  for a client to reconnect.  Either enter listen mode somehow, or
-	  disconnect everything.
+	* the PERSIST command will set die_on_close to 0, and create a
+	  listen socket on a random port.
+	  -dircproxy- Reconnect to this session at hostname.domain.tld:46702
+
+
+Would be nice:
 
 	* How can we change the username being presented?  Team up with an
 	  identd perhaps, or we could fork(), close all the other sockets and
 	  become a one-proxy program relistening (see above).
-
-	* (further to above to)
-	  -dircproxy- Reconnect to this session at hostname.domain.tld:46702
-          Maybe only if /DIRCPROXY PERSIST is sent ... ? :o)
 
