@@ -2,7 +2,7 @@
 .\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.15 2000/10/12 16:24:14 keybuk Exp $
+.\" @(#) $Id: dircproxy.1,v 1.16 2000/10/13 13:06:43 keybuk Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -91,13 +91,25 @@ contains spaces it should be contained in double quotes ('"with spaces"').
 The possible keywords and their meanings are as follows (note that the
 configuration file is not case-sensitive):
 
+.PP
+.B LOCAL OPTIONS
+.PP
+These options may not be placed inside a connection class as they affect
+the operation of the entire \fBdircproxy\fR server.
+
 .TP
 .B listen_port
 What port should \fBdircproxy\fR listen for connections from IRC clients
 on?
 
 This can be a numeric port number, or a service name from /etc/services
-This directive cannot go inside a connection class.
+
+.PP
+.B GLOBAL OPTIONS
+.PP
+These options may be placed in a connection class, or outside of one.  If
+they are outside then they only affect those connection classes defined
+afterwards.
 
 .TP
 .B server_port
@@ -146,9 +158,8 @@ received exceeds the number of seconds below the server is assumed to be
 .B server_autoconnect
 Should \fBdircproxy\fR automatically connect to the first server in the list
 when you connect.  If you set this to 'no', then '\fBallow_jump\fR' is 
-automatically sets '\fBallow_jump\fR' to 'yes'.  If '\fBallow_jump_new\fR'
-is also 'yes', then you can create connection classes with no '\fBserver\fR'
-lines.
+automatically set to 'yes'.  If '\fBallow_jump_new\fR' is also 'yes', then
+you can create connection classes with no '\fBserver\fR' lines.
 
  yes = Automatically connect to the first server
  no = Wait for a /DIRCPROXY JUMP from the client
