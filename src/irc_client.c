@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.35 2000/09/04 13:39:15 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.36 2000/09/18 09:54:03 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -527,6 +527,10 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
 
           m = m->next;
         }
+
+        /* We got a matching masklist, so this one's ok */
+        if (m)
+          break;
       } else {
         break;
       }
