@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.51 2002/08/17 21:05:56 scott Exp $
+ * @(#) $Id: dircproxy.h,v 1.52 2002/11/20 21:41:25 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -257,7 +257,7 @@
  * User modes that cause the server connection to be dropped.
  * 0 = don't do this
  */
-#define DEFAULT_REFUSE_MODES "r"
+#define DEFAULT_REFUSE_MODES 0
 
 /* DEFAULT_LOCAL_ADDRESS
  * This can be set to a domain name on the local machine that dircproxy
