@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.32 2000/10/16 11:17:19 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.33 2000/10/16 11:23:51 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -541,6 +541,91 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     } else {
       squelch = 0;
     }
+
+  } else if (!irc_strcasecmp(msg.cmd, "324")) {
+    /* Here be channel modes */
+    if (msg.numparams >= 2) {
+      struct ircchannel *c;
+
+      /* Set this to 1 in a minute if we need to */
+      squelch = 0;
+
+      c = ircnet_fetchchannel(p, msg.params[1]);
+      if (c) {
+        if (msg.numparams >= 3) {
+          ircnet_channel_mode(p, c, &msg, 2);
+        } else {
+          free(c->key);
+        }
+
+        /* Look for the channel in the squelch_modes list */
+        if (p->squelch_modes) {
+          struct strlist *s, *l;
+
+          l = 0;
+          s = p->squelch_modes;
+
+          while (s) {
+            if (!irc_strcasecmp(msg.params[1], s->str)) {
+              struct strlist *n;
+
+              n = s->next;
+              free(s->str);
+              free(s);
+
+              /* Was in the squelch list, so remove it and stop looking */
+              s = (l ? l->next : p->squelch_modes) = n;
+              squelch = 1;
+              break;
+            } else {
+              l = s;
+              s = s->next;
+            }
+          }
+        }
+      }
+    }
+ 
+  } else if (!irc_strcasecmp(msg.cmd, "477")) {
+    /* No channel modes for this channel */
+    if (msg.numparams >= 2) {
+      struct ircchannel *c;
+
+      /* Set this to 1 in a minute if we need to */
+      squelch = 0;
+
+      c = ircnet_fetchchannel(p, msg.params[1]);
+      if (c) {
+        debug("No channel modes for %s", c->name);
+        free(c->key);
+
+        /* Look for the channel in the squelch_modes list */
+        if (p->squelch_modes) {
+          struct strlist *s, *l;
+
+          l = 0;
+          s = p->squelch_modes;
+
+          while (s) {
+            if (!irc_strcasecmp(msg.params[1], s->str)) {
+              struct strlist *n;
+
+              n = s->next;
+              free(s->str);
+              free(s);
+
+              /* Was in the squelch list, so remove it and stop looking */
+              s = (l ? l->next : p->squelch_modes) = n;
+              squelch = 1;
+              break;
+            } else {
+              l = s;
+              s = s->next;
+            }
+          }
+        }
+      }
+    }
  
   } else if (!irc_strcasecmp(msg.cmd, "PING")) {
     /* Reply to pings for the client */
@@ -585,6 +670,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
   } else if (!irc_strcasecmp(msg.cmd, "MODE")) {
     if (msg.numparams >= 2) {
+      struct ircchannel *c;
+
       if (!irc_strcasecmp(p->nickname, msg.params[0])) {
         /* Personal mode change */
         int param;
@@ -608,6 +695,9 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
           _ircserver_close(p);
         }
+      } else if ((c = ircnet_fetchchannel(p, msg.params[0]))) {
+        /* Channel mode change */
+        ircnet_channel_mode(p, c, &msg, 1);
       }
 
       squelch = 0;
@@ -636,8 +726,18 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
           c->unjoined = 0;
           squelch = 0;
         } else if (!c) {
+          struct strlist *s;
+
           /* Orginary join */
           ircnet_addchannel(p, msg.params[0]);
+
+          /* Ask for the channel modes */
+          s = (struct strlist *)malloc(sizeof(struct strlist));
+          s->str = x_strdup(msg.params[0]);
+          s->next = p->squelch_modes;
+          p->squelch_modes = s;
+
+          ircserver_send_command(p, "MODE", ":%s", msg.params[0]);
           squelch = 0;
         } else {
           /* Bizarre, joined a channel we thought we were already on */
