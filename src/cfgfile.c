@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.15 2000/09/26 10:58:57 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.16 2000/09/26 11:31:39 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -219,7 +219,7 @@ int cfg_read(const char *filename, char **listen_port) {
                        &(class ? class->disconnect_existing
                                : disconnect_existing));
 
-      } else if (!strcasecmp(key, "disconnect_existing_user")) {
+      } else if (!strcasecmp(key, "disconnect_on_detach")) {
         /* disconnect_on_detach yes
            disconnect_on_detach no */
         _cfg_read_bool(&buf,
