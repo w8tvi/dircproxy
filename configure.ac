@@ -1,5 +1,5 @@
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.8 2003/12/31 23:11:27 fharvey Exp $
+# $Id: configure.ac,v 1.9 2003/12/31 23:16:25 fharvey Exp $
 
 AC_INIT([dircproxy], [1.1.1], [http://bugzilla.dircproxy.net/])
 AM_INIT_AUTOMAKE
@@ -69,7 +69,7 @@ fi
 AC_ARG_ENABLE([ssl], AC_HELP_STRING([--enable-ssl], [Add SSL support]),
               [ if test "x${enable_ssl}" = "xyes"; then
 	                 use_ssl="y"
-			 CFLAGS="-DSSL "
+			 CFLAGS="-DSSL $CFLAGS "
                          AC_DEFINE([SSL], [1], [Try to sniff me now])
                 fi ])
 # if test -z "${use_ssl}"; then
