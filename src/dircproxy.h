@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.21 2000/09/01 12:15:36 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.22 2000/09/26 10:58:57 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -142,6 +142,14 @@
  *  0 = No, disconnect the new user
  */
 #define DEFAULT_DISCONNECT_EXISTING 0
+
+/* DEFAULT_DISCONNECT_ON_DETACH
+ * When the user detaches from the proxy, do we disconnect them from the
+ * server?
+ *  1 = Yes, they need to do explicitly make it persist
+ *  0 = No, always persists until they explicitly quit
+ */
+#define DEFAULT_DISCONNECT_ON_DETACH 0
 
 /* DEFAULT_DROP_MODES
  * User modes to automatically drop when the client detaches.

@@ -97,6 +97,16 @@
 #
 #disconnect_existing_user no
 
+# disconnect_on_detach
+#     When you detach from dircproxy it usually keeps you connected to the
+#     server until you connect again.  If you don't want this, and you want
+#     it to close your server connection as well, then set this.
+#
+#     yes = Close session on disconnection
+#      no = Stay connected to server until reattachment
+#
+#disconnect_on_detach no
+
 # drop_modes
 #     Which user modes to drop automatically when you detach, handy to
 #     limit the impact that your client has while connected, or for extra

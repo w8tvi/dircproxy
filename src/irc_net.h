@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.19 2000/09/01 12:16:00 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.20 2000/09/26 10:58:57 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -42,6 +42,7 @@ struct ircconnclass {
   long server_pingtimeout;
   long channel_rejoin;
   int disconnect_existing;
+  int disconnect_on_detach;
   char *drop_modes;
   char *local_address;
   char *away_message;
