@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.6 2000/05/13 05:25:04 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.7 2000/05/24 17:57:35 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -283,20 +283,6 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
 static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
   struct ircconnclass *cc;
 
-  if (!connclasses) {
-    connclasses = (struct ircconnclass *)malloc(sizeof(struct ircconnclass));
-    connclasses->password = x_strdup(TODO_CFG_PASS);
-    connclasses->servers = (struct strlist *)malloc(sizeof(struct strlist));
-    connclasses->servers->str = x_strdup(TODO_CFG_SERVER);
-    connclasses->servers->next = 0;
-    connclasses->awaymessage = (DEFAULT_DETACH_AWAY
-                                ? x_strdup(DEFAULT_DETACH_AWAY) : 0);
-    connclasses->bind = (TODO_CFG_BINDHOST ? x_strdup(TODO_CFG_BINDHOST) : 0);
-    connclasses->next_server = connclasses->servers;
-    connclasses->masklist = 0;
-    connclasses->next = 0;
-  }
-
   cc = connclasses;
   while (cc) {
     if (!strcmp(cc->password, password)) {
@@ -561,13 +547,13 @@ int ircclient_welcome(struct ircproxy *p) {
       ircserver_send_command(p, "TOPIC", ":%s", c->name);
       ircserver_send_command(p, "NAMES", ":%s", c->name);
 
-      irclog_recall(p, &(c->log), DEFAULT_LOG_AUTORECALL);
+      irclog_recall(p, &(c->log), log_autorecall);
 
       c = c->next;
     }
   }
 
-  irclog_recall(p, &(p->misclog), DEFAULT_LOG_AUTORECALL);
+  irclog_recall(p, &(p->misclog), log_autorecall);
   irclog_notice_toall(p, "You connected");
 
   p->client_status |= IRC_CLIENT_SENTWELCOME;

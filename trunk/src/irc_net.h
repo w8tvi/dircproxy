@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.2 2000/05/24 17:52:30 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.3 2000/05/24 17:57:35 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -63,7 +63,7 @@ struct ircproxy {
   int server_sock;
   int server_status;
   struct sockaddr_in server_addr;
-  int server_attempts;
+  long server_attempts;
 
   char *nickname;
   char *username;
