@@ -1,3 +1,66 @@
+2001-07-12 14:47  Scott James Remnant <scott@netsplit.com>
+
+	* src/dcc_send.c: Used the wrong variable, heh
+
+2001-07-12 14:47  Scott James Remnant <scott@netsplit.com>
+
+	* src/dcc_send.c: Drop dcc connections if queue() fails at any
+	point
+
+2001-07-12 14:43  Scott James Remnant <scott@netsplit.com>
+
+	* src/net.c: If malloc()s fail within the majority of the socket
+	handler, it shouldn't crash anymore, just return bad flags
+
+2001-07-12 14:37  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_log.c: When rotating log files, keep the permissions as
+	0600.
+
+2001-07-12 14:36  Scott James Remnant <scott@netsplit.com>
+
+	* src/: irc_client.c, irc_log.c: Only strip those characters from
+	the end we really want to treat as whitespace.	Doing otherwise
+	strips high characters and control characters
+
+2001-07-12 14:29  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_server.c: Only do the getsockname() call if the client is
+	active, otherwise it'll fail.  We cope with not having a client if
+	it is supposed to have succeeeded anyway.
+
+2001-05-07 17:41  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: Another bug, will fix these soon.
+
+2001-05-01 21:25  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: Got a couple of bugs to fix.
+
+2001-01-11 15:54  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in, contrib/dircproxy.spec: CVS version now 1.0.1
+
+2001-01-11 15:29  Scott James Remnant <scott@netsplit.com>
+
+	* AUTHORS, FAQ, INSTALL, NEWS, PROTOCOL, README,
+	README.dcc-via-ssh, README.inetd, crypt/main.c,
+	doc/dircproxy-crypt.1, doc/dircproxy.1, src/cfgfile.c,
+	src/cfgfile.h, src/dcc_chat.c, src/dcc_chat.h, src/dcc_net.c,
+	src/dcc_net.h, src/dcc_send.c, src/dcc_send.h, src/dircproxy.h,
+	src/dns.c, src/dns.h, src/help.h, src/irc_client.c,
+	src/irc_client.h, src/irc_log.c, src/irc_log.h, src/irc_net.c,
+	src/irc_net.h, src/irc_prot.c, src/irc_prot.h, src/irc_server.c,
+	src/irc_server.h, src/irc_string.c, src/irc_string.h, src/logo.h,
+	src/main.c, src/match.c, src/match.h, src/memdebug.c,
+	src/memdebug.h, src/net.c, src/net.h, src/sprintf.c, src/sprintf.h,
+	src/stringex.c, src/stringex.h, src/timers.c, src/timers.h: Last
+	minute update of all (C) to 2001
+
+2001-01-11 15:23  Scott James Remnant <scott@netsplit.com>
+
+	* ChangeLog, NEWS, README, TODO: Version 1.0.0 released.
+
 2001-01-11 15:14  Scott James Remnant <scott@netsplit.com>
 
 	* ChangeLog, configure.in, contrib/dircproxy.spec: CVS version now
@@ -2497,9 +2560,9 @@
 
 2000-05-13 02:13  Scott James Remnant <scott@netsplit.com>
 
-	* autogen.sh, src/match.h, src/stringex.h, src/stringex.c: Imported
-	version 0.5.2 into the CVS tree.  Its in a CLEAN state that
-	requires autoconf and automake (run autogen.sh) to build.
+	* autogen.sh: Imported version 0.5.2 into the CVS tree.  Its in a
+	CLEAN state that requires autoconf and automake (run autogen.sh) to
+	build.
         
 
 2000-05-13 02:13  Scott James Remnant <scott@netsplit.com>
@@ -2507,11 +2570,11 @@
 	* AUTHORS, ChangeLog, FILES.autoconf, Makefile.am, NEWS, PROTOCOL,
 	README, TODO, acconfig.h, README.inetd, configure.in,
 	src/Makefile.am, src/dircproxy.h, src/dns.c, src/dns.h, src/sock.c,
-	src/irc_prot.c, src/main.c, src/match.c, src/sock.h, src/sprintf.c,
-	src/sprintf.h, src/irc_string.c, src/irc_net.c, src/memdebug.h,
-	src/irc_prot.h, src/irc_string.h, src/irc_log.c, src/irc_log.h,
-	src/irc_net.h, src/irc_client.c, src/irc_client.h,
-	src/irc_server.h, src/memdebug.c, src/irc_server.c, src/timers.c,
-	src/timers.h, src/getopt.c, src/getopt.h, src/getopt1.c: Initial
-	revision
+	src/irc_prot.c, src/main.c, src/match.c, src/match.h, src/sock.h,
+	src/sprintf.c, src/sprintf.h, src/irc_string.c, src/stringex.h,
+	src/irc_net.c, src/memdebug.h, src/irc_prot.h, src/irc_string.h,
+	src/stringex.c, src/irc_log.c, src/irc_log.h, src/irc_net.h,
+	src/irc_client.c, src/irc_client.h, src/irc_server.h,
+	src/memdebug.c, src/irc_server.c, src/timers.c, src/timers.h,
+	src/getopt.c, src/getopt.h, src/getopt1.c: Initial revision
 
