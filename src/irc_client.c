@@ -5,7 +5,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.90 2002/12/29 21:30:11 scott Exp $
+ * @(#) $Id: irc_client.c,v 1.91 2003/12/10 18:55:34 fharvey Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -1290,6 +1290,10 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
       free(tmp_p->oldnickname);
       tmp_p->oldnickname = 0;
 
+      /* Notify nickserv */
+      if (tmp_p->conn_class->nickserv_password) 
+	 ircserver_send_command(tmp_p, "PRIVMSG", " %s :IDENTIFY %s", "NICKSERV",tmp_p->conn_class->nickserv_password);
+       
       /* Unset any away message if we set one */
       if (!tmp_p->awaymessage && (tmp_p->server_status == IRC_SERVER_ACTIVE)
           && tmp_p->conn_class->away_message)
@@ -1420,6 +1424,11 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
       /* Set initial modes */
       if (p->conn_class->initial_modes)
         ircclient_change_mode(p, p->conn_class->initial_modes);
+
+      /* Notify nickserv */
+      // currently broken i will look in next revision
+      /* if (p->conn_class->nickserv_password) */ 
+      /* ircserver_send_command(p, "PRIVMSG", " %s :IDENTIFY %s", "NICKSERV",p->conn_class->nickserv_password); */    
     }
 
     return 0;
