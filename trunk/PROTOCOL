@@ -1,32 +1,58 @@
-IRC has been for a long time notoriously undocumented.  The original
-RFC1459 ("Internet Relay Chat Protocol") was written back in May 1993
-and since then IRC has changed quite a bit, especially in the numerics
-returned by servers.
+IRC protocol notes
+------------------
 
-These were (thankfully) updated to the modern 2.10 IRC protocol in
-April 2000.  Where they differ (in a few places) dircproxy follows
-the newer RFCs.  They are (for reference):
+IRC has been for a long time notoriously under-documented.
+The original RFC was RFC1459 ("Internet Relay Chat Protocol") and
+was written way back in May 1993.  Since that time the IRC protocol
+has changed quite a bit, especially in respect to the numeric codes
+sent to clients by the server.
 
-RFC2810  Internet Relay Chat: Architecture
-RFC2811  Internet Relay Chat: Channel Management
-RFC2812  Internet Relay Chat: Client Protocol
-RFC2813  Internet Relay Chat: Server Protocol
+These have been recently updated to the modern 2.10 IRC protocol
+as used by the IRCnet network.  They do differ in a few places,
+and where they do, dircproxy follows the new RFCs.
 
-Currently noted differences:
-  The USER command:  1459 says that parameters 2 and 3 are the hostname and
-  servername.  These haven't been used for years.  RFC2812 changes this to
-  define the second parameter as a bit mask to set +w or +i mode by default,
-  and makes the 3rd parameter unused.
-  dircproxy ignores the 3rd parameter, and performs an atoi() on the second.
-  If the second isn't 0 then it assumes the client follows RFC2812 and treats
-  the bits according to that standard.  Otherwise it discards it.
-  dircproxy always sends "0 *" to the server for these paramters.
+For reference, the new RFCs are as follows:
 
-  001 thru 004:  These were not defined in 1459, but are in 2812.  All servers
-  send these.  dircproxy requires them so it knows when its connected to the
-  server.
+	RFC2810  Internet Relay Chat: Architecture
+        RFC2811  Internet Relay Chat: Channel Management
+        RFC2812  Internet Relay Chat: Client Protocol
+        RFC2813  Internet Relay Chat: Server Protocol
 
-  Parameter Spacing:  1459 says parameters can be seperated by one or more
-  spaces.  2812 says only by one space.  dircproxy by default follows 2812
-  on this, because it seems to be better.  If this causes you some real 
-  problems then define the OLD_RFC1459_PARAM_SPACE macro in irc_prot.h
+
+Noteworthy differences
+======================
+
+RFC1459 says that parameters 2 and 3 of the USER command should be
+the hostname of the client, and of the server.	With the advent of
+DNS and ident checking etc, these have been redundant for a while.
+RFC2812 changes the meaning of these parameters, defining the
+second parameter to be a bit mask of modes to set on connection,
+and the third to be unused.
+
+dircproxy completely ignores the 3rd parameter, and performs an
+atoi() on the second.  If the second isn't 0 then it assumes the
+client follows RFC2812 and treats the bits accordingly.
+
+dircproxy always sends "0" as the second parameter and "*" as the
+third to any server it connects to.
+
+
+Modern servers send four numerics upon connection, 001 thru 004.
+These provide information about the server.  These were not defined
+in RFC1459 but are defined in RFC2812.
+
+dircproxy requires these parameters to be sent by the server so
+it knows when the connection is completed.  All servers send them
+anyway, so this should not cause a problem.
+
+
+RFC1459 says parameters in commands can be separated by one or
+more spaces.  RFC2812 says they are separated by only ONE space
+(thus allowing for empty parameters).
+
+dircproxy follows RFC2812 by default, however if this causes problems
+for you then define the OLD_RFC1459_PARAM_SPACE in dircproxy.h
+
+
+Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
+All Rights Reserved.
