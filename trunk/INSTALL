@@ -9,10 +9,11 @@ I have seen or heard about it running on the following types
 of system:
 	Linux 2.x+ on i386 (Debian, RedHat, Slackware, etc)
         Linux 2.4+ on ia64 (TurboLinux)
-        FreeBSD 3.x, 4.x+
         Solaris 2.5+
+        FreeBSD 3.x, 4.x+
+	NetBSD on a MicroVAX 3100 (yes, really!)
 	Windows NT (with cygwin compiler)
-	Mac OS X on G3 (you'll need to configure with --host=darwin)
+	Mac OS X on G3 (you may need to configure with --host=darwin)
 
 If (and you should) get it to work on any other type of system,
 please e-mail me so I can it to this list.
