@@ -6,6 +6,11 @@ New features for 0.8.0:
 	  more generic so it can be used for dcc_send.c and dcc_fserve.c
 	  etc.
 
+	* Support for channels with keys, not quite sure how to do this.
+	  Can either ask the server nicely if it knows the key, could watch
+	  the /join's from the client, or could store channel_key in the
+	  config file
+
 
     IDENT
 
@@ -128,4 +133,8 @@ Would be nice:
 
 	* Non blocking dns lookups, need to read stevens to find out how
 	  to do this (seperate process and pipes?)
+
+	* XDCC stuff (possibly tying in with the file server above)
+
+	* mIRC DCC RESUME stuff
 
