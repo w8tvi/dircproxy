@@ -5,7 +5,7 @@
  * dcc_chat.c
  *  - DCC chat protocol
  * --
- * @(#) $Id: dcc_chat.c,v 1.4 2000/11/02 16:12:45 keybuk Exp $
+ * @(#) $Id: dcc_chat.c,v 1.5 2000/11/06 16:55:45 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -30,6 +30,10 @@
 #include "dcc_net.h"
 #include "dcc_chat.h"
 
+/* forward declarations */
+static void _dccchat_data(struct dccproxy *, int);
+static void _dccchat_error(struct dccproxy *, int, int);
+
 /* Called when we've connected to the sender */
 void dccchat_connected(struct dccproxy *p, int sock) {
   if (sock != p->sender_sock) {
@@ -41,8 +45,8 @@ void dccchat_connected(struct dccproxy *p, int sock) {
   debug("DCC Connection succeeded");
   p->sender_status |= DCC_SENDER_CONNECTED;
   net_hook(p->sender_sock, SOCK_NORMAL, (void *)p,
-           ACTIVITY_FUNCTION(dccchat_data),
-           ERROR_FUNCTION(dccchat_error));
+           ACTIVITY_FUNCTION(_dccchat_data),
+           ERROR_FUNCTION(_dccchat_error));
 
   if (p->sendee_status != DCC_SENDEE_ACTIVE) {
     net_send(p->sender_sock, "--(%s)-- Awaiting connection from remote peer\n",
@@ -60,6 +64,10 @@ void dccchat_connectfailed(struct dccproxy *p, int sock, int bad) {
     return;
   }
 
+  if (p->sendee_status == DCC_SENDEE_ACTIVE)
+    net_send(p->sendee_sock, "--(%s)-- Connection to remote peer failed\n",
+             PACKAGE);
+
   debug("DCC Connection failed");
   p->sender_status &= ~(DCC_SENDER_CREATED);
   p->dead = 1;
@@ -68,8 +76,8 @@ void dccchat_connectfailed(struct dccproxy *p, int sock, int bad) {
 /* Called when the sendee has been accepted */
 void dccchat_accepted(struct dccproxy *p) {
   net_hook(p->sendee_sock, SOCK_NORMAL, (void *)p,
-           ACTIVITY_FUNCTION(dccchat_data),
-           ERROR_FUNCTION(dccchat_error));
+           ACTIVITY_FUNCTION(_dccchat_data),
+           ERROR_FUNCTION(_dccchat_error));
 
   if (p->sender_status != DCC_SENDER_ACTIVE) {
     net_send(p->sendee_sock, "--(%s)-- Connecting to remote peer\n", PACKAGE);
@@ -79,7 +87,7 @@ void dccchat_accepted(struct dccproxy *p) {
 }
 
 /* Called when we get data over a DCC link */
-void dccchat_data(struct dccproxy *p, int sock) {
+static void _dccchat_data(struct dccproxy *p, int sock) {
   char *str, *dir;
   int to;
  
@@ -110,7 +118,7 @@ void dccchat_data(struct dccproxy *p, int sock) {
 }
 
 /* Called on DCC disconnection or error */
-void dccchat_error(struct dccproxy *p, int sock, int bad) {
+static void _dccchat_error(struct dccproxy *p, int sock, int bad) {
   char *who;
 
   if (sock == p->sender_sock) {
