@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.23 2000/10/13 13:35:42 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.24 2000/10/13 13:42:56 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -60,7 +60,6 @@ int cfg_read(const char *filename, char **listen_port,
   /* Initialise using defaults */
   def->server_port = x_strdup(DEFAULT_SERVER_PORT ? DEFAULT_SERVER_PORT : "0");
   def->server_retry = DEFAULT_SERVER_RETRY;
-  def->server_dnsretry = DEFAULT_SERVER_DNSRETRY;
   def->server_maxattempts = DEFAULT_SERVER_MAXATTEMPTS;
   def->server_maxinitattempts = DEFAULT_SERVER_MAXINITATTEMPTS;
   def->server_pingtimeout = DEFAULT_SERVER_PINGTIMEOUT;
@@ -201,10 +200,6 @@ int cfg_read(const char *filename, char **listen_port,
       } else if (!strcasecmp(key, "server_retry")) {
         /* server_retry 15 */
         _cfg_read_numeric(&buf, &(class ? class : def)->server_retry);
-
-      } else if (!strcasecmp(key, "server_dnsretry")) {
-        /* server_dnsretry 15 */
-        _cfg_read_numeric(&buf, &(class ? class : def)->server_dnsretry);
 
       } else if (!strcasecmp(key, "server_maxattempts")) {
         /* server_maxattempts 0 */

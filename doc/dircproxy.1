@@ -2,7 +2,7 @@
 .\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.18 2000/10/13 13:35:27 keybuk Exp $
+.\" @(#) $Id: dircproxy.1,v 1.19 2000/10/13 13:42:56 keybuk Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -138,11 +138,6 @@ This can be a numeric port number, or a service name from /etc/services
 .B server_retry
 How many seconds after disconnection or last connection attempt do we
 wait before retrying again?
-
-.TP
-.B server_dnsretry
-How many seconds after last connection attempt do we wait before trying
-again if the error was DNS related?
 
 .TP
 .B server_maxattempts
