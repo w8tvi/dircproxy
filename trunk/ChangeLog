@@ -1,3 +1,49 @@
+2000-11-21 13:50  Scott James Remnant <scott@netsplit.com>
+
+	* README.dcc-via-ssh: Bit of clarification on when you actually
+	need the tunnels
+
+2000-11-21 13:42  Scott James Remnant <scott@netsplit.com>
+
+	* INSTALL: Further instructions on MacOS X compile (thanks BillyH
+	btw!)
+
+2000-11-21 13:35  Scott James Remnant <scott@netsplit.com>
+
+	* INSTALL: It works on a Mac too!
+
+2000-11-20 15:25  Scott James Remnant <scott@netsplit.com>
+
+	* src/: dcc_chat.c, dcc_send.c, irc_client.c, irc_server.c: If we
+	ever get an unexpected socket, then close it.
+
+2000-11-20 12:49  Scott James Remnant <scott@netsplit.com>
+
+	* INSTALL: Updated slightly
+
+2000-11-20 12:42  Scott James Remnant <scott@netsplit.com>
+
+	* src/net.c: Slightly altered to suppress warnings on older libcs
+
+2000-11-20 12:22  Scott James Remnant <scott@netsplit.com>
+
+	* src/: dcc_chat.c, dcc_send.c: Made sure we actually close dcc
+	sockets and not just declare them dead.  This will hopefully cure
+	the "lots of read error" problems people have been getting.
+
+2000-11-20 11:12  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: Somehow lost the #include for sys/types.h -
+	broke compilation on FreeBSD
+
+2000-11-15 16:37  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in: CVS version now 0.8.2.
+
+2000-11-15 16:23  Scott James Remnant <scott@netsplit.com>
+
+	* ChangeLog, NEWS: Version 0.8.1 released.
+
 2000-11-15 16:10  Scott James Remnant <scott@netsplit.com>
 
 	* acconfig.h, configure.in, src/dcc_net.h, src/dcc_send.c: Instead
