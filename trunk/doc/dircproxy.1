@@ -2,7 +2,7 @@
 .\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.12 2000/09/28 10:34:38 keybuk Exp $
+.\" @(#) $Id: dircproxy.1,v 1.13 2000/09/29 15:55:57 keybuk Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -200,6 +200,24 @@ when you're not.
 none = Do not set an away message for you
 
 .TP
+.B attach_message
+dircproxy can send an announcement onto every channel you are on when
+you reattach to it, just to let everyone know you are back.  If you
+start this with "/ME " then it will be sent as an ACTION CTCP message
+(just like the ircII /me command).
+
+none = Do not announce attachment
+
+.TP
+.B detach_message
+dircproxy can send an announcement onto every channel you are on when
+you detach from it, just to let everyone know you are gone.  If you
+start this with "/ME " then it will be sent as an ACTION CTCP message
+(just like the ircII /me command).
+
+none = Do not announce detachment
+
+.TP
 .B chan_log_dir
 Directory to keep channel logs in.  If you don't use this, dircproxy
 stores them in a temporary directory and deletes them when finished.
@@ -319,6 +337,14 @@ no = They don't interest me, don't show them.
 Additionally, the following keywords may go only inside a connection
 class definition.  One 'password' and at least one 'server' are
 mandatory.
+
+.TP
+.B allow_persist
+You can disable the /DIRCPROXY PERSIST command here if you do not want
+ people using your proxy to be able to do that.
+
+yes = Command enabled
+no = Command disabled
 
 .TP
 .B password

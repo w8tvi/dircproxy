@@ -2,13 +2,6 @@ New features for 0.8.0:
 
     EASY
 
-	* Announce attachment and detachment to channels the user is on.
-	  If this starts with /me then an action is sent, otherwise a
-	  notice is sent.
-
-	    announce_detach "/me vanishes into the fog"
-	    announce_attach "/me returns from the abyss"
-
 	* Proxy message of the day file, after logo, before stats
 
 	    motd_file none/"path"

@@ -137,6 +137,7 @@
 #
 #local_address "none"
 
+
 # away_message
 #     If you don't explicitly set an /AWAY message before you detach, dircproxy
 #     can for you, so people don't think you are really at your keyboard
@@ -145,6 +146,26 @@
 #     none = Do not set an away message for you
 #
 #away_message "Not available, messages are logged"
+
+# attach_message
+#     dircproxy can send an announcement onto every channel you are on when
+#     you reattach to it, just to let everyone know you are back.  If you
+#     start this with "/ME " then it will be sent as an ACTION CTCP message
+#     (just like the ircII /me command).
+#
+#     none = Do not announce attachment
+#
+#attach_message "none"
+
+# detach_message
+#     dircproxy can send an announcement onto every channel you are on when
+#     you detach from it, just to let everyone know you are gone.  If you
+#     start this with "/ME " then it will be sent as an ACTION CTCP message
+#     (just like the ircII /me command).
+#
+#     none = Do not announce detachment
+#
+#detach_message "none"
 
 
 # chan_log_dir
@@ -276,6 +297,16 @@
 #      no = They don't interest me, don't show them.
 #
 #motd_stats yes
+
+
+# allow_persist
+#     You can disable the /DIRCPROXY PERSIST command here if you do not want
+#     people using your proxy to be able to do that.
+#
+#     yes = Command enabled
+#      no = Command disabled
+#
+#allow_persist yes
 
 
 # Connection Classes
