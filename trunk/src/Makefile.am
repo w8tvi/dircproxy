@@ -3,7 +3,7 @@
 INCLUDES = \
 	-DSYSCONFDIR="\"${sysconfdir}\""
 
-sbin_PROGRAMS = \
+bin_PROGRAMS = \
 	dircproxy
 
 dircproxy_SOURCES = \
