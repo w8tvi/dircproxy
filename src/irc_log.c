@@ -7,7 +7,7 @@
  *  - Handling of log programs
  *  - Recalling from log files
  * --
- * @(#) $Id: irc_log.c,v 1.37 2002/08/17 19:40:39 scott Exp $
+ * @(#) $Id: irc_log.c,v 1.38 2002/08/17 19:52:06 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -140,8 +140,6 @@ int irclog_init(struct ircproxy *p, const char *to) {
     ptr = filename = x_strdup("other");
     log->maxlines = p->conn_class->other_log_maxsize;
     log->always = p->conn_class->other_log_always;
-    log->timestamp = p->conn_class->other_log_timestamp;
-    log->relativetime = p->conn_class->other_log_relativetime;
     log->program = (p->conn_class->other_log_program
                     ? x_strdup(p->conn_class->other_log_program) : 0);
     copydir = (p->conn_class->other_log_copydir
@@ -152,8 +150,6 @@ int irclog_init(struct ircproxy *p, const char *to) {
     ptr = filename = x_strdup("private");
     log->maxlines = p->conn_class->private_log_maxsize;
     log->always = p->conn_class->private_log_always;
-    log->timestamp = p->conn_class->private_log_timestamp;
-    log->relativetime = p->conn_class->private_log_relativetime;
     log->program = (p->conn_class->private_log_program
                     ? x_strdup(p->conn_class->private_log_program) : 0);
     copydir = (p->conn_class->private_log_copydir
@@ -165,8 +161,6 @@ int irclog_init(struct ircproxy *p, const char *to) {
     irc_strlwr(filename);
     log->maxlines = p->conn_class->chan_log_maxsize;
     log->always = p->conn_class->chan_log_always;
-    log->timestamp = p->conn_class->chan_log_timestamp;
-    log->relativetime = p->conn_class->chan_log_relativetime;
     log->program = (p->conn_class->chan_log_program
                     ? x_strdup(p->conn_class->chan_log_program) : 0);
     copydir = (p->conn_class->chan_log_copydir
@@ -570,14 +564,14 @@ int irclog_ctcp(struct ircproxy *p, const char *to, const char *nick,
 static int _irclog_writetext(struct ircproxy *p, struct logfile *log,
                              const char *to, const char *from,
                              const char *text) {
-  if (log->timestamp) {
+  if (p->conn_class->log_timestamp) {
     time_t now;
 
     time(&now);
     if (p->conn_class->log_timeoffset)
       now -= (p->conn_class->log_timeoffset * 60);
 
-    if (log->relativetime) {
+    if (p->conn_class->log_relativetime) {
       _irclog_write(log, "@%lu %s %s", now, from, text);
     } else {
       char tbuf[40];
@@ -801,11 +795,10 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
 
         /* If there was a timestamp on it, we either fake the old-style
            stuff or do the new fancy stuff */
-        if (when && log->timestamp) {
+        if (when && p->conn_class->log_timestamp) {
           char tbuf[40];
 
-
-          if (log->relativetime) {
+          if (p->conn_class->log_relativetime) {
             time_t now, diff;
 
             time(&now);
