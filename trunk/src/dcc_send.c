@@ -5,7 +5,7 @@
  * dcc_send.c
  *  - DCC send protocol
  * --
- * @(#) $Id: dcc_send.c,v 1.13 2001/12/21 20:17:06 keybuk Exp $
+ * @(#) $Id: dcc_send.c,v 1.14 2002/08/17 19:38:35 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -59,6 +59,10 @@ void dccsend_connectfailed(struct dccproxy *p, int sock, int bad) {
     net_close(&sock);
     return;
   }
+
+  if (p->notify_func)
+    p->notify_func(p->notify_data, p->notify_msg,
+                   "Connection to remote peer failed");
 
   debug("DCC Connection failed");
   p->sender_status &= ~(DCC_SENDER_CREATED);
