@@ -575,6 +575,10 @@
 #     join "#foo"
 #     join "#foo,bar"
 #
+# Channel keywords should be seperated by the channel name with a space
+# as you'd expect.
+#     join "#foo key,#bar,#baz key2"
+#
 # Additionally, as already noted, any local option from above can be included
 # to further configure the class. (but not the global options)
 #
@@ -591,7 +595,7 @@
 #    from "*.myisp.com"
 #    from "*.mywork.net"
 #
-#    join "#foo,#bar"
+#    join "#foo key,#bar"
 #    join "#baz"
 #
 #    local_address "i.am.a.virtual.host.com"
