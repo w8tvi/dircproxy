@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.49 2000/12/21 13:27:05 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.50 2000/12/26 16:07:39 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -357,7 +357,7 @@ static void _ircserver_connected2(struct ircproxy *p, void *data,
 
   username = ircprot_sanitize_username(p->username);
   if (p->serverpassword) {
-    ircserver_send_peercmd(p, "PASS", ":%s", p->serverpassword);
+    ircserver_send_command(p, "PASS", ":%s", p->serverpassword);
     free(p->serverpassword);
     p->serverpassword = 0;
   }
@@ -367,8 +367,8 @@ static void _ircserver_connected2(struct ircproxy *p, void *data,
     free(p->nickname);
     p->nickname = x_strdup(p->setnickname);
   }
-  ircserver_send_peercmd(p, "NICK", ":%s", p->nickname);
-  ircserver_send_peercmd(p, "USER", "%s 0 * :%s", username, p->realname);
+  ircserver_send_command(p, "NICK", ":%s", p->nickname);
+  ircserver_send_command(p, "USER", "%s 0 * :%s", username, p->realname);
   p->server_status |= IRC_SERVER_INTRODUCED;
   free(username);
 
@@ -512,14 +512,14 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
     /* Restore the user mode */
     if (p->modes)
-      ircserver_send_peercmd(p, "MODE", "%s +%s", p->nickname, p->modes);
+      ircserver_send_command(p, "MODE", "%s +%s", p->nickname, p->modes);
 
     /* Restore the away message */
     if (p->awaymessage) {
-      ircserver_send_peercmd(p, "AWAY", ":%s", p->awaymessage);
+      ircserver_send_command(p, "AWAY", ":%s", p->awaymessage);
     } else if (!(p->client_status & IRC_CLIENT_AUTHED)
                && p->conn_class->away_message) {
-      ircserver_send_peercmd(p, "AWAY", ":%s", p->conn_class->away_message);
+      ircserver_send_command(p, "AWAY", ":%s", p->conn_class->away_message);
     }
 
     /* Restore the channel list */
@@ -530,9 +530,9 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       while (c) {
         if (!c->unjoined) {
           if (c->key) {
-            ircserver_send_peercmd(p, "JOIN", "%s :%s", c->name, c->key);
+            ircserver_send_command(p, "JOIN", "%s :%s", c->name, c->key);
           } else {
-            ircserver_send_peercmd(p, "JOIN", ":%s", c->name);
+            ircserver_send_command(p, "JOIN", ":%s", c->name);
           }
         }
         c = c->next;
@@ -826,7 +826,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
           char *mode;
 
           debug("Got refusal mode from server");
-          ircserver_send_peercmd(p, "QUIT", ":Don't like this server - %s %s",
+          ircserver_send_command(p, "QUIT", ":Don't like this server - %s %s",
                                  PACKAGE, VERSION);
 
           mode = x_sprintf("-%s", p->conn_class->refuse_modes);
@@ -882,7 +882,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
           s->next = p->squelch_modes;
           p->squelch_modes = s;
 
-          ircserver_send_peercmd(p, "MODE", ":%s", msg.params[0]);
+          ircserver_send_command(p, "MODE", ":%s", msg.params[0]);
           squelch = 0;
         } else {
           /* Bizarre, joined a channel we thought we were already on */
@@ -1345,7 +1345,7 @@ int ircserver_connectagain(struct ircproxy *p) {
       _ircserver_lost(p);
     }
 
-    ircserver_send_peercmd(p, "QUIT", ":Reconnecting to server - %s %s",
+    ircserver_send_command(p, "QUIT", ":Reconnecting to server - %s %s",
                            PACKAGE, VERSION);
   }
   if (p->server_status & IRC_SERVER_CREATED)
@@ -1380,7 +1380,7 @@ static void _ircserver_stoned(struct ircproxy *p, void *data) {
   /* Server is, like, stoned.  Yeah man! */
   if (IS_SERVER_READY(p)) {
     debug("Server is stoned, reconnecting");
-    ircserver_send_peercmd(p, "QUIT", ":Getting off stoned server - %s %s",
+    ircserver_send_command(p, "QUIT", ":Getting off stoned server - %s %s",
                            PACKAGE, VERSION);
     _ircserver_close(p);
   }
@@ -1391,7 +1391,7 @@ static void _ircserver_antiidle(struct ircproxy *p, void *data) {
   if (IS_SERVER_READY(p)) {
     debug("Sending anti-idle");
     p->squelch_411 = 1;
-    ircserver_send_peercmd(p, "PRIVMSG", "");
+    ircserver_send_command(p, "PRIVMSG", "");
   }
 
   timer_new((void *)p, "server_antiidle", p->conn_class->idle_maxtime,
@@ -1429,34 +1429,8 @@ static int _ircserver_forclient(struct ircproxy *p, struct ircmessage *msg) {
   return 1;
 }
 
-/* send a command to the server from the nickname connected */
-int ircserver_send_command(struct ircproxy *p, const char *command, 
-                           const char *format, ...) {
-  char *msg, *prefix;
-  va_list ap;
-  int ret;
-
-  va_start(ap, format);
-  msg = x_vsprintf(format, ap);
-  va_end(ap);
-
-  if (p->nickname) {
-    prefix = x_sprintf(":%s ", p->nickname);
-  } else {
-    prefix = (char *)malloc(1);
-    prefix[0] = 0;
-  }
-
-  ret = net_send(p->server_sock, "%s%s %s\r\n", prefix, command, msg);
-  debug("-> '%s%s %s'", prefix, command, msg);
-
-  free(prefix);
-  free(msg);
-  return ret;
-}
-
 /* send a command to the server with no prefix */
-int ircserver_send_peercmd(struct ircproxy *p, const char *command, 
+int ircserver_send_command(struct ircproxy *p, const char *command, 
                                    const char *format, ...) {
   va_list ap;
   char *msg;

@@ -8,7 +8,7 @@
  *  - The list of currently active proxies
  *  - Miscellaneous IRC functions
  * --
- * @(#) $Id: irc_net.c,v 1.42 2000/12/21 13:27:05 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.43 2000/12/26 16:07:39 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -348,7 +348,7 @@ static void _ircnet_freeproxy(struct ircproxy *p) {
   debug("Freeing proxy");
 
   if (p->server_status & IRC_SERVER_CONNECTED) {
-    ircserver_send_peercmd(p, "QUIT",
+    ircserver_send_command(p, "QUIT",
                            ":Terminated with extreme prejudice - %s %s",
                            PACKAGE, VERSION);
     ircserver_close_sock(p);
@@ -539,12 +539,12 @@ static void _ircnet_rejoin(struct ircproxy *p, void *data) {
   c = ircnet_fetchchannel(p, (char *)data);
   if (c) {
     if (c->key) {
-      ircserver_send_peercmd(p, "JOIN", "%s :%s", c->name, c->key);
+      ircserver_send_command(p, "JOIN", "%s :%s", c->name, c->key);
     } else {
-      ircserver_send_peercmd(p, "JOIN", ":%s", c->name);
+      ircserver_send_command(p, "JOIN", ":%s", c->name);
     }
   } else {
-    ircserver_send_peercmd(p, "JOIN", ":%s", (char *)data);
+    ircserver_send_command(p, "JOIN", ":%s", (char *)data);
   }
 
   free(data);

@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.75 2000/12/21 13:27:05 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.76 2000/12/26 16:07:39 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -143,11 +143,11 @@ static int _ircclient_detach(struct ircproxy *p, const char *message) {
     debug("Killing proxy");
 
     if (message) {
-      ircserver_send_peercmd(p, "QUIT", ":%s", message);
+      commander_send_command(p, "QUIT", ":%s", message);
     } else if (p->conn_class && p->conn_class->quit_message) {
-      ircserver_send_peercmd(p, "QUIT", ":%s", p->conn_class->quit_message);
+      ircserver_send_command(p, "QUIT", ":%s", p->conn_class->quit_message);
     } else {
-      ircserver_send_peercmd(p, "QUIT", ":Leaving IRC - %s %s",
+      ircserver_send_command(p, "QUIT", ":Leaving IRC - %s %s",
                              PACKAGE, VERSION);
     }
     ircserver_close_sock(p);
@@ -171,7 +171,7 @@ static int _ircclient_detach(struct ircproxy *p, const char *message) {
 
       ircclient_change_mode(p, mode);
       if (p->server_status == IRC_SERVER_ACTIVE)
-        ircserver_send_peercmd(p, "MODE", "%s %s", p->nickname, mode);
+        ircserver_send_command(p, "MODE", "%s %s", p->nickname, mode);
 
       free(mode);
     }
@@ -197,10 +197,10 @@ static int _ircclient_detach(struct ircproxy *p, const char *message) {
         while (c) {
           if (!c->inactive && !c->unjoined) {
             if (slashme) {
-              ircserver_send_peercmd(p, "PRIVMSG", "%s :\001ACTION %s\001",
+              ircserver_send_command(p, "PRIVMSG", "%s :\001ACTION %s\001",
                                      c->name, msg);
             } else {
-              ircserver_send_peercmd(p, "PRIVMSG", "%s :%s", c->name, msg);
+              ircserver_send_command(p, "PRIVMSG", "%s :%s", c->name, msg);
             }
           }
           c = c->next;
@@ -223,7 +223,7 @@ static int _ircclient_detach(struct ircproxy *p, const char *message) {
 
           /* Leave the channel and decide whether to delete it or rejoin */
           if (!t->inactive && !t->unjoined) {
-            ircserver_send_peercmd(p, "PART", ":%s", t->name);
+            ircserver_send_command(p, "PART", ":%s", t->name);
             if (p->conn_class->channel_rejoin_on_attach) {
               t->unjoined = 1;
             } else {
@@ -238,9 +238,9 @@ static int _ircclient_detach(struct ircproxy *p, const char *message) {
     if ((p->server_status == IRC_SERVER_ACTIVE)
         && (p->client_status == IRC_CLIENT_ACTIVE)) {
       if (message) {
-        ircserver_send_peercmd(p, "AWAY", ":%s", message);
+        ircserver_send_command(p, "AWAY", ":%s", message);
       } else if (!p->awaymessage && p->conn_class->away_message) {
-        ircserver_send_peercmd(p, "AWAY", ":%s", p->conn_class->away_message);
+        ircserver_send_command(p, "AWAY", ":%s", p->conn_class->away_message);
       }
     }
 
@@ -749,12 +749,12 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
           if (IS_SERVER_READY(p)) {
             /* Optional QUIT message can be supplied */
             if ((msg.numparams >= 2) && strlen(msg.paramstarts[1])) {
-              ircserver_send_peercmd(p, "QUIT", ":%s", msg.paramstarts[1]);
+              ircserver_send_command(p, "QUIT", ":%s", msg.paramstarts[1]);
             } else if (p->conn_class->quit_message) {
-              ircserver_send_peercmd(p, "QUIT", ":%s",
+              ircserver_send_command(p, "QUIT", ":%s",
                                      p->conn_class->quit_message);
             } else {
-              ircserver_send_peercmd(p, "QUIT", ":Leaving IRC - %s %s",
+              ircserver_send_command(p, "QUIT", ":Leaving IRC - %s %s",
                                      PACKAGE, VERSION);
             }
           }
@@ -1114,7 +1114,7 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
       /* Unset any away message if we set one */
       if (!tmp_p->awaymessage && (tmp_p->server_status == IRC_SERVER_ACTIVE)
           && tmp_p->conn_class->away_message)
-        ircserver_send_peercmd(tmp_p, "AWAY", "");
+        ircserver_send_command(tmp_p, "AWAY", "");
 
       /* Rejoin any channels we parted */
       if ((tmp_p->server_status == IRC_SERVER_ACTIVE) && tmp_p->channels) {
@@ -1124,9 +1124,9 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
         while (c) {
           if (c->unjoined) {
             if (c->key) {
-              ircserver_send_peercmd(tmp_p, "JOIN", "%s :%s", c->name, c->key);
+              ircserver_send_command(tmp_p, "JOIN", "%s :%s", c->name, c->key);
             } else {
-              ircserver_send_peercmd(tmp_p, "JOIN", ":%s", c->name);
+              ircserver_send_command(tmp_p, "JOIN", ":%s", c->name);
             }
           }
 
@@ -1154,10 +1154,10 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
           while (c) {
             if (!c->inactive) {
               if (slashme) {
-                ircserver_send_peercmd(tmp_p, "PRIVMSG",
+                ircserver_send_command(tmp_p, "PRIVMSG",
                                        "%s :\001ACTION %s\001", c->name, msg);
               } else {
-                ircserver_send_peercmd(tmp_p, "PRIVMSG", "%s :%s",
+                ircserver_send_command(tmp_p, "PRIVMSG", "%s :%s",
                                        c->name, msg);
               }
             }
@@ -1246,7 +1246,7 @@ int ircclient_change_nick(struct ircproxy *p, const char *newnick) {
   if (IS_SERVER_READY(p)) {
     debug("Requesting nick change from '%s' to '%s'",
           (p->nickname ? p->nickname : ""), newnick);
-    ircserver_send_peercmd(p, "NICK", ":%s", newnick);
+    ircserver_send_command(p, "NICK", ":%s", newnick);
   }
 
   /* If we have a nickname already then the server will confirm that, otherwise
@@ -1351,7 +1351,7 @@ int ircclient_generate_nick(struct ircproxy *p, const char *tried) {
   if (IS_SERVER_READY(p)) {
     debug("Requesting nick change from '%s' to '%s'",
           (p->nickname ? p->nickname : ""), nick);
-    ircserver_send_peercmd(p, "NICK", ":%s", nick);
+    ircserver_send_command(p, "NICK", ":%s", nick);
   }
 
   /* If we don't have a nickname yet, make the change ourselves */
@@ -1486,7 +1486,7 @@ int ircclient_close(struct ircproxy *p) {
   if (!p->conn_class || !(p->client_status & IRC_CLIENT_GOTNICK)
       || !(p->client_status & IRC_CLIENT_GOTUSER)) {
     if (p->server_status & IRC_SERVER_CREATED) {
-      ircserver_send_peercmd(p, "QUIT", ":I shouldn't really be here - %s %s",
+      ircserver_send_command(p, "QUIT", ":I shouldn't really be here - %s %s",
                              PACKAGE, VERSION);
       ircserver_close_sock(p); 
     }
@@ -1668,8 +1668,8 @@ int ircclient_welcome(struct ircproxy *p) {
     while (c) {
       if (!c->inactive && !c->unjoined) {
         ircclient_send_selfcmd(p, "JOIN", ":%s", c->name);
-        ircserver_send_peercmd(p, "TOPIC", ":%s", c->name);
-        ircserver_send_peercmd(p, "NAMES", ":%s", c->name);
+        ircserver_send_command(p, "TOPIC", ":%s", c->name);
+        ircserver_send_command(p, "NAMES", ":%s", c->name);
 
         if (p->conn_class->chan_log_enabled) {
           irclog_autorecall(p, c->name);
