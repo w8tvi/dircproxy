@@ -41,5 +41,5 @@ Release checklist
 29.  E-Mail lester@mazpe.net with any significant changes that could
      affect packaging (new files etc), making sure to sign the e-mail.
 30.  Update and upload the new Debian package to master
-31.  Edit configure.in & contrib/dircproxy.spec and increment the version
+31.  Edit configure.ac & contrib/dircproxy.spec and increment the version
      number, commit with message "CVS version now x.x.x"
