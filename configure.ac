@@ -1,10 +1,10 @@
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.6 2002/11/02 17:47:53 scott Exp $
+# $Id: configure.ac,v 1.7 2002/12/29 21:30:07 scott Exp $
 
 AC_INIT([dircproxy], [1.1.1], [http://bugzilla.dircproxy.net/])
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
-AC_COPYRIGHT([Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.])
+AC_COPYRIGHT([Copyright (C) 2001, 2002, 2003 Scott James Remnant <scott@netsplit.com>.])
 AC_CONFIG_SRCDIR([src/dircproxy.h])
 AM_CONFIG_HEADER([config.h])
 
