@@ -1,10 +1,9 @@
 /* dircproxy
- * Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.
- * All Rights Reserved.
+ * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
  *
  * dcc_net.h
  * --
- * @(#) $Id: dcc_net.h,v 1.9 2002/08/17 19:38:14 scott Exp $
+ * @(#) $Id: dcc_net.h,v 1.10 2002/12/29 21:30:11 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the

@@ -1,13 +1,12 @@
 /* dircproxy
- * Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.
- * All Rights Reserved.
+ * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
  *
  * irc_log.c
  *  - Handling of log files
  *  - Handling of log programs
  *  - Recalling from log files
  * --
- * $Id: irc_log.c,v 1.44 2002/11/02 17:41:21 scott Exp $
+ * $Id: irc_log.c,v 1.45 2002/12/29 21:30:12 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
