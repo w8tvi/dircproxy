@@ -7,10 +7,10 @@ requisite it has is a modern libc with TCP/IP networking code.
 
 I have seen or heard about it running on the following types
 of system:
-	Linux 2.x on i386
-        Linux 2.4+ on ia64
-        FreeBSD
-        Solaris 2.7
+	Linux 2.x+ on i386 (Debian, RedHat, Slackware, etc)
+        Linux 2.4+ on ia64 (TurboLinux)
+        FreeBSD 3.x, 4.x+
+        Solaris 2.5+
 	Windows NT (with cygwin compiler)
 
 If (and you should) get it to work on any other type of system,
