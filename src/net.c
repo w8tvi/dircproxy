@@ -10,7 +10,7 @@
  *  - functions to retrieve data from buffers up to delimiters (newlines?)
  *  - main poll()/select() function
  * --
- * @(#) $Id: net.c,v 1.3 2000/10/20 11:03:19 keybuk Exp $
+ * @(#) $Id: net.c,v 1.4 2000/10/23 12:47:54 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -32,16 +32,24 @@
 #include <time.h>
 
 #include <dircproxy.h>
+
+#ifdef HAVE_POLL_H
+# include <poll.h>
+#else /* HAVE_POLL_H */
+# ifdef HAVE_SYS_POLL_H
+#  include <sys/poll.h>
+# endif /* HAVE_SYS_POLL_H */
+#endif /* HAVE_POLL_H */
+
 #include "sprintf.h"
 #include "net.h"
 
-#ifdef HAVE_SYS_POLL_H
-#include <sys/poll.h>
-#endif /* HAVE_SYS_POLL_H */
-
-#ifdef HAVE_POLL_H
-#include <poll.h>
-#endif /* HAVE_POLL_H */
+/* Sanity check */
+#ifndef HAVE_POLL
+# ifndef HAVE_SELECT
+#  error "unable to compile, no poll() or select() function"
+# endif /* HAVE_SELECT */
+#endif /* HAVE_POLL */
 
 /* Structure to hold a socket buffer */
 struct sockbuff {
@@ -143,8 +151,18 @@ void net_create(int *sock) {
   sockinfo = (struct sockinfo *)malloc(sizeof(struct sockinfo));
   memset(sockinfo, 0, sizeof(struct sockinfo));
   sockinfo->sock = *sock;
-  sockinfo->next = sockets;
-  sockets = sockinfo;
+
+  if (sockets) {
+    struct sockinfo *ss;
+
+    ss = sockets;
+    while (ss->next)
+      ss = ss->next;
+
+    ss->next = sockinfo;
+  } else {
+    sockets = sockinfo;
+  }
 }
 
 /* Fetch a sockinfo structure for a socket */
@@ -199,7 +217,48 @@ static void _net_freebuffers(struct sockbuff *b) {
   }
 }
 
-/* Close all the sockets */
+/* Close all the sockets and allow them a short time to send their data */
+int net_closeall(void) {
+  struct sockinfo *i;
+  time_t until;
+  int ns;
+
+  debug("Shutting down all sockets");
+
+  /* Don't take any longer than this to do this work */
+  until = time(0) + NET_LINGER_TIME;
+
+  /* Indicate all sockets as closed, release whatever throttle is upon them
+     (to speed it up) and prevent any events from doing anything except
+     closing the socket */
+  i = sockets;
+  while (i) {
+    i->closed = 1;
+    i->throtbytes = i->throtamt = i->throtperiod = 0;
+    i->throtlast = 0;
+    i->activity_func = 0;
+    i->error_func = 0;
+    i = i->next;
+  }
+
+  /* Poll sockets */
+  ns = -1;
+  while (time(0) < until)
+    if (!(ns = net_poll()))
+      break;
+
+  if (ns > 0) {
+    debug("%d sockets didn't send their data in time");
+  } else if (ns < 0) {
+    debug("Unexpected error occurred, oh well");
+  } else {
+    debug("All sockets cleaned up");
+  }
+
+  return ns;
+}
+
+/* Free all the sockets */
 int net_flush(void) {
   struct sockinfo *i;
 
@@ -211,7 +270,6 @@ int net_flush(void) {
     _net_free(i);
     i = n;
   }
-
   sockets = 0;
 
   return 0;
@@ -224,7 +282,7 @@ static void _net_expunge(void) {
   l = 0;
   s = sockets;
   while (s) {
-    if (s->closed) {
+    if (s->closed && ((s->type != SOCK_NORMAL) || !s->out_buff)) {
       struct sockinfo *n;
 
       n = s->next;
@@ -441,9 +499,11 @@ int net_gets(int sock, char **dest, const char *delim) {
 
         get = malloc(getlen);
         if (!_net_unbuffer(sockinfo, SB_IN, get, getlen)) {
-          *dest = (char *)malloc(retlen + 1);
-          memcpy(*dest, get, retlen);
-          (*dest)[retlen] = 0;
+          if (retlen) {
+            *dest = (char *)malloc(retlen + 1);
+            memcpy(*dest, get, retlen);
+            (*dest)[retlen] = 0;
+          }
           free(get);
 
           return retlen;
@@ -540,7 +600,6 @@ static int _net_unbuffer(struct sockinfo *s, int buff, void *data, int len) {
 int net_poll(void) {
 #ifdef HAVE_POLL
   struct pollfd *ufds;
-  int sn;
 #else /* HAVE_POLL */
 # ifdef HAVE_SELECT
   fd_set readset, writeset;
@@ -549,7 +608,7 @@ int net_poll(void) {
 # endif /* HAVE_SELECT */
 #endif /* HAVE_POLL */
   struct sockinfo *s;
-  int ns, nr;
+  int ns, nr, sn;
   time_t now;
   char *func;
 
@@ -638,7 +697,7 @@ int net_poll(void) {
     free(ufds);
 #endif /* HAVE_POLL */
 
-    if (errno != EINTR) {
+    if ((errno != EINTR) && (errno != EAGAIN)) {
       syscall_fail(func, 0, 0);
       return -1;
     } else {
@@ -651,20 +710,24 @@ int net_poll(void) {
     return ns;
   }
 
-#ifdef HAVE_POLL
   sn = 0;
-#endif /* HAVE_POLL */
   s = sockets;
   while (s) {
-    if (!s->closed) {
+    /* Make sure we don't check new sockets yet */
+    if (sn >= ns)
+      break;
+
+    if (!s->closed || ((s->type == SOCK_NORMAL) && s->out_buff)) {
       int can_read, can_write;
+
 #ifdef HAVE_POLL
-      can_read = (ufds[sn].revents & POLLIN ? 1 : 0);
+      /* Read = any revent that isn't POLLOUT */
+      can_read = (ufds[sn].revents & ~POLLOUT ? 1 : 0);
       can_write = (ufds[sn].revents & POLLOUT ? 1 : 0);
 #else /* HAVE_POLL */
 # ifdef HAVE_SELECT
       can_read = (FD_ISSET(s->sock, &readset) ? 1 : 0);
-      can_write = (FD_ISSET(s->sock, &readset) ? 1 : 0);
+      can_write = (FD_ISSET(s->sock, &writeset) ? 1 : 0);
 # endif /* HAVE_SELECT */
 #endif /* HAVE_POLL */
 
@@ -699,6 +762,7 @@ int net_poll(void) {
       } else if (s->type == SOCK_LISTENING) {
         /* No error conditions for listening sockets */
         if (can_read) {
+          debug("Got new connection");
           if (s->activity_func)
             s->activity_func(s->info, s->sock);
         }
@@ -720,10 +784,21 @@ int net_poll(void) {
           /* Some kind of error :( */
           if (rr == -1) {
             if ((errno != EINTR) && (errno != EAGAIN)) {
-              syscall_fail("read", 0, 0);
+              int baderror;
+
+              if (errno != ECONNRESET) {
+                syscall_fail("read", 0, 0);
+                baderror = 1;
+              } else {
+                baderror = 0;
+              }
+              
+              /* Make sure that it really closes */
+              _net_freebuffers(s->out_buff);
+              s->out_buff = 0;
 
               if (s->error_func) {
-                s->error_func(s->info, s->sock, 1);
+                s->error_func(s->info, s->sock, baderror);
               } else {
                 s->closed = 1;
               }
@@ -732,6 +807,10 @@ int net_poll(void) {
           
           /* Didn't read any bytes (socket closed) */
           if (!br && (rr != -1)) {
+            /* Make sure that it really closes */
+            _net_freebuffers(s->out_buff);
+            s->out_buff = 0;
+
             if (s->error_func) {
               s->error_func(s->info, s->sock, 0);
             } else {
@@ -742,7 +821,7 @@ int net_poll(void) {
 
         /* If we can write data to the socket write any that we have lying
            around, keeping in mind throttling of course */
-        if (!s->closed && can_write) {
+        if ((!s->closed || s->out_buff) && can_write) {
           while (s->out_buff) {
             int bl, wl;
 
@@ -761,9 +840,10 @@ int net_poll(void) {
 
             wl = write(s->sock, s->out_buff->data, bl);
             if (wl == -1) {
-              if ((errno != EAGAIN) && (errno != EINTR) && (errno != EPIPE)) {
+              /* Don't actually detect errors or closure using write, it'll
+                 poll for HUP or IN if that happens */
+              if ((errno != EAGAIN) && (errno != EINTR) && (errno != EPIPE))
                 syscall_fail("write", 0, 0);
-              }
               break;
             } else if (!wl) {
               /* Wrote nothing, socket is full */
@@ -783,14 +863,13 @@ int net_poll(void) {
       }
     }
 
-#ifdef HAVE_POLL
     sn++;
-#endif /* HAVE_POLL */
     s = s->next;
   }
 
 #ifdef HAVE_POLL
   free(ufds);
 #endif /* HAVE_POLL */
+
   return ns;
 }
