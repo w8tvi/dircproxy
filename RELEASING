@@ -28,7 +28,7 @@ Release checklist
 18.  do a `cvs tag RELEASE-x_x_x`
 19.  do an `autogen.sh` without any flags
 20.  make dist
-21.  FTP dist file to ftp://download.sourceforge.net/incoming
+21.  FTP dist file to ftp://upload.sourceforge.net/incoming
 22.  `gpg --armor --comment 'See http://dircproxy.sourceforge.net/\
       download.html for more information' --detach-sign DISTFILE`
 23.  scp dist file and asc file to keybuk@dircproxy.sourceforge.net:\
