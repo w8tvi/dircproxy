@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.27 2000/10/13 13:15:27 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.28 2000/10/13 13:17:45 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -764,6 +764,8 @@ int ircserver_close_sock(struct ircproxy *p) {
 
   if (p->conn_class->idle_maxtime)
     timer_del(p, "server_antiidle");
+
+  timer_del(p, "server_recon");
 
   return 0;
 }
