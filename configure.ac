@@ -1,5 +1,5 @@
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.5 2002/10/22 13:24:27 scott Exp $
+# $Id: configure.ac,v 1.6 2002/11/02 17:47:53 scott Exp $
 
 AC_INIT([dircproxy], [1.1.1], [http://bugzilla.dircproxy.net/])
 AM_INIT_AUTOMAKE
@@ -46,13 +46,12 @@ AC_FUNC_ERROR_AT_LINE
 AC_FUNC_FORK
 AC_FUNC_LSTAT
 AC_FUNC_MALLOC
-AC_FUNC_REALLOC
 AC_TYPE_SIGNAL
 AC_FUNC_STAT
 AC_FUNC_STRFTIME
 AC_CHECK_FUNCS([alarm dup2 gethostbyaddr inet_ntoa memmove memset mkdir rmdir \
-		select seteuid strcasecmp strchr strcspn strerror strncasecmp \
-		strrchr strspn strstr strtoul])
+		realloc select seteuid strcasecmp strchr strcspn strerror \
+		strncasecmp strrchr strspn strstr strtoul])
 
 # Check whether to debug things
 AC_ARG_ENABLE([debug], AC_HELP_STRING([--enable-debug], [turn on debugging (default is NO)]),
