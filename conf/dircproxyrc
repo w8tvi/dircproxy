@@ -16,6 +16,10 @@
 # for example) then place this file as /usr/local/etc/dircproxyrc (the exact
 # location depends on the arguments you gave to the configure script).
 #
+# The configuration file is read in-order.  Each option serves as a default
+# for those not specified in a connection class.  Therefore an option
+# defined after a connection class will not affect it.
+# 
 # All the values are commented out, so they use the default value.  For each
 # the default value is shown.  So to set something, you have to uncomment
 # AND change the value.
@@ -25,7 +29,7 @@
 #     on?
 #
 #     This can be a numeric port number, or a service name from /etc/services
-#
+#     This directive cannot go inside a connection class.
 #listen_port 57000
 
 # server_port
@@ -91,39 +95,31 @@
 #     A connection class must have a password, and the address of a server
 #     to connect to.  The password is compared with the one you configure
 #     your IRC client to send., and if they match, then this connection
-#     class is used.  Its not a good idea to have two classes with the same
-#     password.  Only one person may use one connection class at a time.
+#     class is used.  Don't have have two classes with the same password.
+#     Only one person may use one connection class at a time.
 #
-#     An example basic connection class:
-#         connection {
-#             password "foobar"
-#             server "irc.linux.com"
-#         }
+#connection {
+#    password "foobar"
+#    server "irc.linux.com"
+#}
+
+#     You can specify multiple servers, they are iterated if one fails or
+#     disconnects you.  You can also specify specific ports and
+#     optional passwords for a server.
 #
-#     You can specify mulitple servers, they are iterated if one fails or
-#     disconnects you.  You can also specify specific ports for a server:
-#         connection {
-#             password "foobar"
-#             server "irc.linux.com"
-#             server "irc.openprojects.net:6668"
-#             server "irc.linux.com:6668"
-#         }
-#
-#     A complete connection class, using all the available config keys:
-#         connection {
-#             password "applejack"
-#
-#             server "irc.netcom.net.uk"
-#             server "chat.bt.net:6670"
-#             server "ircnet.demon.co.uk"
-#             server "irc.stealth.net"
-#
-#             from "*.myisp.com"
-#             from "*.mywork.net"
-#
-#             local_address "i.am.a.virtual.host.com"
-#             away_message "Not available, messages are logged"
-#         }
+#     Note that the last entry in this list uses the default port, but
+#     sets a password.  '::' is the magic thing that does this.
+# 
+#connection {
+#    password "foobar"
+#    server "irc.linux.com"
+#    server "irc.openprojects.net:6668"
+#    server "irc.linux.com:6668"
+#    server "oper.irc.netsplit.com:6660:foobar"
+#    server "oper.irc.gurgle.org::foobar"
+#}
+
+#     A complete connection class, using all the available special config keys.
 #
 #     'from' declares a hostmask that is matched against the machine you
 #     connect from, it adds a bit of extra security.  The wildcards * and
@@ -137,6 +133,26 @@
 #     want it to set one at all, set away_message to "none":
 #
 #connection {
-#    password "foo"
-#    server "irc.linux.com"
+#    password "applejack"
+#
+#    server "irc.netcom.net.uk"
+#    server "chat.bt.net:6670"
+#    server "ircnet.demon.co.uk"
+#    server "irc.stealth.net"
+#
+#    from "*.myisp.com"
+#    from "*.mywork.net"
+#
+#    local_address "i.am.a.virtual.host.com"
+#    away_message "Not available, messages are logged"
+#}
+
+#     You can also specify any configuration directive from the main body
+#     of the config file, except listen_port for obvious reasons, to further
+#     customise your connection class.
+#
+#connection {
+#    password "bar"
+#    server_port "7000"
+#    server "irc.dal.net"            # uses server_port 7000
 #}
