@@ -16,5 +16,3 @@ missing
 mkinstalldirs
 stamp-h
 stamp-h.in
-src/Makefile
-src/Makefile.in
