@@ -5,7 +5,7 @@
  * irc_server.c
  *  - Handling of servers connected to the proxy
  * --
- * @(#) $Id: irc_server.c,v 1.19 2000/09/01 12:15:36 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.20 2000/09/14 12:07:56 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -585,10 +585,10 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
           tmp = x_sprintf("%s!%s@%s", msg.src.name, msg.src.username,
                           msg.src.hostname);
-          irclog_msg(p, msg.params[0], tmp, str);
+          irclog_msg(p, msg.params[0], tmp, "%s", str);
           free(tmp);
         } else {
-          irclog_msg(p, msg.params[0], msg.src.name, str);
+          irclog_msg(p, msg.params[0], msg.src.name, "%s", str);
         }
       }
       free(str);
