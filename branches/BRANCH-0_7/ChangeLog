@@ -1,3 +1,16 @@
+2000-10-16 12:25  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_server.c: Argh!  That patch didn't work as I thought it
+	would, reverted to proper way of doing it
+
+2000-10-16 11:33  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in: CVS version now 0.7.6.
+
+2000-10-16 11:30  Scott James Remnant <scott@netsplit.com>
+
+	* ChangeLog, NEWS: Version 0.7.5 released.
+
 2000-10-16 11:21  Scott James Remnant <scott@netsplit.com>
 
 	* src/: irc_prot.c, irc_server.c: Fixed the null from problem with
