@@ -5,7 +5,7 @@
  * irc_server.c
  *  - Handling of servers connected to the proxy
  * --
- * @(#) $Id: irc_server.c,v 1.8 2000/05/24 20:29:26 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.9 2000/05/24 20:31:59 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -394,9 +394,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
       /* No client connected?  Better notify it */
       if (p->client_status != IRC_CLIENT_ACTIVE) {
-        struct ircchannel *chan;
-
-        if (msg.params >= 3) {
+        if (msg.numparams >= 3) {
           irclog_notice_to(p, p->nickname, "Couldn't rejoin %s: %s (%03d)",
                            msg.params[1], msg.params[2], msg.cmd);
         } else {
