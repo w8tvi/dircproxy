@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.3 2000/05/13 05:12:52 keybuk Exp $
+ * @(#) $Id: main.c,v 1.4 2000/05/13 16:11:27 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.3 2000/05/13 05:12:52 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.4 2000/05/13 16:11:27 keybuk Exp $";
 
 /* The name of the program */
 char *progname;
@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
         inetd_mode = 1;
         break;
       case 'D':
-        no_daemon = 0;
+        no_daemon = 1;
         break;
       default:
         show_usage = 1;
