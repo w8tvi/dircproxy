@@ -2,7 +2,7 @@
 .\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.21 2000/10/13 13:55:13 keybuk Exp $
+.\" @(#) $Id: dircproxy.1,v 1.22 2000/10/16 10:44:29 keybuk Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -307,6 +307,10 @@ stores them in a temporary directory and deletes them when finished.
 If you do define it, it'll add to each log as you use it.  If you
 start with "~/" then it will use a directory under your home directory.
 
+Should probably note that unless you *really* want to keep your logs
+you don't need this.  If you don't set '\fBchan_log_always\fR' to 'yes'
+then you get old log text recalled to your client.
+
  none = Store in temporary directory and delete when finished
 
 .TP
@@ -379,6 +383,10 @@ this, \fBdircproxy\fR stores it in a temporary directory and deletes it when
 finished.  If you do define it, it'll add to the log as you use it.
 If you start with "~/" then it will use a directory under your home
 directory.
+
+Should probably note that unless you *really* want to keep your logs
+you don't need this.  If you don't set '\fBother_log_always\fR' to 'yes'
+then you get old log text recalled to your client.
 
  none = Store in temporary directory and delete when finished
 
