@@ -4,7 +4,7 @@
  *
  * help.h
  * --
- * @(#) $Id: help.h,v 1.3 2000/10/10 13:08:35 keybuk Exp $
+ * @(#) $Id: help.h,v 1.4 2000/10/13 13:24:36 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -102,6 +102,14 @@ static char *help_motd[] = {
   "/DIRCPROXY MOTD",
   "displays the dircproxy message of the day that it gives",
   "you when you attach",
+  0
+};
+
+/* help die */
+static char *help_die[] = {
+  "/DIRCPROXY DIE",
+  "kills the dircproxy process on the server.  You won't",
+  "be able to reconnect after you do this.",
   0
 };
 

@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.21 2000/10/12 16:24:14 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.22 2000/10/13 13:24:36 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -102,6 +102,7 @@ int cfg_read(const char *filename, char **listen_port) {
   def->allow_jump = DEFAULT_ALLOW_JUMP;
   def->allow_jump_new = DEFAULT_ALLOW_JUMP_NEW;
   def->allow_host = DEFAULT_ALLOW_HOST;
+  def->allow_die = DEFAULT_ALLOW_DIE;
 
   while (valid) {
     char buff[512], *buf;
@@ -612,6 +613,11 @@ int cfg_read(const char *filename, char **listen_port) {
         /* allow_host yes
            allow_host no */
         _cfg_read_bool(&buf, &(class ? class : def)->allow_host);
+
+      } else if (!strcasecmp(key, "allow_die")) {
+        /* allow_die yes
+           allow_die no */
+        _cfg_read_bool(&buf, &(class ? class : def)->allow_die);
 
       } else if (!class && !strcasecmp(key, "connection")) {
         /* connection {

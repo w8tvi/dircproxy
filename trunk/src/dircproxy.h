@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.29 2000/10/13 12:29:22 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.30 2000/10/13 13:24:36 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -394,6 +394,13 @@
  *  0 = Disabled
  */
 #define DEFAULT_ALLOW_HOST 1
+
+/* DEFAULT_ALLOW_DIE
+ * Whether the /DIRCPROXY DIE command can be used.
+ *  1 = Enabled
+ *  0 = Disabled
+ */
+#define DEFAULT_ALLOW_DIE 0
 
 
 /* functions in main.c */

@@ -494,6 +494,16 @@
 #
 #allow_host yes
 
+# allow_die
+#     You can enable the /DIRCPROXY DIE command here if you want people
+#     to be able to kill your proxy.  This isn't recommended, instead only
+#     enable it for a specific connection class (ie yours).
+#
+#     yes = Command enabled
+#     no = Command disabled
+#
+#allow_die no
+
 
 
 #------------------------------------------------------------------------------#
@@ -568,4 +578,6 @@
 #
 #    channel_rejoin -1
 #    disconnect_existing_user yes
+#
+#    allow_die yes
 #}

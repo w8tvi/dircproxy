@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.51 2000/10/13 13:13:25 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.52 2000/10/13 13:24:36 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -547,6 +547,12 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
           /* Display message of the day file */
           _ircclient_motd(p);
 
+        } else if (p->conn_class->allow_die
+                   && !strcasecmp(msg.params[0], "DIE")) {
+          /* User wants to kill us :( */
+          ircclient_send_notice(p, "I'm melting!");
+          stop();
+
         } else if (!strcasecmp(msg.params[0], "SERVERS")) {
           struct strlist *s;
           int i;
@@ -667,6 +673,9 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
               help_page = help_quit;
             } else if (!strcasecmp(msg.params[1], "MOTD")) {
               help_page = help_motd;
+            } else if (p->conn_class->allow_die
+                       && !strcasecmp(msg.params[1], "DIE")) {
+              help_page = help_die;
             } else if (!strcasecmp(msg.params[1], "SERVERS")) {
               help_page = help_servers;
             } else if (p->conn_class->allow_jump

@@ -2,7 +2,7 @@
 .\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.16 2000/10/13 13:06:43 keybuk Exp $
+.\" @(#) $Id: dircproxy.1,v 1.17 2000/10/13 13:24:36 keybuk Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -473,6 +473,15 @@ file.
 .B allow_host
 You can disable the /DIRCPROXY HOST command here if you do not want
 people to do that.
+
+ yes = Command enabled
+ no = Command disabled
+
+.TP
+.B allow_die
+You can enable the /DIRCPROXY DIE command here if you want people
+to be able to kill your proxy.  This isn't recommended, instead only
+enable it for a specific connection class (ie yours).
 
  yes = Command enabled
  no = Command disabled
