@@ -1,3 +1,14 @@
+TODO:
+
+	* Bug 5
+	* Bug 6: Should change it to a static member and make sure that
+	  log_init is called for every proxy, not just once per client
+	* Apply Alexander's patch or ideas for outgoing private logging
+	* Seperate private messages into private_log_file
+	* Better DCC debug?
+
+--
+
 dircproxy is being maintained, however it pretty well does everything
 it's supposed to do.
 
