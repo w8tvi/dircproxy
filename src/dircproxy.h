@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.33 2000/10/13 13:50:24 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.34 2000/10/20 11:03:18 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -40,6 +40,13 @@
  * can't pretend to be you on IRC.
  */
 #define ENCRYPTED_PASSWORDS
+
+/* NET_BLOCK_SIZE
+ * Size of the block used to read() and write() data onto a socket.
+ * Making it bigger might decrease CPU a fraction, but also means its
+ * gonna be more likely for one to fail.
+ */
+#define NET_BLOCK_SIZE 8192
 
 /* FALLBACK_USERNAME
  * Before sending username's to the server in a USER command, we strip it
@@ -139,6 +146,16 @@
  * 0 = don't do stoned checking
  */
 #define DEFAULT_SERVER_PINGTIMEOUT 0
+
+/* DEFAULT_SERVER_THROTTLE{_BYTES,_PERIOD}
+ * What is the maximum amount of bytes we can transmit in what time period?
+ * This is used to throttle the server connection to make sure we don't get
+ * flooded off.  The _BYTES define should be the number of bytes and the
+ * _PERIOD define should be a time in seconds to reset the counter.
+ * 0 (for either) = don't throttle the connection
+ */
+#define DEFAULT_SERVER_THROTTLE_BYTES 1024
+#define DEFAULT_SERVER_THROTTLE_PERIOD 10
 
 /* DEFAULT_SERVER_AUTOCONNECT
  * Should we automatically connect to a server on startup?

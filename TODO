@@ -1,31 +1,31 @@
 New features for 0.8.0:
 
     MISC
-    
-	* New net routine to replace irc_net.c ...  needs to be a bit
-	  more generic so it can be used for dcc_send.c and dcc_fserve.c
-	  etc.
+  
+        * Generic value to indicate the time difference from the dircproxy
+	  machine to our own in minutes
 
-	* Maybe have send queues, and make sock_send() just add to one of
-	  those, actually sending the data whenever the socket becomes
-	  available for write()ing.  Would remove the "dircproxy busy,
-	  ping timeout" problem that can happen.
+	  time_offset -60
 
-	* Socket throttling for irc connections, number of bytes in x
-	  seconds type things
+	  (ie the machineis an hour behind, so add 60 minutes to all log
+	   info)
 
-	* Change timestamps to add gmtime() inside the square brackets
-	  like this
+	* *_log_relativetime yes
 
-	  <Keybuk> [3954949646 12:01] text goes here
+          If this is set then don't put the time inside square brackets,
+	  instead but time() at the front preceeded by an @ sign like
+	  this:
 
-	  If *_log_relativetime is set to yes, then when we recall, we
-	  cleverly do things like "[12:01]" "[Wed 12:01]" "[4 Oct 12:01]"
-	  etc.
+	  @95463859 <Keybuk> text goes here
 
-	* Time offsets for timestamping (in minutes)
+          Then when we call, we compare this time to now and add an
+	  appropriate representation in square brackets like
+	  "[12:01]" (within 24 hrs)
+	  "[Wed 12:01]" (within 7 days)
+	  "[4 Oct 12:01]" (within 1 year)
+	  "[4 Oct 2000 12:01]" (else)
 
-	  *_log_timeoffset +60
+	  keep old log format if its switched off
 
 
     FILTERING

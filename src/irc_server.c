@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.34 2000/10/16 12:48:43 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.35 2000/10/20 11:03:18 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -27,7 +27,7 @@
 
 #include <dircproxy.h>
 #include "sprintf.h"
-#include "sock.h"
+#include "net.h"
 #include "dns.h"
 #include "timers.h"
 #include "irc_log.h"
@@ -43,8 +43,12 @@ static void _ircserver_connect2(struct ircproxy *, void *, struct in_addr *,
                                 const char *);
 static void _ircserver_connect3(struct ircproxy *, void *, struct in_addr *,
                                 const char *);
+static void _ircserver_connected(struct ircproxy *, int);
 static void _ircserver_connected2(struct ircproxy *, void *, struct in_addr *,
                                   const char *);
+static void _ircserver_connectfailed(struct ircproxy *, int, int);
+static void _ircserver_data(struct ircproxy *, int);
+static void _ircserver_error(struct ircproxy *, int, int);
 static int _ircserver_gotmsg(struct ircproxy *, const char *);
 static int _ircserver_close(struct ircproxy *);
 static int _ircserver_lost(struct ircproxy *);
@@ -173,7 +177,7 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
     ircclient_send_notice(p, "Connecting to %s port %d",
                           p->servername, ntohs(p->server_addr.sin_port));
 
-  p->server_sock = sock_make();
+  p->server_sock = net_socket();
   if (p->server_sock == -1) {
     ret = -1;
 
@@ -206,7 +210,7 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
                 sizeof(struct sockaddr_in))
         && (errno != EINPROGRESS)) {
       syscall_fail("connect", p->servername, 0);
-      sock_close(p->server_sock);
+      net_close(p->server_sock);
       ret = -1;
     } else {
       ret = 0;
@@ -218,19 +222,34 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
       ircclient_send_notice(p, "Connection failed: %s", strerror(errno));
     debug("Connection failed: %s", strerror(errno));
 
-    sock_close(p->server_sock);
+    net_close(p->server_sock);
     timer_new(p, "server_recon", p->conn_class->server_retry,
               _ircserver_reconnect, (void *)0);
   } else {
     p->server_status |= IRC_SERVER_CREATED;
+    net_hook(p->server_sock, SOCK_CONNECTING, (void *)p,
+             (void (*)(void *, int))_ircserver_connected,
+             (void (*)(void *, int, int))_ircserver_connectfailed);
     debug("Connection in progress");
   }
 }
 
 /* Called when a new server has connected */
-int ircserver_connected(struct ircproxy *p) {
+static void _ircserver_connected(struct ircproxy *p, int sock) {
+  if (sock != p->server_sock) {
+    error("Unexpected socket %d in _ircserver_connected, expected %d", sock,
+          p->server_sock);
+    return;
+  }
+
   debug("Connection succeeded");
   p->server_status |= IRC_SERVER_CONNECTED;
+  net_hook(p->server_sock, SOCK_NORMAL, (void *)p,
+           (void (*)(void *, int))_ircserver_data,
+           (void (*)(void *, int, int))_ircserver_error);
+  if (p->conn_class->server_throttle)
+    net_throttle(p->server_sock, p->conn_class->server_throttle[0], 
+                 p->conn_class->server_throttle[1]);
 
   if (IS_CLIENT_READY(p))
     ircclient_send_notice(p, "Connected to server");
@@ -244,7 +263,7 @@ int ircserver_connected(struct ircproxy *p) {
     len = sizeof(struct sockaddr_in);
     if (!getsockname(p->server_sock, (struct sockaddr *)&sock_addr, &len)) {
       dns_hostfromaddr(p, 0, sock_addr.sin_addr, _ircserver_connected2);
-      return 0;
+      return;
     } else {
       syscall_fail("getsockname", "", 0);
       _ircserver_connected2(p, 0, 0, 0);
@@ -252,8 +271,6 @@ int ircserver_connected(struct ircproxy *p) {
   } else {
     _ircserver_connected2(p, 0, 0, 0);
   }
-
-  return 0;
 }
 
 /* Called when a new server has connected and we have a local hostname */
@@ -287,49 +304,58 @@ static void _ircserver_connected2(struct ircproxy *p, void *data,
 }
 
 /* Called when a connection fails */
-int ircserver_connectfailed(struct ircproxy *p, int error) {
+static void _ircserver_connectfailed(struct ircproxy *p, int sock, int bad) {
+  if (sock != p->server_sock) {
+    error("Unexpected socket %d in _ircserver_connectfailed, expected %d", sock,
+          p->server_sock);
+    return;
+  }
+
   debug("Connection failed");
 
   if (IS_CLIENT_READY(p))
-    ircclient_send_notice(p, "Connection failed: %s", strerror(error));
+    ircclient_send_notice(p, "Connection failed: %s", strerror(errno));
 
-  sock_close(p->server_sock);
+  net_close(p->server_sock);
   p->server_status &= ~(IRC_SERVER_CREATED);
 
   timer_new(p, "server_recon", p->conn_class->server_retry,
             _ircserver_reconnect, (void *)0);
-
-  return 0;
 }
 
-/* Called when a server sends us stuff.  -1 = closed, 0 = done */
-int ircserver_data(struct ircproxy *p) {
+/* Called when a server sends us stuff. */
+static void _ircserver_data(struct ircproxy *p, int sock) {
   char *str;
-  int ret;
-
-  str = 0;
-  ret = sock_recv(p->server_sock, &str, "\r\n");
-
-  switch (ret) {
-    case SOCK_ERROR:
-      debug("Socket error");
-
-    case SOCK_CLOSED:
-      debug("Server disconnected");
-      _ircserver_close(p);
-
-      return -1;
-
-    case SOCK_EMPTY:
-      free(str);
-      return 0;
+  
+  if (sock != p->server_sock) {
+    error("Unexpected socket %d in _ircserver_data, expected %d", sock,
+          p->server_sock);
+    return;
   }
 
-  debug("<< '%s'", str);
-  _ircserver_gotmsg(p, str);
-  free(str);
+  str = 0;
+  while (net_gets(p->server_sock, &str, "\r\n") > 0) {
+    debug("<< '%s'", str);
+    _ircserver_gotmsg(p, str);
+    free(str);
+  }
+}
 
-  return 0;
+/* Called on server disconnection or error */
+static void _ircserver_error(struct ircproxy *p, int sock, int bad) {
+  if (sock != p->server_sock) {
+    error("Unexpected socket %d in _ircserver_error, expected %d", sock,
+          p->server_sock);
+    return;
+  }
+
+  if (bad) {
+    debug("Socket error");
+  } else {
+    debug("Server disconnected");
+  }
+
+  _ircserver_close(p);
 }
 
 /* Called when we get an irc protocol data from a server */
@@ -474,7 +500,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
           ircserver_send_peercmd(p, "NICK", ":%s", p->nickname);
         } else {
           /* Have to do anti-squelch manually */
-          sock_send(p->client_sock, "%s\r\n", msg.orig);
+          net_send(p->client_sock, "%s\r\n", msg.orig);
         }
       }
     } else {
@@ -630,9 +656,12 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
   } else if (!irc_strcasecmp(msg.cmd, "PING")) {
     /* Reply to pings for the client */
     if (msg.numparams == 1) {
-      ircserver_send_peercmd(p, "PONG", ":%s", msg.params[0]);
+      net_sendurgent(p->server_sock, "PONG :%s\r\n", msg.params[0]);
+      debug("=> PONG :%s", msg.params[0]);
     } else if (msg.numparams >= 2) {
-      ircserver_send_peercmd(p, "PONG", "%s :%s", msg.params[0], msg.params[1]);
+      net_sendurgent(p->server_sock, "PONG %s :%s\r\n",
+                     msg.params[0], msg.params[1]);
+      debug("=> PONG %s :%s", msg.params[0], msg.params[1]);
     }
 
     /* but let it see them */
@@ -717,7 +746,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
           /* If a client is connected, tell it we just joined and give it
              what they missed */
           if (p->client_status == IRC_CLIENT_ACTIVE) {
-            sock_send(p->client_sock, "%s\r\n", msg.orig);
+            net_send(p->client_sock, "%s\r\n", msg.orig);
             if (p->conn_class->chan_log_enabled)
               irclog_autorecall(p, msg.params[0]);
           }
@@ -854,7 +883,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
   }
 
   if (!squelch && (p->client_status == IRC_CLIENT_ACTIVE))
-    sock_send(p->client_sock, "%s\r\n", msg.orig);
+    net_send(p->client_sock, "%s\r\n", msg.orig);
 
   ircprot_freemsg(&msg);
   return 0;
@@ -862,7 +891,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
 /* Close the server socket itself */
 int ircserver_close_sock(struct ircproxy *p) {
-  sock_close(p->server_sock);
+  net_close(p->server_sock);
 
   p->server_status &= ~(IRC_SERVER_CREATED | IRC_SERVER_CONNECTED
                         | IRC_SERVER_INTRODUCED | IRC_SERVER_GOTWELCOME);
@@ -941,7 +970,8 @@ static void _ircserver_ping(struct ircproxy *p, void *data) {
   /* Server might not be ready yet 8*/
   if (IS_SERVER_READY(p)) {
     debug("Pinging the server");
-    ircserver_send_peercmd(p, "PING", ":%s", p->servername);
+    net_sendurgent(p->server_sock, "PING :%s\r\n", p->servername);
+    debug("=> PING :%s", p->servername);
   }
 
   timer_new(p, "server_ping", (int)(p->conn_class->server_pingtimeout / 2),
@@ -1020,7 +1050,7 @@ int ircserver_send_command(struct ircproxy *p, const char *command,
     prefix[0] = 0;
   }
 
-  ret = sock_send(p->server_sock, "%s%s %s\r\n", prefix, command, msg);
+  ret = net_send(p->server_sock, "%s%s %s\r\n", prefix, command, msg);
   debug("-> %s%s %s", prefix, command, msg);
 
   free(prefix);
@@ -1039,7 +1069,7 @@ int ircserver_send_peercmd(struct ircproxy *p, const char *command,
   msg = x_vsprintf(format, ap);
   va_end(ap);
 
-  ret = sock_send(p->server_sock, "%s %s\r\n", command, msg);
+  ret = net_send(p->server_sock, "%s %s\r\n", command, msg);
   debug("-> %s %s", command, msg);
 
   free(msg);

@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.59 2000/10/16 10:52:37 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.60 2000/10/20 11:03:18 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -28,7 +28,7 @@
 #endif /* HAVE_CRYPT_H */
 
 #include "sprintf.h"
-#include "sock.h"
+#include "net.h"
 #include "dns.h"
 #include "timers.h"
 #include "irc_log.h"
@@ -43,6 +43,8 @@
 /* forward declarations */
 static void _ircclient_connected2(struct ircproxy *, void *, struct in_addr *,
                                   const char *);
+static void _ircclient_data(struct ircproxy *, int);
+static void _ircclient_error(struct ircproxy *, int, int);
 static int _ircclient_detach(struct ircproxy *, const char *);
 static int _ircclient_gotmsg(struct ircproxy *, const char *);
 static int _ircclient_authenticate(struct ircproxy *, const char *);
@@ -79,39 +81,48 @@ static void _ircclient_connected2(struct ircproxy *p, void *data,
   ircclient_send_notice(p, "Got your hostname.");
 
   p->client_status |= IRC_CLIENT_CONNECTED;
+  net_hook(p->client_sock, SOCK_NORMAL, (void *)p,
+           (void (*)(void *, int))_ircclient_data,
+           (void (*)(void *, int, int))_ircclient_error);
 
   debug("Client connected from %s", p->client_host);
 
   timer_new(p, "client_auth", g.client_timeout, _ircclient_timedout, (void *)0);
 }
 
-/* Called when a client sends us stuff.  -1 = closed, 0 = done */
-int ircclient_data(struct ircproxy *p) {
+/* Called when a client sends us stuff. */
+static void _ircclient_data(struct ircproxy *p, int sock) {
   char *str;
-  int ret;
 
-  str = 0;
-  ret = sock_recv(p->client_sock, &str, "\r\n");
-
-  switch (ret) {
-    case SOCK_ERROR:
-      debug("Socket error");
-
-    case SOCK_CLOSED:
-      debug("Client disconnected");
-      _ircclient_detach(p, 0);
-      return -1;
-
-    case SOCK_EMPTY:
-      free(str);
-      return 0;
+  if (sock != p->client_sock) {
+    error("Unexpected socket %d in _ircclient_data, expected %d", sock,
+          p->client_sock);
+    return;
   }
 
-  debug(">> '%s'", str);
-  _ircclient_gotmsg(p, str);
-  free(str);
+  str = 0;
+  while (net_gets(p->client_sock, &str, "\r\n") > 0) {
+    debug(">> '%s'", str);
+    _ircclient_gotmsg(p, str);
+    free(str);
+  }
+}
 
-  return 0;
+/* Called on client disconnection or error */
+static void _ircclient_error(struct ircproxy *p, int sock, int bad) {
+  if (sock != p->client_sock) {
+    error("Unexpected socket %d in _ircclient_error, expected %d", sock,
+          p->client_sock);
+    return;
+  }
+
+  if (bad) {
+    debug("Socket error");
+  } else {
+    debug("Client disconnect");
+  }
+
+  _ircclient_detach(p, 0);
 }
 
 /* Called to detach an irc client */
@@ -455,7 +466,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
 
       /* Send command up to server? (We know there is one at this point) */
       if (!squelch)
-        sock_send(p->server_sock, "%s\r\n", msg.orig);
+        net_send(p->server_sock, "%s\r\n", msg.orig);
 
     } else if (irc_strcasecmp(msg.cmd, "DIRCPROXY")) {
       /* Command didn't (and won't be) handled.  We better stick to the
@@ -879,6 +890,9 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
       tmp_p->client_sock = p->client_sock;
       tmp_p->client_status |= IRC_CLIENT_CONNECTED | IRC_CLIENT_AUTHED;
       tmp_p->client_addr = p->client_addr;
+      net_hook(tmp_p->client_sock, SOCK_NORMAL, (void *)tmp_p,
+               (void (*)(void *, int))_ircclient_data,
+               (void (*)(void *, int, int))_ircclient_error);
 
       /* Cope with NICK before PASS */
       if ((p->client_status & IRC_CLIENT_GOTNICK)
@@ -1150,7 +1164,7 @@ int ircclient_close(struct ircproxy *p) {
   timer_del(p, "client_auth");
   timer_del(p, "client_connect");
 
-  sock_close(p->client_sock);
+  net_close(p->client_sock);
   p->client_status &= ~(IRC_CLIENT_CONNECTED | IRC_CLIENT_AUTHED
                         | IRC_CLIENT_SENTWELCOME);
 
@@ -1402,9 +1416,9 @@ int ircclient_send_numeric(struct ircproxy *p, short numeric,
   msg = x_vsprintf(format, ap);
   va_end(ap);
 
-  ret = sock_send(p->client_sock, ":%s %03d %s %s\r\n",
-                  (p->servername ? p->servername : PACKAGE), numeric,
-                  (p->nickname ? p->nickname : "*"), msg);
+  ret = net_send(p->client_sock, ":%s %03d %s %s\r\n",
+                 (p->servername ? p->servername : PACKAGE), numeric,
+                 (p->nickname ? p->nickname : "*"), msg);
   debug("<- :%s %03d %s %s", (p->servername ? p->servername : PACKAGE),
         numeric, (p->nickname ? p->nickname : "*"), msg);
 
@@ -1422,8 +1436,8 @@ int ircclient_send_notice(struct ircproxy *p, const char *format, ...) {
   msg = x_vsprintf(format, ap);
   va_end(ap);
 
-  ret = sock_send(p->client_sock, ":%s %s %s :%s\r\n", PACKAGE, "NOTICE",
-                  (p->nickname ? p->nickname : "AUTH"), msg);
+  ret = net_send(p->client_sock, ":%s %s %s :%s\r\n", PACKAGE, "NOTICE",
+                 (p->nickname ? p->nickname : "AUTH"), msg);
   debug("<- :%s %s %s :%s", PACKAGE, "NOTICE",
         (p->nickname ? p->nickname : "AUTH"), msg);
 
@@ -1442,9 +1456,9 @@ int ircclient_send_channotice(struct ircproxy *p, const char *channel,
   msg = x_vsprintf(format, ap);
   va_end(ap);
 
-  ret = sock_send(p->client_sock, ":%s %s %s :%s\r\n",
-                  (p->servername ? p->servername : PACKAGE), "NOTICE",
-                  channel, msg);
+  ret = net_send(p->client_sock, ":%s %s %s :%s\r\n",
+                 (p->servername ? p->servername : PACKAGE), "NOTICE",
+                 channel, msg);
   debug("<- :%s %s %s :%s", (p->servername ? p->servername : PACKAGE), "NOTICE",
         channel, msg);
 
@@ -1463,8 +1477,8 @@ int ircclient_send_command(struct ircproxy *p, const char *command,
   msg = x_vsprintf(format, ap);
   va_end(ap);
 
-  ret = sock_send(p->client_sock, ":%s %s %s\r\n",
-                  (p->servername ? p->servername : PACKAGE), command, msg);
+  ret = net_send(p->client_sock, ":%s %s %s\r\n",
+                 (p->servername ? p->servername : PACKAGE), command, msg);
   debug("<- :%s %s %s", (p->servername ? p->servername : PACKAGE),
         command, msg);
 
@@ -1492,7 +1506,7 @@ int ircclient_send_selfcmd(struct ircproxy *p, const char *command,
     prefix[0] = 0;
   }
 
-  ret = sock_send(p->client_sock, "%s%s %s\r\n", prefix, command, msg);
+  ret = net_send(p->client_sock, "%s%s %s\r\n", prefix, command, msg);
   debug("<- %s%s %s", prefix, command, msg);
 
   free(prefix);
@@ -1510,7 +1524,7 @@ int ircclient_send_error(struct ircproxy *p, const char *format, ...) {
   msg = x_vsprintf(format, ap);
   va_end(ap);
 
-  ret = sock_send(p->client_sock, "%s :%s: %s\r\n", "ERROR", "Closing Link",
+  ret = net_send(p->client_sock, "%s :%s: %s\r\n", "ERROR", "Closing Link",
                   msg);
   debug("<- %s :%s: %s", "ERROR", "Closing Link", msg);
 

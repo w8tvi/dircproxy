@@ -7,7 +7,7 @@
  *  - Handling of log programs
  *  - Recalling from log files
  * --
- * @(#) $Id: irc_log.c,v 1.23 2000/10/13 12:44:20 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.24 2000/10/20 11:03:18 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -27,7 +27,7 @@
 #include <time.h>
 
 #include <dircproxy.h>
-#include "sock.h"
+#include "net.h"
 #include "sprintf.h"
 #include "irc_net.h"
 #include "irc_prot.h"
@@ -679,8 +679,8 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
         }
 
         /* Send the line */
-        sock_send(p->client_sock, ":%s %s %s :%s\r\n", src,
-                  (*l == '<' ? "PRIVMSG" : "NOTICE"), to, msg);
+        net_send(p->client_sock, ":%s %s %s :%s\r\n", src,
+                 (*l == '<' ? "PRIVMSG" : "NOTICE"), to, msg);
 
       } else if (strncmp(l, "* ", 2)) {
         /* Anything thats not a comment gets sent as a notice */

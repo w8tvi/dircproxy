@@ -2,7 +2,7 @@
 .\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.22 2000/10/16 10:44:29 keybuk Exp $
+.\" @(#) $Id: dircproxy.1,v 1.23 2000/10/20 11:03:18 keybuk Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -164,6 +164,21 @@ received exceeds the number of seconds below the server is assumed to be
 "stoned" and \fBdircproxy\fR leaves it.
 
  0 = don't monitor PINGs
+
+.TP
+.B server_throttle
+To prevent you from being flooded off the IRC network, dircproxy can
+throttle the connection to the server to prevent too much being sent
+within a certain time period.
+
+For this you specify a number of bytes, then optionally a time period
+in seconds seperated by a colon.  If the time period is ommitted then
+per second is assmued.
+
+ server_throttle 10        # 10 bytes per second
+ server_throttle 10:2      # 10 bytes per 2 seconds (5 per second)
+
+ 0 = do not throttle the connection
 
 .TP
 .B server_autoconnect

@@ -9,7 +9,7 @@
  *  - Miscellaneous IRC functions
  *  - The main poll() loop
  * --
- * @(#) $Id: irc_net.c,v 1.30 2000/10/16 11:26:04 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.31 2000/10/20 11:03:18 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -28,8 +28,10 @@
 #include <string.h>
 #include <errno.h>
 
+#include <fcntl.h>
+
 #include <dircproxy.h>
-#include "sock.h"
+#include "net.h"
 #include "dns.h"
 #include "timers.h"
 #include "sprintf.h"
@@ -43,9 +45,8 @@
 static int _ircnet_listen(struct sockaddr_in *);
 static struct ircproxy *_ircnet_newircproxy(void);
 static int _ircnet_client_connected(struct ircproxy *);
-static int _ircnet_acceptclient(int);
+static void _ircnet_acceptclient(void *, int);
 static void _ircnet_freeproxy(struct ircproxy *);
-static int _ircnet_expunge_proxies(void);
 static void _ircnet_rejoin(struct ircproxy *, void *);
 
 /* list of connection classes */
@@ -78,7 +79,7 @@ int ircnet_listen(const char *port) {
 int _ircnet_listen(struct sockaddr_in *local_addr) {
   int this_sock;
 
-  this_sock = sock_make();
+  this_sock = net_socket();
   if (this_sock == -1)
     return -1;
 
@@ -86,119 +87,26 @@ int _ircnet_listen(struct sockaddr_in *local_addr) {
     if (bind(this_sock, (struct sockaddr *)local_addr,
              sizeof(struct sockaddr_in))) {
       syscall_fail("bind", "listen", 0);
-      sock_close(this_sock);
+      net_close(this_sock);
       return -1;
     }
   }
 
   if (listen(this_sock, SOMAXCONN)) {
     syscall_fail("listen", 0, 0);
-    sock_close(this_sock);
+    net_close(this_sock);
     return -1;
   }
 
   if (listen_sock != -1) {
     debug("Closing existing listen socket %d", listen_sock);
-    sock_close(listen_sock);
+    net_close(listen_sock);
   }
   debug("Listening on socket %d", this_sock);
   listen_sock = this_sock;
+  net_hook(listen_sock, SOCK_LISTENING, 0, _ircnet_acceptclient, 0);
 
   return 0;
-}
-
-/* Poll all the sockets for activity. Returns number that did things */
-int ircnet_poll(void) {
-  fd_set readset, writeset;
-  struct timeval timeout;
-  struct ircproxy *p;
-  int nr, ns, hs;
-
-  FD_ZERO(&readset);
-  FD_ZERO(&writeset);
-  nr = ns = hs = 0;
-
-  _ircnet_expunge_proxies();
-
-  p = proxies;
-  while (p) {
-    if (p->server_status & IRC_SERVER_CREATED) {
-      hs = (p->server_sock > hs ? p->server_sock : hs);
-      ns++;
-
-      FD_SET(p->server_sock, &readset);
-      if (!(p->server_status & IRC_SERVER_CONNECTED))
-        FD_SET(p->server_sock, &writeset);
-    }
-
-    if (p->client_status & IRC_CLIENT_CONNECTED) {
-      hs = (p->client_sock > hs ? p->client_sock : hs);
-      ns++;
-      FD_SET(p->client_sock, &readset);
-    }
-
-    p = p->next;
-  }
-
-  if (listen_sock != -1) {
-    hs = (listen_sock > hs ? listen_sock : hs);
-    ns++;
-    FD_SET(listen_sock, &readset);
-  }
-
-  if (!ns)
-    return 0;
-
-  timeout.tv_sec = 1;
-  timeout.tv_usec = 0;
-  nr = select(hs + 1, &readset, &writeset, 0, &timeout);
-
-  if (nr == -1) {
-    if ((errno != EINTR) && (errno != EAGAIN)) {
-      syscall_fail("select", 0, 0);
-      return -1;
-    } else {
-      return ns;
-    }
-  } else if (!nr) {
-    return ns;
-  }
-
-  if ((listen_sock != -1) && FD_ISSET(listen_sock, &readset))
-    _ircnet_acceptclient(listen_sock);
-
-  p = proxies;
-  while (p) {
-    if ((p->client_status & IRC_CLIENT_CONNECTED)
-        && FD_ISSET(p->client_sock, &readset) && !p->dead)
-      ircclient_data(p);
-
-    if ((p->server_status & IRC_SERVER_CREATED) && !p->dead) {
-      if (p->server_status & IRC_SERVER_CONNECTED) {
-        if (FD_ISSET(p->server_sock, &readset))
-          ircserver_data(p);
-      } else {
-        if (FD_ISSET(p->server_sock, &writeset)
-            || FD_ISSET(p->server_sock, &writeset)) {
-          int error, len;
-
-          len = sizeof(int);
-          if (getsockopt(p->server_sock, SOL_SOCKET,
-                         SO_ERROR, &error, &len) < 0) {
-            ircserver_connectfailed(p, error);
-          } else if (error) {
-            ircserver_connectfailed(p, error);
-          } else {
-            ircserver_connected(p);
-          }
-        }
-      }
-    }
-
-    p = p->next;
-  }
-
-  return ns;
 }
 
 /* Creates a new ircproxy structure */
@@ -240,8 +148,8 @@ int ircnet_hooksocket(int sock) {
   return _ircnet_client_connected(p);
 }
 
-/* Accept a client. 0 = okay */
-static int _ircnet_acceptclient(int sock) {
+/* Accept a client. */
+static void _ircnet_acceptclient(void *data, int sock) {
   struct ircproxy *p;
   int len;
 
@@ -252,10 +160,13 @@ static int _ircnet_acceptclient(int sock) {
   if (p->client_sock == -1) {
     syscall_fail("accept", 0, 0);
     free(p);
-    return -1;
+    return;
   }
+  net_create(&(p->client_sock));
 
-  return _ircnet_client_connected(p);
+  if (p->client_sock != -1) 
+    _ircnet_client_connected(p);
+  return;
 }
 
 /* Fetch a proxy for a connection class if one exists */
@@ -479,7 +390,7 @@ static void _ircnet_freeproxy(struct ircproxy *p) {
 }
 
 /* Get rid of any dead proxies */
-static int _ircnet_expunge_proxies(void) {
+int ircnet_expunge_proxies(void) {
   struct ircproxy *p, *l;
 
   l = 0;
@@ -541,6 +452,7 @@ void ircnet_freeconnclass(struct ircconnclass *class) {
   struct strlist *s;
 
   free(class->server_port);
+  free(class->server_throttle);
   free(class->drop_modes);
   free(class->refuse_modes);
   free(class->local_address);
