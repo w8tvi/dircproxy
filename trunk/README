@@ -35,6 +35,9 @@ easy shortcuts for the /DIRCPROXY commands.
 
 See the file INSTALL for building and installation instructions.
 
+There is NO config file at the moment!  Please edit src/dircproxy.h to
+configure server etc.
+
 
 I have personally got this compiling on the following architectures:
 
@@ -55,7 +58,7 @@ The dircproxy home page is at:
 
 Please submit bug reports at:
 
-	https://sourceforge.net/bugs/?group_id=5645
+	http://sourceforge.net/bugs/?group_id=5645
 
 
 dircproxy is distributed according to the GNU General Public License.
