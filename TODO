@@ -31,10 +31,13 @@ Need to do
 	  confused if when rejoining a server it can't rejoin the channel).
 	  Perhaps notify user we couldn't rejoin ?
 
+	* Change ALRM signal to TERM signal, so a normal KILL will
+	  free the log files.
+
 
 Would be nice
 
-	* proper debug output
+	* proper debug output and output errors to syslog
 
 	* when -I is used, it won't close the socket, because it is waiting
 	  for a client to reconnect.  Either enter listen mode somehow, or
