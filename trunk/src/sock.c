@@ -8,7 +8,7 @@
  *  - socket data buffering
  *  - recv() function that gets data up to delimeters (newlines?)
  * --
- * @(#) $Id: sock.c,v 1.2 2000/05/13 04:07:57 keybuk Exp $
+ * @(#) $Id: sock.c,v 1.3 2000/08/24 09:15:02 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -100,14 +100,19 @@ int sock_send(int sock, const char *message, ...) {
   va_end(ap);
 
   /* Make the socket non-blocking for this */
-  if (_sock_flag(sock, O_NONBLOCK, 0))
+  if (_sock_flag(sock, O_NONBLOCK, 0)) {
+    free(msg);
     return -1;
+  }
 
   if (send(sock, msg, strlen(msg), 0) == -1) {
     if (errno != EPIPE)
       DEBUG_SYSCALL_FAIL("send");
     ret = -1;
   }
+
+  /* Free used memory */
+  free(msg);
 
   /* Make the socket blocking again.  If this don't work, we're in trouble */
   if (_sock_flag(sock, O_NONBLOCK, 1)) {
@@ -116,7 +121,6 @@ int sock_send(int sock, const char *message, ...) {
     return -1;
   }
 
-  free(msg);
   return ret;
 }
 
