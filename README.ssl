@@ -1,0 +1,72 @@
+ --------------------------
+[ Using SSL with dircproxy ]
+ --------------------------
+
+* DISCLAIMER :
+*
+* THIS IS AN UNSTABLE DEVELOPMENT RELEASE OF DIRCPROXY.  IT HAS HIGHER
+* THAN USUAL RISK OF DESTROYING YOUR SYSTEM OR LOSING YOUR DATA OR
+* CORRUPTING YOUR BOX.
+*
+* DO NOT USE IT IF YOU DO NOT ACCEPT THE RISKS
+*
+* RESPONSABILITY OF DIRCPROXY STAFF COULD NOT BE ENGAGED IN ANY CASE
+
+
+What has changed in this branch
+===============================
+
+This branch adds SSL support for both client-side and server-side.
+
+  o Client-side : dircproxy connects to SSL-enabled servers, allowing
+    you to identify the IRC server you are connecting to, eventually
+    identifying yourself to the server  and securing communications with
+    a crypted socket.
+  o Server-side : dircproxy offers SSL services, allowing you to identify
+    the dircproxy server you are connecting to, eventually identifying
+    yourself to the server and securing communications with a crypted socket.
+
+These changes are useful for people worried about their talk privacy.
+
+What has been done
+==================
+
+- Client-side :
+  o Connecting to any SSL-enabled server, using the "server_ssl" var in
+  config-file
+  
+- Server-side :
+  o Presenting the certificate to any client and allow any client to connect
+
+What needs to be done
+=====================
+
+[P] = Priority   [E] = Enhancement
+
+- Client-side :
+  o [E] Checking the certificate validity (date, server name, fingerprint)
+  o [E] Allow users to manually validate certificate
+  o [E] Allow dircproxy to present a certificate to identify user on server
+  
+- Server-side :
+  o [P] Cleaning the code
+  o [P] Testing return value
+  o [E] Allow user to configure PK & CERT filename
+  o [E] Allow user to present a certificate to identify user on server
+  
+More Information
+================
+
+The dircproxy home page is at:
+  http://dircproxy.securiweb.net/
+
+Please submit bug reports at:
+  http://dircproxy.securiweb.net/newticket
+
+Also join us on the #dircproxy IRC channel on irc.openprojects.net.
+
+dircproxy is distributed according to the GNU General Public License.
+See the file COPYING for details.
+
+Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
+Copyright (C) 2004 Francois Harvey and Mike Taylor.  
