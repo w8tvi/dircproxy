@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.32 2000/08/30 14:17:03 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.33 2000/08/31 15:34:31 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -36,8 +36,10 @@
 #include "irc_server.h"
 #include "irc_client.h"
 #include "logo.h"
+#include "help.h"
 
 /* forward declarations */
+static int _ircclient_detach(struct ircproxy *, const char *);
 static int _ircclient_gotmsg(struct ircproxy *, const char *);
 static int _ircclient_authenticate(struct ircproxy *, const char *);
 static int _ircclient_got_details(struct ircproxy *, const char *,
@@ -81,60 +83,8 @@ int ircclient_data(struct ircproxy *p) {
       debug("Socket error");
 
     case SOCK_CLOSED:
-      if (p->die_on_close) {
-        debug("Client disconnected, killing proxy");
-        p->conn_class = 0;
-        ircclient_close(p);
-
-        ircserver_send_command(p, "QUIT", ":Leaving IRC - %s %s",
-                               PACKAGE, VERSION);
-        ircserver_close_sock(p);
-      } else {
-        debug("Client disconnected, detaching proxy");
-        if (p->client_status == IRC_CLIENT_ACTIVE)
-          irclog_notice(p, 0, PACKAGE, "You disconnected");
-
-        if ((p->server_status == IRC_SERVER_ACTIVE)
-            && (p->client_status == IRC_CLIENT_ACTIVE)
-            && !p->awaymessage && p->conn_class->away_message)
-          ircserver_send_command(p, "AWAY", ":%s", p->conn_class->away_message);
-
-        if ((p->client_status == IRC_CLIENT_ACTIVE)
-            && p->conn_class->drop_modes) {
-          char *mode;
-
-          mode = x_sprintf("-%s", p->conn_class->drop_modes);
-          debug("Auto-mode-change '%s'", mode);
-
-          ircclient_change_mode(p, mode);
-          if (p->server_status == IRC_SERVER_ACTIVE)
-            ircserver_send_command(p, "MODE", "%s %s", p->nickname, mode);
-
-          free(mode);
-        }
-
-        if ((p->client_status == IRC_CLIENT_ACTIVE)
-            && !p->conn_class->other_log_always) {
-          if (irclog_open(p, p->nickname))
-            ircclient_send_notice(p, "(warning) Unable to log server/private "
-                                  "messages");
-        }
-        if ((p->client_status == IRC_CLIENT_ACTIVE)
-            && !p->conn_class->chan_log_always) {
-          struct ircchannel *c;
-
-          c = p->channels;
-          while (c) {
-            if (irclog_open(p, c->name))
-              ircclient_send_notice(p, "(warning) Unable to log channel: %s",
-                                    c->name);
-            c = c->next;
-          }
-        }
-
-        ircclient_close(p);
-      }
-
+      debug("Client disconnected");
+      _ircclient_detach(p, 0);
       return -1;
 
     case SOCK_EMPTY:
@@ -145,6 +95,80 @@ int ircclient_data(struct ircproxy *p) {
   debug(">> '%s'", str);
   _ircclient_gotmsg(p, str);
   free(str);
+
+  return 0;
+}
+
+/* Called to detach an irc client */
+static int _ircclient_detach(struct ircproxy *p, const char *message) {
+  if (p->die_on_close) {
+    debug("Killing proxy");
+    p->conn_class = 0;
+    ircclient_close(p);
+
+    if (message) {
+      ircserver_send_command(p, "QUIT", ":%s", message);
+    } else {
+      ircserver_send_command(p, "QUIT", ":Leaving IRC - %s %s",
+                             PACKAGE, VERSION);
+    }
+    ircserver_close_sock(p);
+
+  } else {
+    debug("Detaching proxy");
+    if (p->client_status == IRC_CLIENT_ACTIVE)
+      irclog_notice(p, 0, PACKAGE, "You disconnected");
+
+    /* Set away message */
+    if ((p->server_status == IRC_SERVER_ACTIVE)
+        && (p->client_status == IRC_CLIENT_ACTIVE)) {
+      if (message) {
+        ircserver_send_command(p, "AWAY", ":%s", message);
+      } else if (!p->awaymessage && p->conn_class->away_message) {
+        ircserver_send_command(p, "AWAY", ":%s", p->conn_class->away_message);
+      }
+    }
+
+    /* Drop modes */
+    if ((p->client_status == IRC_CLIENT_ACTIVE)
+        && p->conn_class->drop_modes) {
+      char *mode;
+
+      mode = x_sprintf("-%s", p->conn_class->drop_modes);
+      debug("Auto-mode-change '%s'", mode);
+
+      ircclient_change_mode(p, mode);
+      if (p->server_status == IRC_SERVER_ACTIVE)
+        ircserver_send_command(p, "MODE", "%s %s", p->nickname, mode);
+
+      free(mode);
+    }
+
+    /* Open other_log */
+    if ((p->client_status == IRC_CLIENT_ACTIVE)
+        && !p->conn_class->other_log_always) {
+      if (irclog_open(p, p->nickname))
+        ircclient_send_notice(p, "(warning) Unable to log server/private "
+                              "messages");
+    }
+
+    /* Open channel logs */
+    if ((p->client_status == IRC_CLIENT_ACTIVE)
+        && !p->conn_class->chan_log_always) {
+      struct ircchannel *c;
+
+      c = p->channels;
+      while (c) {
+        if (irclog_open(p, c->name))
+          ircclient_send_notice(p, "(warning) Unable to log channel: %s",
+                                c->name);
+        c = c->next;
+      }
+    }
+
+    /* Close the socket */
+    ircclient_close(p);
+  }
 
   return 0;
 }
@@ -163,7 +187,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
       if (msg.numparams >= 1) {
         _ircclient_authenticate(p, msg.params[0]);
       } else {
-        ircclient_send_numeric(p, 416, ":Not enough parameters");
+        ircclient_send_numeric(p, 461, ":Not enough parameters");
       }
 
     } else if (!strcasecmp(msg.cmd, "NICK")) {
@@ -207,7 +231,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
           _ircclient_got_details(p, msg.params[0], msg.params[1],
                                  msg.params[2], msg.params[3]);
       } else {
-        ircclient_send_numeric(p, 416, ":Not enough parameters");
+        ircclient_send_numeric(p, 461, ":Not enough parameters");
       }
 
     } else {
@@ -240,19 +264,6 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
         ircclient_send_numeric(p, 431, ":No nickname given");
       }
 
-    } else if (!strcasecmp(msg.cmd, "DQUIT")) {
-      /* Special command telling us to quit */
-      p->conn_class = 0;
-      ircclient_close(p);
-
-      if (msg.numparams >= 1) {
-        ircserver_send_command(p, "QUIT", ":%s", msg.params[0]);
-      } else {
-        ircserver_send_command(p, "QUIT", ":Leaving IRC - %s %s",
-                               PACKAGE, VERSION);
-      }
-      ircserver_close_sock(p);
-
     } else if (!strcasecmp(msg.cmd, "AWAY")) {
       /* User marking themselves as away or back */
       squelch = 0;
@@ -270,6 +281,148 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
       /* User requesting the message of the day from the server */
       p->allow_motd = 1;
       squelch = 0;
+
+    } else if (!strcasecmp(msg.cmd, "DIRCPROXY")) {
+      /* The special command */
+      if (msg.numparams >= 1) {
+        if (!strcasecmp(msg.params[0], "RECALL")) {
+          unsigned long start, lines;
+          char *src, *filter;
+
+          /* User wants to recall stuff from log files */
+          src = filter = 0;
+          start = -1;
+          lines = 0;
+          
+          if (msg.numparams >= 4) {
+            src = msg.params[1];
+            start = atol(msg.params[2]);
+            lines = atol(msg.params[3]);
+          } else if (msg.numparams >= 3) {
+            if (!strcasecmp(msg.params[2], "ALL")) {
+              src = msg.params[1];
+              lines = -1;
+            } else if (strspn(msg.params[1], "0123456789")
+                       == strlen(msg.params[1])) {
+              start = atol(msg.params[1]);
+              lines = atol(msg.params[2]);
+            } else {
+              src = msg.params[1];
+              lines = atol(msg.params[2]);
+            }
+          } else if (msg.numparams >= 2) {
+            if (!strcasecmp(msg.params[1], "ALL")) {
+              lines = -1;
+            } else {
+              lines = atol(msg.params[1]);
+            }
+          } else {
+            ircclient_send_numeric(p, 461, ":Not enough parameters");
+          }
+
+          if (src) {
+            struct ircchannel *c;
+
+            c = ircnet_fetchchannel(p, src);
+            if (!c) {
+              filter = src;
+              src = p->nickname;
+            }
+          } else {
+            src = p->nickname;
+          }
+
+          irclog_recall(p, src, start, lines, filter);
+
+        } else if (!strcasecmp(msg.params[0], "PERSIST")) {
+          /* User wants a die_on_close proxy to persist */
+          if (p->die_on_close) {
+            if (!ircnet_dedicate(p)) {
+              p->die_on_close = 0;
+            } else {
+              ircclient_send_notice(p, "Could not persist");
+            }
+          } else {
+            ircnet_announce_dedicated(p);
+          }
+
+        } else if (!strcasecmp(msg.params[0], "DETACH")) {
+          /* User wants to detach and can't be bothered to use /QUIT */
+          ircnet_announce_status(p);
+          ircclient_send_error(p, "Detached from %s %s", PACKAGE, VERSION);
+
+          /* Optional AWAY message can be supplied */
+          if ((msg.numparams >= 2) && strlen(msg.params[1])) {
+            _ircclient_detach(p, msg.params[1]);
+          } else {
+            _ircclient_detach(p, 0);
+          }
+          ircprot_freemsg(&msg);
+          return 0;
+
+        } else if (!strcasecmp(msg.params[0], "QUIT")) {
+          /* User wants to detach and end their proxy session */
+          p->conn_class = 0;
+          ircclient_close(p);
+
+          /* Optional QUIT message can be supplied */
+          if ((msg.numparams >= 2) && strlen(msg.params[1])) {
+            ircserver_send_command(p, "QUIT", ":%s", msg.params[1]);
+          } else {
+            ircserver_send_command(p, "QUIT", ":Leaving IRC - %s %s",
+                                   PACKAGE, VERSION);
+          }
+
+          ircserver_close_sock(p);
+          ircprot_freemsg(&msg);
+          return 0;
+
+        } else if (!strcasecmp(msg.params[0], "HELP")) {
+          /* User needs a little help */
+          char **help_page;
+
+          help_page = 0;
+
+          if ((msg.numparams >= 2) && strlen(msg.params[1])) {
+            if (!strcasecmp(msg.params[1], "RECALL")) {
+              help_page = help_recall;
+            } else if (!strcasecmp(msg.params[1], "PERSIST")) {
+              help_page = help_persist;
+            } else if (!strcasecmp(msg.params[1], "DETACH")) {
+              help_page = help_detach;
+            } else if (!strcasecmp(msg.params[1], "QUIT")) {
+              help_page = help_quit;
+            } else if (!strcasecmp(msg.params[1], "HELP")) {
+              help_page = help_help;
+            } else {
+              help_page = help_index;
+            }
+
+          } else {
+            help_page = help_index;
+          }
+
+          if (help_page) {
+            int i;
+
+            i = 0;
+            ircclient_send_notice(p, "%s %s help", PACKAGE, VERSION);
+            while (help_page[i]) {
+              ircclient_send_notice(p, ":- %s", help_page[i]);
+              i++;
+            }
+            ircclient_send_notice(p, ":-");
+          }
+
+        } else {
+          /* Invalid command */
+          ircclient_send_numeric(p, 421, "%s :Unknown DIRCPROXY command",
+                                 msg.params[0]);
+
+        }
+      } else {
+        ircclient_send_numeric(p, 461, ":Not enough parameters");
+      }
 
     } else if (!strcasecmp(msg.cmd, "PRIVMSG")) {
       /* Privmsgs from us get logged */
@@ -648,6 +801,7 @@ int ircclient_welcome(struct ircproxy *p) {
 
     ver = x_sprintf(verstr, VERSION);
     ircclient_send_numeric(p, 372, ":- %s", ver);
+    ircclient_send_numeric(p, 372, ":-");
     free(ver);
   }
   if (p->conn_class->motd_stats) {
@@ -662,8 +816,7 @@ int ircclient_welcome(struct ircproxy *p) {
         s = x_sprintf("%ld", p->conn_class->other_log_recall);
       }
 
-      ircclient_send_numeric(p, 372, ":- %s", "You missed:");
-      ircclient_send_numeric(p, 372, ":-   %ld server/private message%s "
+      ircclient_send_numeric(p, 372, ":- %ld server/private message%s "
                              "(%s will be sent)", p->other_log.nlines,
                              (p->other_log.nlines == 1 ? "" : "s"), s);
       ircclient_send_numeric(p, 372, ":-");
@@ -673,12 +826,11 @@ int ircclient_welcome(struct ircproxy *p) {
     if (p->channels) {
       struct ircchannel *c;
 
-      ircclient_send_numeric(p, 372, ":- %s", "You were on:");
       c = p->channels;
       while (c) {
         if (c->inactive) {
-          ircclient_send_numeric(p, 372, ":-   %s %s", c->name,
-                                 "(forcefully removed)");
+          ircclient_send_numeric(p, 372, ":- was on %s but forcefully removed",
+                                 c->name);
         } else if (c->log.filename) {
           char *s;
 
@@ -691,14 +843,13 @@ int ircclient_welcome(struct ircproxy *p) {
                                      p->conn_class->chan_log_recall));
           }
 
-          ircclient_send_numeric(p, 372, ":-   %s. %ld line%s logged. "
+          ircclient_send_numeric(p, 372, ":- %s. %ld line%s logged. "
                                  "(%s will be sent)", c->name, c->log.nlines,
                                  (c->log.nlines == 1 ? "" : "s"), s);
 
           free(s);
         } else {
-          ircclient_send_numeric(p, 372, ":-   %s %s", c->name,
-                                 "(not logged)");
+          ircclient_send_numeric(p, 372, ":- %s (not logged)", c->name);
         }
         c = c->next;
       }
