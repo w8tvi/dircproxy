@@ -2,7 +2,6 @@
 
 EXTRA_DIST = \
 	FAQ \
-	PROTOCOL \
 	README.inetd \
 	README.dcc-via-ssh
 
