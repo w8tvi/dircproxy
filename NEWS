@@ -1,7 +1,7 @@
 NEWS about changes for existing users.
 --------------------------------------
 
-Version 1.0.3 - Fri Feb  8 17:44:42 GMT 2002
+Version 1.0.3 - Fri Feb  8 17:45:00 GMT 2002
 
 	* New 'pid_file', 'allow_users' and 'allow_kill' config
 	  directives.
