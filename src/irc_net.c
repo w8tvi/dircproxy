@@ -5,7 +5,7 @@
  * irc_net.c
  *  - Polling of sockets and acting on any data
  * --
- * @(#) $Id: irc_net.c,v 1.19 2000/08/30 10:48:39 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.20 2000/08/31 15:32:32 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -525,6 +525,10 @@ int ircnet_dedicate(struct ircproxy *p) {
   if (dedicated_proxy)
     return -1;
 
+  /* Can't dedicate if there are multiple proxies */
+  if ((p != proxies) || p->next)
+    return -1;
+
   debug("Dedicating proxy to %p", p);
 
   if (_ircnet_listen(0))
@@ -554,25 +558,37 @@ int ircnet_dedicate(struct ircproxy *p) {
 
 /* send the dedicated listening port to the user */
 int ircnet_announce_dedicated(struct ircproxy *p) {
-  struct sockaddr_in listen_addr;
+  struct sockaddr_in local_addr, listen_addr;
+  unsigned short int port;
+  char *hostname;
   int len;
 
   if (!IS_CLIENT_READY(p))
     return -1;
 
+  hostname = 0;
+  port = 0;
+
+  len = sizeof(struct sockaddr_in);
+  if (!getsockname(p->client_sock, (struct sockaddr *)&local_addr, &len)) {
+    if (local_addr.sin_addr.s_addr)
+      hostname = dns_hostfromaddr(local_addr.sin_addr);
+  } else {
+    syscall_fail("getsockname", "p->client_sock", 0);
+  }
+
   len = sizeof(struct sockaddr_in);
   if (!getsockname(listen_sock, (struct sockaddr *)&listen_addr, &len)) {
-    char *hostname;
-
-    hostname = dns_hostfromaddr(listen_addr.sin_addr);
-    ircclient_send_notice(p, "Reconnect to this session at %s:%d",
-                          (hostname ? hostname : p->hostname),
-                          ntohs(listen_addr.sin_port));
-    free(hostname);
+    port = ntohs(listen_addr.sin_port);
   } else {
-    syscall_fail("getsockname", 0, 0);
+    syscall_fail("getsockname", "listen_sock", 0);
+    free(hostname);
     return -1;
   }
+
+  ircclient_send_notice(p, "Reconnect to this session at %s:%d",
+                        (hostname ? hostname : p->hostname), port);
+  free(hostname);
 
   return 0;
 }
