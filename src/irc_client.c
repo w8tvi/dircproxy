@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.26 2000/08/30 10:53:22 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.27 2000/08/30 10:54:53 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -17,6 +17,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <crypt.h>
+#include <time.h>
 
 #include <dircproxy.h>
 #include "sprintf.h"
@@ -39,6 +40,9 @@ static int _ircclient_got_details(struct ircproxy *, const char *,
 /* New user mode bits */
 #define RFC2812_MODE_W 0x04
 #define RFC2812_MODE_I 0x08
+
+/* Time/date format for strftime(3) */
+#define START_TIMEDATE_FORMAT "%a, %d %b %Y %H:%M:%S %z"
 
 /* Define MIN() */
 #ifndef MIN
@@ -421,6 +425,7 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
     } else {
       p->conn_class = cc;
       p->client_status |= IRC_CLIENT_AUTHED;
+      time(&(p->start));
 
       /* Okay, they've authed for the first time, make the log directory
          here */
@@ -606,14 +611,18 @@ int ircclient_close(struct ircproxy *p) {
 
 /* send welcome headers to the user */
 int ircclient_welcome(struct ircproxy *p) {
+  char tbuf[40];
+
+  strftime(tbuf, sizeof(tbuf), START_TIMEDATE_FORMAT, localtime(&(p->start)));
+
   ircclient_send_numeric(p, 1, ":Welcome to the Internet Relay Network %s",
                          p->nickname);
   ircclient_send_numeric(p, 2, ":Your host is %s running %s via %s %s",
                          p->servername,
                          (p->serverver ? p->serverver : "(unknown)"),
                          PACKAGE, VERSION);
-  ircclient_send_numeric(p, 3, ":This proxy has been running since %s",
-                         "(unknown)");
+  ircclient_send_numeric(p, 3, ":This proxy has been running since %s", tbuf);
+
   if (p->serverver)
     ircclient_send_numeric(p, 4, "%s %s %s %s",
                            p->servername, p->serverver,
