@@ -9,7 +9,7 @@
  *  - CTCP message parsing
  *  - Username sanitisation
  * --
- * @(#) $Id: irc_prot.c,v 1.11 2000/11/02 16:14:46 keybuk Exp $
+ * @(#) $Id: irc_prot.c,v 1.12 2000/11/02 16:36:27 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -319,7 +319,7 @@ int ircprot_parsectcp(const char *message, struct ctcpmessage *cmsg) {
   cmsg->cmd = (char *)malloc(ptr - start + 1);
   strncpy(cmsg->cmd, start, ptr - start);
   cmsg->cmd[ptr - start] = 0;
-  strupr(cmsg->cmd);
+  irc_strupr(cmsg->cmd);
 
   /* Get the parameters */
   ptr += strspn(ptr, " ");
