@@ -1,10 +1,4 @@
-Stuff to do/fix in 0.7.x:
-
-	* Explicitly PING the server every server_pingtimeout / 2 to ensure
-	  we do get PONGs back.
-
-
-Stuff for 0.8.0 and future development:
+New features for 0.8.0:
 
 	* DCC proxying.  Essential feature really.  Intercept DCC requests,
 	  making listen sockets and connect sockets, forwarding data
@@ -178,12 +172,17 @@ Stuff for 0.8.0 and future development:
 	* Perhaps a perl script in contrib that takes them in, filters them
 	  and mails them to an address?
 
-	* Multiple listen ports perhaps?
-
-	* Transparent proxying using ipchains/ipfwadm or whatever the
-	  kernel uses this week.  Figure out how its done.
-
 	* Proxy message of the day file, after logo, before stats
 
 	    motd_file none/"path"
+
+
+Would be nice:
+
+	* Multiple listen ports if I can think of a good reason to
+	  have them.
+
+	* Transparent proxying using ipchains/ipfwadm or whatever the
+	  kernel uses this week.  Figure out how its done and see if its
+	  feasible.
 
