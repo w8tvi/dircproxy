@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.68 2000/11/10 15:08:35 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.69 2000/11/20 11:12:15 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -14,6 +14,7 @@
  */
 
 #include <stdio.h>
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <stdlib.h>
 #include <string.h>
