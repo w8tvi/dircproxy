@@ -1,5 +1,8 @@
 ## Process this file with automake to produce Makefile.in
 
+INCLUDES = \
+	-DSYSCONFDIR="\"${sysconfdir}\""
+
 sbin_PROGRAMS = \
 	dircproxy
 

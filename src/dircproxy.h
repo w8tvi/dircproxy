@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.3 2000/05/13 05:12:52 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.4 2000/05/24 17:30:07 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -45,6 +45,26 @@
  * something to fall back on
  */
 #define FALLBACK_NICKNAME "dircproxy"
+
+/* GLOBAL_CONFIG_FILENAME
+ * Filename of the global configuration file.  This file is for when you
+ * want to run a site with lots of dircproxy's.  It goes under SYSCONFDIR
+ */
+#define GLOBAL_CONFIG_FILENAME "dircproxy.conf"
+
+/* USER_CONFIG_FILENAME
+ * Loaded from the user running dircproxy's home directory.  This file is
+ * read after the global configuration file
+ */
+#define USER_CONFIG_FILENAME ".dircproxyrc"
+
+/* SYSCONFDIR
+ * This *should* be defined by the configure script.  Its the etc directory
+ * relevant to where dircproxy is being installed to.
+ */
+#ifndef SYSCONFDIR
+#define SYSCONFDIR "/usr/local/etc"
+#endif /* SYSCONFDIR */
 
 
 /* Defaults for values in the configuration file.  Change the config file
