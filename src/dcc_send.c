@@ -5,7 +5,7 @@
  * dcc_send.c
  *  - DCC send protocol
  * --
- * @(#) $Id: dcc_send.c,v 1.6 2000/12/07 17:17:06 keybuk Exp $
+ * @(#) $Id: dcc_send.c,v 1.7 2000/12/07 17:21:16 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -95,9 +95,6 @@ static void _dccsend_data(struct dccproxy *p, int sock) {
       p->bufsz += nr;
       p->bytes_rcvd += nr;
 
-      debug("Accepted %d bytes from sender (tot: %lu  buf: %lu)",
-            nr, p->bytes_rcvd, p->bufsz);
-
       /* Acknowledge them */
       na = htonl(p->bytes_rcvd);
       net_queue(p->sender_sock, (void *)&na, sizeof(uint32_t));
@@ -120,9 +117,6 @@ static void _dccsend_data(struct dccproxy *p, int sock) {
     net_close(sock);
     return;
   }
-
-  debug("rcvd: %lu  sent: %lu  ackd: %lu  (buf: %lu)",
-        p->bytes_rcvd, p->bytes_sent, p->bytes_ackd, p->bufsz);
 
   /* Receiving data is as good as trigger as any to check whether we can send
      more. */
@@ -165,7 +159,6 @@ static void _dccsend_error(struct dccproxy *p, int sock, int bad) {
 
     /* Not necessarily bad, just means the client has gone */
     if (p->bufsz && !(p->type & DCC_SEND_CAPTURE)) {
-      debug("%lu bytes remaining", p->bufsz);
       p->sender_status = DCC_SENDER_GONE;
     } else {
       p->dead = 1;
@@ -214,7 +207,6 @@ static int _dccsend_sendpacket(struct dccproxy *p) {
   /* Send it to the sendee */
   if (nr) {
     net_queue(p->sendee_sock, (void *)p->buf, nr);
-    debug("Sending %lu bytes to client", nr);
     
     /* Adjust or free the buffer */
     p->bytes_sent += nr;
