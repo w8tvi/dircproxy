@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.20 2000/09/26 10:58:57 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.21 2000/09/27 16:45:32 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -103,6 +103,7 @@ struct ircproxy {
   char *serverpassword;
 
   int allow_motd;
+  int allow_pong;
   char *awaymessage;
   char *modes;
   struct ircchannel *channels;

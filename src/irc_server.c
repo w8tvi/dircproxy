@@ -5,7 +5,7 @@
  * irc_server.c
  *  - Handling of servers connected to the proxy
  * --
- * @(#) $Id: irc_server.c,v 1.21 2000/09/26 11:51:26 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.22 2000/09/27 16:45:32 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -39,6 +39,7 @@
 static void _ircserver_reconnect(struct ircproxy *, void *);
 static int _ircserver_gotmsg(struct ircproxy *, const char *);
 static int _ircserver_close(struct ircproxy *);
+static void _ircserver_ping(struct ircproxy *, void *);
 static void _ircserver_stoned(struct ircproxy *, void *);
 static int _ircserver_forclient(struct ircproxy *, struct ircmessage *);
 
@@ -215,6 +216,14 @@ int ircserver_connected(struct ircproxy *p) {
   ircserver_send_peercmd(p, "NICK", ":%s", p->nickname);
   ircserver_send_peercmd(p, "USER", "%s 0 * :%s", username, p->realname);
   free(username);
+
+  /* Begin stoned server checking */
+  if (p->conn_class->server_pingtimeout) {
+    timer_new(p, "server_ping", (int)(p->conn_class->server_pingtimeout / 2),
+              _ircserver_ping, (void *)0);
+    timer_new(p, "server_stoned", p->conn_class->server_pingtimeout,
+              _ircserver_stoned, (void *)0);
+  }
 
   return 0;
 }
@@ -459,14 +468,20 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       ircserver_send_peercmd(p, "PONG", "%s :%s", msg.params[0], msg.params[1]);
     }
 
+    /* but let it see them */
+    squelch = 0;
+
+  } else if (!strcasecmp(msg.cmd, "PONG")) {
+    /* Use pongs to reset the server_stoned timer */
+    if (p->allow_pong)
+      squelch = 0;
+
     if (p->conn_class->server_pingtimeout) {
       timer_del(p, "server_stoned");
       timer_new(p, "server_stoned", p->conn_class->server_pingtimeout,
                 _ircserver_stoned, (void *)0);
+      p->allow_pong = 0;
     }
-
-    /* but let it see them */
-    squelch = 0;
 
   } else if (!strcasecmp(msg.cmd, "NICK")) {
     if (_ircserver_forclient(p, &msg)) {
@@ -635,8 +650,15 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 /* Close the server socket itself */
 int ircserver_close_sock(struct ircproxy *p) {
   sock_close(p->server_sock);
+
   p->server_status &= ~(IRC_SERVER_CREATED | IRC_SERVER_CONNECTED
                         | IRC_SERVER_GOTWELCOME);
+
+  /* Make sure these don't get triggered */
+  if (p->conn_class->server_pingtimeout) {
+    timer_del(p, "server_ping");
+    timer_del(p, "server_stoned");
+  }
 
   return 0;
 }
@@ -652,6 +674,14 @@ static int _ircserver_close(struct ircproxy *p) {
             _ircserver_reconnect, (void *)0);
 
   return 0;
+}
+
+/* hook for timer code to ping server */
+static void _ircserver_ping(struct ircproxy *p, void *data) {
+  debug("Pinging the server");
+  ircserver_send_peercmd(p, "PING", ":%s", p->servername);
+  timer_new(p, "server_ping", (int)(p->conn_class->server_pingtimeout / 2),
+            _ircserver_ping, (void *)0);
 }
 
 /* hook for timer code to close a stoned server */

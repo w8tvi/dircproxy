@@ -2,7 +2,7 @@
 .\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.10 2000/09/26 10:58:57 keybuk Exp $
+.\" @(#) $Id: dircproxy.1,v 1.11 2000/09/27 16:45:32 keybuk Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -135,9 +135,10 @@ before giving up and declaring the proxied connection dead?
 .B server_pingtimeout
 For some people, dircproxy doesn't notice that the connection to the
 server has been dropped because the socket remains open.  For example,
-those behind a NAT'd firewall.  dircproxy can monitor the amount of time
-between PINGs received from a server, and when it exceeds the number of
-seconds below assume the server is "stoned" and reconnect to it.
+those behind a NAT'd firewall.  dircproxy can ping the server and make
+sure it gets replies back.  It the time since the last reply was
+received exceeds the number of seconds below the server is assumed to be
+"stoned" and dircproxy leaves it.
 
 0 = don't monitor PINGs
 
