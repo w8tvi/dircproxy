@@ -188,6 +188,15 @@
 #
 #away_message "Not available, messages are logged"
 
+# quit_message
+#     If you don't explicitly give a message when you /DIRCPROXY QUIT, this
+#     will be used instead.  Also used for when you've sent dircproxy not to
+#     remain attached to the server on detachment.
+#
+#     none = Use dircproxy version number as QUIT message
+#
+#quit_message "none"
+
 # attach_message
 #     dircproxy can send an announcement onto every channel you are on when
 #     you reattach to it, just to let everyone know you are back.  If you
