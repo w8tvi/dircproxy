@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.47 2000/10/11 16:05:50 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.48 2000/10/12 16:02:42 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -40,6 +40,8 @@
 #include "help.h"
 
 /* forward declarations */
+static void _ircclient_connected2(struct ircproxy *, void *, struct in_addr *,
+                                  const char *);
 static int _ircclient_detach(struct ircproxy *, const char *);
 static int _ircclient_gotmsg(struct ircproxy *, const char *);
 static int _ircclient_authenticate(struct ircproxy *, const char *);
@@ -62,17 +64,24 @@ static void _ircclient_timedout(struct ircproxy *, void *);
 
 /* Called when a new client has connected */
 int ircclient_connected(struct ircproxy *p) {
-  p->client_status |= IRC_CLIENT_CONNECTED;
-
   ircclient_send_notice(p, "Looking up your hostname...");
-  p->client_host = dns_hostfromaddr(p->client_addr.sin_addr);
+
+  dns_hostfromaddr(p, 0, p->client_addr.sin_addr, _ircclient_connected2);
+
+  return 0;
+}
+
+/* Called once a client DNS lookup has completed */
+static void _ircclient_connected2(struct ircproxy *p, void *data,
+                                  struct in_addr *addr, const char *name) {
+  p->client_host = x_strdup(name);
   ircclient_send_notice(p, "Got your hostname.");
+
+  p->client_status |= IRC_CLIENT_CONNECTED;
 
   debug("Client connected from %s", p->client_host);
 
   timer_new(p, "client_auth", CLIENT_TIMEOUT, _ircclient_timedout, (void *)0);
-
-  return 0;
 }
 
 /* Called when a client sends us stuff.  -1 = closed, 0 = done */
@@ -604,6 +613,10 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
 
               p->conn_class->next_server = server;
               ircserver_connectagain(p);
+
+              /* We have no server now, so need to get out of here */
+              ircprot_freemsg(&msg);
+              return 0;
             }
           } else {
             ircclient_send_numeric(p, 461, ":Not enough parameters");
@@ -625,6 +638,10 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
           }
 
           ircserver_connectagain(p);
+
+          /* We have no server now, so need to get out of here */
+          ircprot_freemsg(&msg);
+          return 0;
 
        } else if (!strcasecmp(msg.params[0], "HELP")) {
           /* User needs a little help */
