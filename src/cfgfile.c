@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.30 2000/10/31 13:11:19 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.31 2000/11/06 16:54:21 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -113,6 +113,17 @@ int cfg_read(const char *filename, char **listen_port,
                             ? x_strdup(DEFAULT_OTHER_LOG_PROGRAM) : 0);
   def->log_timeoffset = DEFAULT_LOG_TIMEOFFSET;
   def->log_events = DEFAULT_LOG_EVENTS;
+  def->dcc_proxy_incoming = DEFAULT_DCC_PROXY_INCOMING;
+  def->dcc_proxy_outgoing = DEFAULT_DCC_PROXY_OUTGOING;
+  def->dcc_proxy_ports = 0;
+  def->dcc_proxy_ports_sz = 0;
+  def->dcc_proxy_timeout = DEFAULT_DCC_PROXY_TIMEOUT;
+  def->dcc_proxy_sendreject = DEFAULT_DCC_PROXY_SENDREJECT;
+  def->dcc_send_fast = DEFAULT_DCC_SEND_FAST;
+  def->dcc_tunnel_incoming = (DEFAULT_DCC_TUNNEL_INCOMING
+                              ? x_strdup(DEFAULT_DCC_TUNNEL_INCOMING) : 0);
+  def->dcc_tunnel_outgoing = (DEFAULT_DCC_TUNNEL_OUTGOING
+                              ? x_strdup(DEFAULT_DCC_TUNNEL_OUTGOING) : 0);
   def->motd_logo = DEFAULT_MOTD_LOGO;
   def->motd_file = (DEFAULT_MOTD_FILE ? x_strdup(DEFAULT_MOTD_FILE) : 0);
   def->motd_stats = DEFAULT_MOTD_STATS;
@@ -714,6 +725,136 @@ int cfg_read(const char *filename, char **listen_port,
         if (!valid)
           break;
 
+      } else if (!strcasecmp(key, "dcc_proxy_incoming")) {
+        /* dcc_proxy_incoming yes
+           dcc_proxy_incoming no  */
+        _cfg_read_bool(&buf, &(class ? class : def)->dcc_proxy_incoming);
+
+      } else if (!strcasecmp(key, "dcc_proxy_outgoing")) {
+        /* dcc_proxy_outgoing yes
+           dcc_proxy_outgoing no  */
+        _cfg_read_bool(&buf, &(class ? class : def)->dcc_proxy_outgoing);
+
+      } else if (!strcasecmp(key, "dcc_proxy_ports")) {
+        /* dcc_proxy_ports none
+           dcc_proxy_ports 6667,1042-2048 */
+        char *str, *orig;
+
+        if (_cfg_read_string(&buf, &str))
+          UNMATCHED_QUOTE;
+
+        if (!strcasecmp(str, "none") || !strlen(str)) {
+          free(str);
+          str = 0;
+
+          free((class ? class : def)->dcc_proxy_ports);
+          (class ? class : def)->dcc_proxy_ports = 0;
+          (class ? class : def)->dcc_proxy_ports_sz = 0;
+        }
+
+        orig = str;
+        while (str && strlen(str)) {
+          char *ptr;
+
+          ptr = strchr(str, ',');
+          if (ptr)
+            *(ptr++) = 0;
+          str += strspn(str, WS);
+
+          if (strlen(str)) {
+            int lwr, upr;
+            char *dash;
+
+            dash = strchr(str, '-');
+            if (dash)
+              *(dash++) = 0;
+
+            lwr = atoi(str);
+            upr = (dash ? atoi(dash) : lwr);
+
+            if (lwr && upr) {
+              int *newlist;
+              size_t newsz;
+
+              newsz = (class ? class : def)->dcc_proxy_ports_sz + 2;
+              newlist = (int *)malloc(sizeof(int) * newsz);
+              memcpy(newlist, (class ? class : def)->dcc_proxy_ports,
+                     sizeof(int) * (class ? class : def)->dcc_proxy_ports_sz);
+              newlist[(class ? class : def)->dcc_proxy_ports_sz + 0] = lwr;
+              newlist[(class ? class : def)->dcc_proxy_ports_sz + 1] = upr;
+              free((class ? class : def)->dcc_proxy_ports);
+              (class ? class : def)->dcc_proxy_ports = newlist;
+              (class ? class : def)->dcc_proxy_ports_sz = newsz;
+              
+            } else {
+              error("Bad port in 'dcc_proxy_ports' at line %ld of %s",
+                    line, filename);
+              valid = 0;
+              free(orig);
+              break;
+            }
+          } else {
+            error("Missing port range in 'dcc_proxy_ports' at line %ld of %s",
+                  line, filename);
+            valid = 0;
+            free(orig);
+            break;
+          }
+
+          str = ptr;
+        }
+        free(orig);
+
+      } else if (!strcasecmp(key, "dcc_proxy_timeout")) {
+        /* dcc_proxy_timeout 60 */
+        _cfg_read_numeric(&buf, &(class ? class : def)->dcc_proxy_timeout);
+
+      } else if (!strcasecmp(key, "dcc_proxy_sendreject")) {
+        /* dcc_proxy_sendreject yes
+           dcc_proxy_sendreject no  */
+        _cfg_read_bool(&buf, &(class ? class : def)->dcc_proxy_sendreject);
+
+      } else if (!strcasecmp(key, "dcc_send_fast")) {
+        /* dcc_send_fast yes
+           dcc_send_fast no  */
+        _cfg_read_bool(&buf, &(class ? class : def)->dcc_send_fast);
+
+      } else if (!strcasecmp(key, "dcc_tunnel_incoming")) {
+        /* dcc_tunnel_incoming none
+           dcc_tunnel_incoming ""           # same as none
+           dcc_tunnel_incoming "6667"
+           dcc_tunnel_incoming "irctunnel"  # from /etc/services */
+        char *str;
+
+        if (_cfg_read_string(&buf, &str))
+          UNMATCHED_QUOTE;
+
+        if (!strcasecmp(str, "none") || !strlen(str)) {
+          free(str);
+          str = 0;
+        }
+
+        free((class ? class : def)->dcc_tunnel_incoming);
+        (class ? class : def)->dcc_tunnel_incoming = str;
+
+      } else if (!strcasecmp(key, "dcc_tunnel_outgoing")) {
+        /* dcc_tunnel_outgoing none
+           dcc_tunnel_outgoing ""           # same as none
+           dcc_tunnel_outgoing "6667"
+           dcc_tunnel_outgoing "irctunnel"  # from /etc/services */
+        char *str;
+
+        if (_cfg_read_string(&buf, &str))
+          UNMATCHED_QUOTE;
+
+        if (!strcasecmp(str, "none") || !strlen(str)) {
+          free(str);
+          str = 0;
+        }
+
+        free((class ? class : def)->dcc_tunnel_outgoing);
+        (class ? class : def)->dcc_tunnel_outgoing = str;
+
       } else if (!strcasecmp(key, "motd_logo")) {
         /* motd_logo yes
            motd_logo no */
@@ -832,6 +973,16 @@ int cfg_read(const char *filename, char **listen_port,
                                     ? x_strdup(def->other_log_copydir) : 0);
         class->other_log_program = (def->other_log_program
                                     ? x_strdup(def->other_log_program) : 0);
+        if (def->dcc_proxy_ports) {
+          class->dcc_proxy_ports = (int *)malloc(sizeof(int)
+                                                 * def->dcc_proxy_ports_sz);
+          memcpy(class->dcc_proxy_ports, def->dcc_proxy_ports,
+                 sizeof(int) * def->dcc_proxy_ports_sz);
+        }
+        class->dcc_tunnel_incoming = (def->dcc_tunnel_incoming
+                                      ? x_strdup(def->dcc_tunnel_incoming) : 0);
+        class->dcc_tunnel_outgoing = (def->dcc_tunnel_outgoing
+                                      ? x_strdup(def->dcc_tunnel_outgoing) : 0);
         class->motd_file = (def->motd_file ? x_strdup(def->motd_file) : 0);
 
       } else if (class && !strcasecmp(key, "password")) {
@@ -1024,6 +1175,9 @@ int cfg_read(const char *filename, char **listen_port,
   free(def->chan_log_program);
   free(def->other_log_copydir);
   free(def->other_log_program);
+  free(def->dcc_proxy_ports);
+  free(def->dcc_tunnel_incoming);
+  free(def->dcc_tunnel_outgoing);
   free(def->motd_file);
   return (valid ? 0 : -1);
 }

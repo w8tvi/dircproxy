@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.38 2000/10/31 13:11:19 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.39 2000/11/06 16:54:21 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -394,6 +394,58 @@
  * that.  Otherwise check irc_net.h for the possible list.
  */
 #define DEFAULT_LOG_EVENTS 0xffff
+
+/* DEFAULT_DCC_PROXY_INCOMING
+ * Whether to proxy incoming DCC requests
+ * 1 = Yes
+ * 0 = No
+ */
+#define DEFAULT_DCC_PROXY_INCOMING 1
+
+/* DEFAULT_DCC_PROXY_OUTGOING
+ * Whether to proxy outgoing DCC requests
+ * 1 = Yes
+ * 0 = No
+ */
+#define DEFAULT_DCC_PROXY_OUTGOING 1
+
+/* DEFAULT_DCC_PROXY_PORTS
+ * This MUST be left at 0, trust me
+ */
+#define DEFAULT_DCC_PROXY_PORTS 0
+
+/* DEFAULT_DCC_PROXY_TIMEOUT
+ * Maximum amount of time (in seconds) to wait for both sides of a DCC proxy
+ * session to have connected.
+ */
+#define DEFAULT_DCC_PROXY_TIMEOUT 60
+
+/* DEFAULT_DCC_PROXY_SENDREJECT
+ * Should dircproxy send a REJECT back if it couldn't establish the proxy.
+ * 1 = Yes
+ * 0 = No, just cut the dcc out
+ */
+#define DEFAULT_DCC_PROXY_SENDREJECT 1
+
+/* DEFAULT_DCC_SEND_FAST
+ * Whether to wait for acknowledgement of data from the client before sending
+ * any more (during a DCC Send).
+ * 1 = Yes
+ * 0 = No
+ */
+#define DEFAULT_DCC_SEND_FAST 0
+
+/* DEFAULT_DCC_TUNNEL_INCOMING
+ * Local port that all incoming DCC connections should go through
+ * 0 = Don't do this
+ */
+#define DEFAULT_DCC_TUNNEL_INCOMING 0
+
+/* DEFAULT_DCC_TUNNEL_OUTGOING
+ * Local port that all outgoing DCC connections should go through
+ * 0 = Don't do this
+ */
+#define DEFAULT_DCC_TUNNEL_OUTGOING 0
 
 /* DEFAULT_MOTD_LOGO
  * Display a nice dircproxy logo in the message of the day.  This logo is
