@@ -35,6 +35,8 @@ Questions
      3.9  How do I detach from dircproxy?
      3.10 How can I get dircproxy to disconnect from the server?
      3.11 Can I connect multiple clients to the same running session?
+     3.12 Can one dircproxy connection class be used to connect to
+          multiple servers?
 
 4.  Logging
      4.1  Why does dircproxy by default log channels while I'm
@@ -343,6 +345,12 @@ Answers
      No.  After all, which one do you listen to?  It could all
      get very schizophrenic with two people typing under the same
      nickname from different computers.
+
+ 3.12 Can one dircproxy connection class be used to connect to
+      multiple servers?
+
+     No.  It might sound fairly simple to implement at first, tracking
+     channels is fairly easy, its tracking nicknames thats the problem.
 
 
  4.1  Why does dircproxy by default log channels while I'm attached?
