@@ -1,6 +1,11 @@
 NEWS about changes for existing users.
 --------------------------------------
 
+Version 1.0.5 - Thu Nov 21 14:15:00 GMT 2002
+
+	* Default value of 'refuse_modes' config directive changed from
+	  "+r" to "".
+
 Version 1.0.4 - Mon Sep  9 13:45:00 BST 2002
 
 	* Just bug fixes.  No changes to worry about.
