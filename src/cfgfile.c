@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.4 2000/05/25 14:00:22 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.5 2000/05/25 22:20:48 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -44,10 +44,8 @@ int cfg_read(const char *filename) {
   line = 0;
   valid = 1;
   fd = fopen(filename, "r");
-  if (!fd) {
-    DEBUG_SYSCALL_FAIL("fopen");
+  if (!fd)
     return -1;
-  }
 
   while (valid) {
     char buff[512], *buf;
