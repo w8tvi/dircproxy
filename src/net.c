@@ -10,7 +10,7 @@
  *  - functions to retrieve data from buffers up to delimiters (newlines?)
  *  - main poll()/select() function
  * --
- * @(#) $Id: net.c,v 1.6 2000/11/10 15:13:29 keybuk Exp $
+ * @(#) $Id: net.c,v 1.7 2000/11/20 12:42:06 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -763,7 +763,8 @@ int net_poll(void) {
           /* If there's an error condition on the socket then the connect()
              failed, otherwise it worked */
           len = sizeof(int);
-          if (getsockopt(s->sock, SOL_SOCKET, SO_ERROR, &error, &len) < 0) {
+          if (getsockopt(s->sock, SOL_SOCKET, SO_ERROR,
+                         (void *)&error, &len) < 0) {
             if (s->error_func) {
               s->error_func(s->info, s->sock, 1);
             } else {
