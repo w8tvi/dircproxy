@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.28 2000/08/30 11:37:08 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.29 2000/08/30 11:56:43 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -16,8 +16,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include <crypt.h>
 #include <time.h>
+
+#ifdef HAVE_CRYPT_H
+#include <crypt.h>
+#else
+#include <unistd.h>
+#endif /* HAVE_CRYPT_H */
 
 #include <dircproxy.h>
 #include "sprintf.h"
