@@ -9,7 +9,7 @@
  *  - Miscellaneous IRC functions
  *  - The main poll() loop
  * --
- * @(#) $Id: irc_net.c,v 1.32 2000/10/23 12:30:57 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.33 2000/10/27 13:12:13 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -302,11 +302,13 @@ int ircnet_channel_mode(struct ircproxy *p, struct ircchannel *c,
           } else {
             debug("Bad mode from server, said +k without a key");
           }
-        } else {
+        } else if (c->key) {
           debug("Remove channel '%s' key");
           free(c->key);
+          c->key = 0;
         }
         param++;
+        break;
     }
 
     ptr++;
