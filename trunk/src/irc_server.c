@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.36 2000/10/23 12:32:33 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.37 2000/10/27 13:11:53 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -713,8 +713,9 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
           ircclient_change_mode(p, msg.params[param]);
 
         /* Check for refuse modes */
-        if (strcspn(p->modes, p->conn_class->refuse_modes)
-            != strlen(p->modes)) {
+        if (p->modes && p->conn_class->refuse_modes &&
+            (strcspn(p->modes, p->conn_class->refuse_modes)
+             != strlen(p->modes))) {
           char *mode;
 
           debug("Got refusal mode from server");
