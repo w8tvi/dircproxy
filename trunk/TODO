@@ -23,10 +23,11 @@ are listed below, although the release numbers are purely conjectural.
 1.1.1	New internal log file format.
 	New logging code.
 
-1.1.2	IPv6 support.
+1.1.2	
 
 1.1.3	IRC protocol code changed to use hash + handlers.
 	005 numeric support.
+	IPv6 support
 
 1.1.4	DCC RESUME support.
 	(Probable irc_dcc.[ch] code being added).
