@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.1 2000/05/13 02:13:56 keybuk Exp $
+ * @(#) $Id: main.c,v 1.2 2000/05/13 02:34:59 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.1 2000/05/13 02:13:56 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.2 2000/05/13 02:34:59 keybuk Exp $";
 
 /* The name of the program */
 char *progname;
@@ -236,8 +236,7 @@ static int _print_help(void) {
   fprintf(stderr, "  -h, --help       Print a summary of the options\n");
   fprintf(stderr, "  -v, --version    Print the version number\n");
   fprintf(stderr, "  -D, --no-daemon  Remain in the foreground\n");
-  fprintf(stderr, "  -I, --inetd      Being run from inetd (implies -D)\n");
-  fprintf(stderr, "\nReport bugs to <dircproxy-bugs@netsplit.com>\n");
+  fprintf(stderr, "  -I, --inetd      Being run from inetd (implies -D)\n\n");
 
   return 0;
 }
