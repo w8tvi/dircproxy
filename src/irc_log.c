@@ -5,7 +5,7 @@
  * irc_log.c
  *  - Handling of log files
  * --
- * @(#) $Id: irc_log.c,v 1.19 2000/09/01 12:13:32 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.20 2000/09/01 12:19:47 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -141,14 +141,10 @@ int irclog_open(struct ircproxy *p, const char *to) {
      protocol.  These are nasty as it means someone could theoretically
      create a channel called #/../../etc/passwd and the program would try
      to unlink "/tmp/#/../../etc/passwd" = "/etc/passwd".  If running as root
-     this could be bad.  So to compensate we replace '.' with ',' and '/' with
-     ':'.  These two characters are NOT allowed in channel names and thus seem
-     to make good replacements */
+     this could be bad.  So to compensate we replace '/' with ':' as thats not
+     valid in channel names. */
   while (*ptr) {
     switch (*ptr) {
-      case '.':
-        *ptr = ',';
-        break;
       case '/':
         *ptr = ':';
         break;
