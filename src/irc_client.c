@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.58 2000/10/16 10:51:25 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.59 2000/10/16 10:52:37 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -285,14 +285,14 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
   debug("c=%02x, s=%02x", p->client_status, p->server_status);
 
   if (!(p->client_status & IRC_CLIENT_AUTHED)) {
-    if (!strcasecmp(msg.cmd, "PASS")) {
+    if (!irc_strcasecmp(msg.cmd, "PASS")) {
       if (msg.numparams >= 1) {
         _ircclient_authenticate(p, msg.params[0]);
       } else {
         ircclient_send_numeric(p, 461, ":Not enough parameters");
       }
 
-    } else if (!strcasecmp(msg.cmd, "NICK")) {
+    } else if (!irc_strcasecmp(msg.cmd, "NICK")) {
       /* The PASS command MUST be sent before the NICK/USER combo
          (RFC 1459 section 4.11.1 and RFC 2812 section 3.1.1).
          However ircII deliberately sends the NICK command first
@@ -313,7 +313,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
              || !(p->client_status & IRC_CLIENT_GOTUSER)) {
     /* Full information not received yet. Only allow NICK or USER */
 
-    if (!strcasecmp(msg.cmd, "NICK")) {
+    if (!irc_strcasecmp(msg.cmd, "NICK")) {
       if (msg.numparams >= 1) {
         /* If we already have a nick, only accept a change */
         if (!(p->client_status & IRC_CLIENT_GOTNICK)
@@ -327,7 +327,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
         ircclient_send_numeric(p, 431, ":No nickname given");
       }
 
-    } else if (!strcasecmp(msg.cmd, "USER")) {
+    } else if (!irc_strcasecmp(msg.cmd, "USER")) {
       if (msg.numparams >= 4) {
         if (!(p->client_status & IRC_CLIENT_GOTUSER))
           _ircclient_got_details(p, msg.params[0], msg.params[1],
@@ -349,17 +349,17 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
          server unless you set squelch to 0 */
       int squelch = 1;
 
-      if (!strcasecmp(msg.cmd, "PASS")) {
+      if (!irc_strcasecmp(msg.cmd, "PASS")) {
         /* Ignore PASS */
-      } else if (!strcasecmp(msg.cmd, "USER")) {
+      } else if (!irc_strcasecmp(msg.cmd, "USER")) {
         /* Ignore USER */
-      } else if (!strcasecmp(msg.cmd, "DIRCPROXY")) {
+      } else if (!irc_strcasecmp(msg.cmd, "DIRCPROXY")) {
         /* Ignore DIRCPROXY (handled in a minute) */
-      } else if (!strcasecmp(msg.cmd, "QUIT")) {
+      } else if (!irc_strcasecmp(msg.cmd, "QUIT")) {
         /* Ignore QUIT */
-      } else if (!strcasecmp(msg.cmd, "PONG")) {
+      } else if (!irc_strcasecmp(msg.cmd, "PONG")) {
         /* Ignore PONG */
-      } else if (!strcasecmp(msg.cmd, "NICK")) {
+      } else if (!irc_strcasecmp(msg.cmd, "NICK")) {
         /* Change of nickname */
         if (msg.numparams >= 1) {
           if (irc_strcmp(p->nickname, msg.params[0])) {
@@ -372,7 +372,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
           ircclient_send_numeric(p, 431, ":No nickname given");
         }
 
-      } else if (!strcasecmp(msg.cmd, "AWAY")) {
+      } else if (!irc_strcasecmp(msg.cmd, "AWAY")) {
         /* User marking themselves as away or back */
         squelch = 0;
 
@@ -385,17 +385,17 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
           p->awaymessage = 0;
         }
         
-      } else if (!strcasecmp(msg.cmd, "MOTD")) {
+      } else if (!irc_strcasecmp(msg.cmd, "MOTD")) {
         /* User requesting the message of the day from the server */
         p->allow_motd = 1;
         squelch = 0;
 
-      } else if (!strcasecmp(msg.cmd, "PING")) {
+      } else if (!irc_strcasecmp(msg.cmd, "PING")) {
         /* User requesting a ping from the server */
         p->allow_pong = 1;
         squelch = 0;
 
-      } else if (!strcasecmp(msg.cmd, "PRIVMSG")) {
+      } else if (!irc_strcasecmp(msg.cmd, "PRIVMSG")) {
         /* Privmsgs from us get logged */
         if (msg.numparams >= 2) {
           char *str;
@@ -422,7 +422,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
           ircserver_resetidle(p);
         squelch = 0;
 
-      } else if (!strcasecmp(msg.cmd, "NOTICE")) {
+      } else if (!irc_strcasecmp(msg.cmd, "NOTICE")) {
         /* Notices from us get logged */
         if (msg.numparams >= 2) {
           char *str;
@@ -457,7 +457,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
       if (!squelch)
         sock_send(p->server_sock, "%s\r\n", msg.orig);
 
-    } else if (strcasecmp(msg.cmd, "DIRCPROXY")) {
+    } else if (irc_strcasecmp(msg.cmd, "DIRCPROXY")) {
       /* Command didn't (and won't be) handled.  We better stick to the
          RFC and send a RPL_TRYAGAIN back. */
       ircclient_send_numeric(p, 263, "%s :Please wait a while and try again.",
@@ -467,9 +467,9 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
     /* /DIRCPROXY can be used at *any* time, if it ever sends anything to the
        server it has to do it explicitly (no automatic sending) and has to
        check there is a server there */
-    if (!strcasecmp(msg.cmd, "DIRCPROXY")) {
+    if (!irc_strcasecmp(msg.cmd, "DIRCPROXY")) {
       if (msg.numparams >= 1) {
-        if (!strcasecmp(msg.params[0], "RECALL")) {
+        if (!irc_strcasecmp(msg.params[0], "RECALL")) {
           unsigned long start, lines;
           char *src, *filter;
 
@@ -483,7 +483,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
             start = atol(msg.params[2]);
             lines = atol(msg.params[3]);
           } else if (msg.numparams >= 3) {
-            if (!strcasecmp(msg.params[2], "ALL")) {
+            if (!irc_strcasecmp(msg.params[2], "ALL")) {
               src = msg.params[1];
               lines = -1;
             } else if (strspn(msg.params[1], "0123456789")
@@ -495,7 +495,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
               lines = atol(msg.params[2]);
             }
           } else if (msg.numparams >= 2) {
-            if (!strcasecmp(msg.params[1], "ALL")) {
+            if (!irc_strcasecmp(msg.params[1], "ALL")) {
               lines = -1;
             } else {
               lines = atol(msg.params[1]);
@@ -519,7 +519,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
           irclog_recall(p, src, start, lines, filter);
 
         } else if (p->conn_class->allow_persist
-                   && !strcasecmp(msg.params[0], "PERSIST")) {
+                   && !irc_strcasecmp(msg.params[0], "PERSIST")) {
           /* User wants a die_on_close proxy to persist */
           if (p->die_on_close) {
             if (p->conn_class->disconnect_on_detach) {
@@ -536,7 +536,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
             ircnet_announce_dedicated(p);
           }
 
-        } else if (!strcasecmp(msg.params[0], "DETACH")) {
+        } else if (!irc_strcasecmp(msg.params[0], "DETACH")) {
           /* User wants to detach and can't be bothered to use /QUIT */
           ircnet_announce_status(p);
           ircclient_send_error(p, "Detached from %s %s", PACKAGE, VERSION);
@@ -550,7 +550,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
           ircprot_freemsg(&msg);
           return 0;
 
-        } else if (!strcasecmp(msg.params[0], "QUIT")) {
+        } else if (!irc_strcasecmp(msg.params[0], "QUIT")) {
           /* User wants to detach and end their proxy session */
 
           if (IS_SERVER_READY(p)) {
@@ -572,17 +572,17 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
           ircprot_freemsg(&msg);
           return 0;
 
-        } else if (!strcasecmp(msg.params[0], "MOTD")) {
+        } else if (!irc_strcasecmp(msg.params[0], "MOTD")) {
           /* Display message of the day file */
           _ircclient_motd(p);
 
         } else if (p->conn_class->allow_die
-                   && !strcasecmp(msg.params[0], "DIE")) {
+                   && !irc_strcasecmp(msg.params[0], "DIE")) {
           /* User wants to kill us :( */
           ircclient_send_notice(p, "I'm melting!");
           stop();
 
-        } else if (!strcasecmp(msg.params[0], "SERVERS")) {
+        } else if (!irc_strcasecmp(msg.params[0], "SERVERS")) {
           struct strlist *s;
           int i;
 
@@ -604,8 +604,8 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
           }
 
         } else if (p->conn_class->allow_jump
-                   && (!strcasecmp(msg.params[0], "JUMP")
-                       || !strcasecmp(msg.params[0], "CONNECT"))) {
+                   && (!irc_strcasecmp(msg.params[0], "JUMP")
+                       || !irc_strcasecmp(msg.params[0], "CONNECT"))) {
           /* User wants to jump to a new server */
           if (msg.numparams >= 2) {
             struct strlist *s, *server;
@@ -617,7 +617,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
             i = 0;
             while (s) {
               if ((atoi(msg.params[1]) == ++i)
-                  || !strcasecmp(msg.params[1], s->str)) {
+                  || !irc_strcasecmp(msg.params[1], s->str)) {
                 server = s;
                 break;
               }
@@ -664,13 +664,13 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
           }
 
         } else if (p->conn_class->allow_host
-                   && !strcasecmp(msg.params[0], "HOST")) {
+                   && !irc_strcasecmp(msg.params[0], "HOST")) {
           /* User wants to change their hostname */
           free(p->conn_class->local_address);
           p->conn_class->local_address = 0;
 
           if (msg.numparams >= 2) {
-            if (strcasecmp(msg.params[1], "none"))
+            if (irc_strcasecmp(msg.params[1], "none"))
               p->conn_class->local_address = x_strdup(msg.params[1]);
 
           } else if (p->conn_class->orig_local_address) {
@@ -684,37 +684,37 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
           ircprot_freemsg(&msg);
           return 0;
 
-       } else if (!strcasecmp(msg.params[0], "HELP")) {
+       } else if (!irc_strcasecmp(msg.params[0], "HELP")) {
           /* User needs a little help */
           char **help_page;
 
           help_page = 0;
 
           if ((msg.numparams >= 2) && strlen(msg.params[1])) {
-            if (!strcasecmp(msg.params[1], "RECALL")) {
+            if (!irc_strcasecmp(msg.params[1], "RECALL")) {
               help_page = help_recall;
             } else if (p->conn_class->allow_persist
-                       && !strcasecmp(msg.params[1], "PERSIST")) {
+                       && !irc_strcasecmp(msg.params[1], "PERSIST")) {
               help_page = help_persist;
-            } else if (!strcasecmp(msg.params[1], "DETACH")) {
+            } else if (!irc_strcasecmp(msg.params[1], "DETACH")) {
               help_page = help_detach;
-            } else if (!strcasecmp(msg.params[1], "QUIT")) {
+            } else if (!irc_strcasecmp(msg.params[1], "QUIT")) {
               help_page = help_quit;
-            } else if (!strcasecmp(msg.params[1], "MOTD")) {
+            } else if (!irc_strcasecmp(msg.params[1], "MOTD")) {
               help_page = help_motd;
             } else if (p->conn_class->allow_die
-                       && !strcasecmp(msg.params[1], "DIE")) {
+                       && !irc_strcasecmp(msg.params[1], "DIE")) {
               help_page = help_die;
-            } else if (!strcasecmp(msg.params[1], "SERVERS")) {
+            } else if (!irc_strcasecmp(msg.params[1], "SERVERS")) {
               help_page = help_servers;
             } else if (p->conn_class->allow_jump
-                       && !strcasecmp(msg.params[1], "JUMP")) {
+                       && !irc_strcasecmp(msg.params[1], "JUMP")) {
               help_page = (p->conn_class->allow_jump_new
                            ? help_jump_new : help_jump);
             } else if (p->conn_class->allow_host
-                       && !strcasecmp(msg.params[1], "HOST")) {
+                       && !irc_strcasecmp(msg.params[1], "HOST")) {
               help_page = help_host;
-            } else if (!strcasecmp(msg.params[1], "HELP")) {
+            } else if (!irc_strcasecmp(msg.params[1], "HELP")) {
               help_page = help_help;
             } else {
               help_page = help_index;
@@ -832,7 +832,7 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
 
         m = cc->masklist;
         while (m) {
-          if (strmatch(p->client_host, m->str))
+          if (strcasematch(p->client_host, m->str))
             break;
 
           m = m->next;
