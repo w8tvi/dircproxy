@@ -2,7 +2,7 @@
 .\" Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.35 2002/01/31 13:55:04 scott Exp $
+.\" @(#) $Id: dircproxy.1,v 1.36 2002/02/05 10:00:33 scott Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -332,10 +332,11 @@ detached (ie "*_away" adds "_away" to the end of your nickname);
 .TP
 .B nick_keep
 Whether \fBdircproxy\fR should attempt to keep the nickname you last set
-using your client.  If this is 'yes' then it will keep on trying to
-get it back if it is lost.
+using your client.  If this is 'yes' and your nickname is lost while
+your client is disconnected, then it will keep on trying to get it back
+until a client connects again.
 
- yes = try to keep my nickname
+ yes = try to keep my nickname while I'm disconnected
  no = if it changes, leave it
 
 .TP
