@@ -18,3 +18,9 @@ kind of things bots can do, get one of those and get yourself K-Lined.
 Auto-Op/Auto-Voice support: see above.  There is a user-supplied patch
 which adds this at <http://www.shad0w.org.uk/code/>.  It's not official
 so your mileage may vary.
+
+Some outstanding things to be implemented are:
+
+SO_KEEPALIVE option on sockets, in replacment of stoned server checking.
+
+Display ERROR messages on first login.
