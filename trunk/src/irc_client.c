@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.15 2000/08/21 14:53:35 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.16 2000/08/22 13:08:08 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -622,7 +622,22 @@ int ircclient_welcome(struct ircproxy *p) {
 
   irclog_notice_toall(p, "You connected");
 
+  if (dedicated_proxy != -1)
+    ircclient_dedicated_port();
+
   p->client_status |= IRC_CLIENT_SENTWELCOME;
+  return 0;
+}
+
+/* send the dedicated listening port to the user */
+int ircclient_dedicated_port(struct ircproxy *p) {
+  if (dedicated_proxy == -1)
+    return 1;
+
+  /* Use p->hostname, as thats the most likely address of the proxy */
+  ircclient_send_notice(p, "Reconnect to this session at %s:%d",
+                        p->hostname, dedicated_proxy);
+
   return 0;
 }
 
