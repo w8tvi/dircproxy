@@ -20,6 +20,12 @@
 #include <arpa/inet.h>
 #include <time.h>
 
+#include <openssl/crypto.h>
+#include <openssl/x509.h>
+#include <openssl/pem.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+
 #include "irc_prot.h"
 #include "stringex.h"
 
@@ -45,6 +51,8 @@ typedef struct ircconnclass {
   long server_pingtimeout;
   long *server_throttle;
   int server_autoconnect;
+  
+  int server_ssl;
 
   long channel_rejoin;
   int channel_leave_on_detach;
@@ -167,6 +175,12 @@ typedef struct ircproxy {
   int server_status;
   struct sockaddr_in server_addr;
   long server_attempts;
+  
+  struct SSL_struct {
+    SSL_CTX *ctx;
+    SSL *ssl;
+    X509 *cert;
+  } SSL_struct;
 
   char *nickname;
   char *setnickname;

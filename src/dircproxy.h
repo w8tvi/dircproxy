@@ -166,6 +166,13 @@
  */
 #define DEFAULT_SERVER_MAXINITATTEMPTS 5
 
+/* DEFAULT_SERVER_SSL
+ * Whether server we are connecting to is SSL-enabled
+ * 0 = Do not use SSL
+ * 1 = Use SSL
+ */
+#define DEFAULT_SERVER_SSL 0
+
 /* DEFAULT_SERVER_KEEPALIVE
  * Set the SO_KEEPALIVE socket option?
  *  1 = Yes

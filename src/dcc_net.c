@@ -144,7 +144,7 @@ static int _dccnet_listen(struct dccproxy *p, int *range, size_t range_sz,
     *port = theport;
   debug("Listening for DCC Sendees on port %d", theport);
   p->sendee_status |= DCC_SENDEE_LISTENING;
-  net_hook(p->sendee_sock, SOCK_LISTENING, (void *)p,
+  net_hook(p->sendee_sock, SOCK_LISTENING, NULL, (void *)p,
            ACTIVITY_FUNCTION(_dccnet_accept), 0);
 
   return 0;
@@ -184,11 +184,11 @@ static int _dccnet_connect(struct dccproxy *p, struct in_addr addr, int port,
   p->sender_status |= DCC_SENDER_CREATED;
 
   if (p->type & DCC_SEND) {
-    net_hook(p->sender_sock, SOCK_CONNECTING, (void *)p,
+    net_hook(p->sender_sock, SOCK_CONNECTING, NULL, (void *)p,
              ACTIVITY_FUNCTION(dccsend_connected),
              ERROR_FUNCTION(dccsend_connectfailed));
   } else if (p->type & DCC_CHAT) {
-    net_hook(p->sender_sock, SOCK_CONNECTING, (void *)p,
+    net_hook(p->sender_sock, SOCK_CONNECTING, NULL, (void *)p,
              ACTIVITY_FUNCTION(dccchat_connected),
              ERROR_FUNCTION(dccchat_connectfailed));
   }

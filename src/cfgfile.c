@@ -71,6 +71,7 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
     def->server_throttle[1] = DEFAULT_SERVER_THROTTLE_PERIOD;
   }
   def->server_autoconnect = DEFAULT_SERVER_AUTOCONNECT;
+  def->server_ssl = DEFAULT_SERVER_SSL;
   def->channel_rejoin = DEFAULT_CHANNEL_REJOIN;
   def->channel_leave_on_detach = DEFAULT_CHANNEL_LEAVE_ON_DETACH;
   def->channel_rejoin_on_attach = DEFAULT_CHANNEL_REJOIN_ON_ATTACH;
@@ -306,6 +307,11 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
            server_autoconnect no */
         _cfg_read_bool(&buf, &(class ? class : def)->server_autoconnect);
 
+      } else if (!strcasecmp(key, "server_ssl")) {
+      	/* server_ssl yes
+           server_ssl no */
+      	_cfg_read_bool(&buf, &(class ? class : def)->server_ssl);
+ 
       } else if (!strcasecmp(key, "channel_rejoin")) {
         /* channel_rejoin 5 */
         _cfg_read_numeric(&buf, &(class ? class : def)->channel_rejoin);
