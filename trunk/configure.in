@@ -42,4 +42,4 @@ AC_CHECK_FUNCS(strdup vasprintf vsnprintf)
 )
 
 dnl Output the Makefiles.
-AC_OUTPUT([Makefile src/Makefile])
+AC_OUTPUT([Makefile conf/Makefile src/Makefile])
