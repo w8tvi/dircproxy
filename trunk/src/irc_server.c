@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.47 2000/12/04 12:47:57 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.48 2000/12/07 16:59:28 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -274,6 +274,7 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
         && (errno != EINPROGRESS)) {
       syscall_fail("connect", p->servername, 0);
       net_close(p->server_sock);
+      p->server_sock = -1;
       ret = -1;
     } else {
       ret = 0;
@@ -286,6 +287,7 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
     debug("Connection failed: %s", strerror(errno));
 
     net_close(p->server_sock);
+    p->server_sock = -1;
     timer_new((void *)p, "server_recon", p->conn_class->server_retry,
               TIMER_FUNCTION(_ircserver_reconnect), (void *)0);
 
@@ -395,6 +397,7 @@ static void _ircserver_connectfailed(struct ircproxy *p, int sock, int bad) {
     ircclient_send_notice(p, "Connection failed: %s", strerror(errno));
 
   net_close(p->server_sock);
+  p->server_sock = -1;
   p->server_status &= ~(IRC_SERVER_CREATED);
 
   timer_new((void *)p, "server_recon", p->conn_class->server_retry,
@@ -1267,6 +1270,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 /* Close the server socket itself */
 int ircserver_close_sock(struct ircproxy *p) {
   net_close(p->server_sock);
+  p->server_sock = -1;
 
   p->server_status &= ~(IRC_SERVER_CREATED | IRC_SERVER_CONNECTED
                         | IRC_SERVER_INTRODUCED | IRC_SERVER_GOTWELCOME);
