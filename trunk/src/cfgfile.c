@@ -142,7 +142,8 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
   def->allow_die = DEFAULT_ALLOW_DIE;
   def->allow_users = DEFAULT_ALLOW_USERS;
   def->allow_kill = DEFAULT_ALLOW_KILL;
-
+  def->allow_notify = DEFAULT_ALLOW_NOTIFY;
+   
   while (valid) {
     char buff[512], *buf;
 
@@ -1036,7 +1037,10 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
         /* allow_kill yes
            allow_kill no */
         _cfg_read_bool(&buf, &(class ? class : def)->allow_kill);
-
+      } else if (!strcasecmp(key, "allow_notify")) {
+	 /* allow_notify yes
+	    allow_notify no */
+	_cfg_read_bool(&buf, &(class ? class : def)->allow_notify);	 
       } else if (!class && !strcasecmp(key, "connection")) {
         /* connection {
              :

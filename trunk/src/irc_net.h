@@ -125,7 +125,8 @@ typedef struct ircconnclass {
   int allow_die;
   int allow_users;
   int allow_kill;
-
+  int allow_notify;
+   
   char *password;
   struct strlist *servers, *next_server;
   struct strlist *masklist;
