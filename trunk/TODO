@@ -1,54 +1,66 @@
 For the next release (0.7.0)
 
 	* the /DIRCPROXY command.
-	  RECALL <chan/msg> from nlines
+	  RECALL <chan/msg> [from] nlines
 	  DETACH <away-msg>
           PERSIST
 	  QUIT <msg>		(change /DQUIT to this)
 
-	* global variable saying whether we went into the background or not
-
-	* using above, a debug() function to replace all the others lying
-	  around.  neaten it up, so if in background it uses syslog, and if
-	  not stderr
-
-	* the PERSIST command will set die_on_close to 0, and create a
-	  listen socket on a random port.
+	* Function to make a new listening socket, delete all other proxy
+	  configs.  (Sets dedicated_proxy to 1)
 	  -dircproxy- Reconnect to this session at hostname.domain.tld:46702
 
-	* New, improved, binary log files.  (Okay so they won't be human
-	  readable, but the current ones aren't really anyway!)
+	* If dedicated_proxy = 1 then reannounce above on reconnect or
+	  DETACH
 
-	  [ magic ] [ version ] [ num msgs ] { [ msgsz ] [ msg... ] }...
+	* PERSIST is available if die_on_close is 1, runs above function
+	  and sets die_on_close to 0
 
-	  Should be relatively easy to rotate these and have maximum log file
-	  sizes and things.
-	
-	* Configuration:
-	     log_max_chan_size     } maximum number of messages
-	     log_max_msg_size      } in log files
+	* using above, a debug() function to replace all the others lying
+	  around.  Outputs to stderr if debug mode.
 
-	     log_chan_while_online } log messages while online
-	     log_msg_while_online  } (always logs while offline)
+	  debug(level, msg, ...)
 
-             log_chan_autorecall   } how many messages to recall
-	     log_msg_autorecall    } when reconnecting
+	* new syscall_fail() function, outputs to stderr if not in background
+	  or in debug
 
-	* Re-read configuration file on HUP
+	* Reload configuration file on a HUP
 
-	* Disconnection and stuff when someone else comes in
-	     disconnect_existing_user 1
+	* Many config options we be able to go in the connection { } class
+	  to aid per-user configuration.
 
-	  Must note that this should NOT be used with auto-reconnect
-	  clients! :o)
+	* Rewrite irc_log.c to make it a little less primitive.
 
-	* Drop modes when disconnecting
+	  irclog_channel_msg(p, chan, from, msg, ...)
+	  irclog_channel_notice(p, chan, msg, ...)
+	  irclog_channel_info(p, chan, msg, ...)
+	  irclog_private_msg(p, from, msg, ...)
+	  irclog_notice(p, msg, ...)
+	  irclog_notice_all(p, msg, ...)
 
-	  drop_modes "+o"
+	* Log configuration options to make it very cool
 
-	* Passwords to be encrypted in the config file!
-	  maybe have a 'encrypted_password 0' option for those who don't like
-	  this
+	  log_chan_while_online		1/0
+	  keep_chan_logs		1/0
+
+	  log_msg_while_online		1/0
+	  keep_msg_logs			1/0
+	  
+	  chan_log_max_size		lines
+	  chan_log_default_recall	lines
+	  msg_log_max_size		lines
+	  msg_log_default_recall	lines
+
+	* When a user comes in and is already connected, disconnect the
+	  existing user?
+
+	  disconnect_existing_user	1/0
+
+	* Drop modes when detached
+
+	  drop_modes			"+o"
+
+	* Locate mysterious "+iw" channel bug.
 
 
 Whenever time permits:
@@ -57,6 +69,6 @@ Whenever time permits:
 Would be nice:
 
 	* How can we change the username being presented?  Team up with an
-	  identd perhaps, or we could fork(), close all the other sockets and
-	  become a one-proxy program relistening (see above).
+	  identd perhaps, or we could fork(), setuid() and then run the
+	  function to make new listening socket.
 
