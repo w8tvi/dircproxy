@@ -9,7 +9,7 @@
  *  - CTCP message parsing
  *  - Username sanitisation
  * --
- * @(#) $Id: irc_prot.c,v 1.9 2000/10/31 13:11:20 keybuk Exp $
+ * @(#) $Id: irc_prot.c,v 1.10 2000/11/01 17:57:11 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -270,7 +270,7 @@ void ircprot_stripctcp(const char *msg, char **newmsg, struct strlist **list) {
           struct strlist *s;
 
           s = (struct strlist *)malloc(sizeof(struct strlist));
-          s->str = _ircprot_ctcpdequote(start + 1);
+          s->str = x_strdup(start + 1);
           s->next = 0;
                                           
           if (*list) {
@@ -307,7 +307,7 @@ int ircprot_parsectcp(const char *message, struct ctcpmessage *cmsg) {
   char *start, *ptr;
 
   /* Copy the original message as well */
-  ptr = start = cmsg->orig = x_strdup(message);
+  ptr = start = cmsg->orig = _ircprot_ctcpdequote(message);
 
   /* No command? */
   if (!*ptr) {
