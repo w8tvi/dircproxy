@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.78 2001/01/11 15:29:21 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.79 2001/07/12 14:36:48 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -1545,7 +1545,7 @@ static int _ircclient_motd(struct ircproxy *p) {
       char *ptr;
 
       ptr = buff + strlen(buff);
-      while ((ptr >= buff) && (*ptr <= 32)) *(ptr--) = 0;
+      while ((ptr >= buff) && (!ptr || strchr(" \t\r\n", *ptr))) *(ptr--) = 0;
       ircclient_send_numeric(p, 372, ":- %s", buff);
     }
 
