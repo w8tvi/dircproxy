@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.2 2000/05/13 02:34:59 keybuk Exp $
+ * @(#) $Id: main.c,v 1.3 2000/05/13 05:12:52 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.2 2000/05/13 02:34:59 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.3 2000/05/13 05:12:52 keybuk Exp $";
 
 /* The name of the program */
 char *progname;
@@ -166,7 +166,7 @@ int main(int argc, char *argv[]) {
       openlog(progname, LOG_PID, LOG_USER);
     }
 
-    if (ircnet_listen(TODO_CFG_LISTENPORT)) {
+    if (ircnet_listen(DEFAULT_LISTEN_PORT)) {
       fprintf(stderr, "%s: Unable to establish listen port\n", progname);
       return 2;
     }
