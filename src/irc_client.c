@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.43 2000/09/29 15:51:35 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.44 2000/09/29 15:55:10 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -645,7 +645,7 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
           int slashme;
           char *msg;
 
-          msg = p->conn_class->attach_message;
+          msg = tmp_p->conn_class->attach_message;
           if ((strlen(msg) >= 5) && !strncasecmp(msg, "/me ", 4)) {
             /* Starts with /me */
             slashme = 1;
@@ -654,13 +654,13 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
             slashme = 0;
           }
 
-          c = p->channels;
+          c = tmp_p->channels;
           while (c) {
             if (slashme) {
-              ircserver_send_command(p, "PRIVMSG", "%s :%cACTION %s%c",
+              ircserver_send_command(tmp_p, "PRIVMSG", "%s :%cACTION %s%c",
                                      c->name, 0x01, msg, 0x01);
             } else {
-              ircserver_send_command(p, "PRIVMSG", "%s :%s", c->name, msg);
+              ircserver_send_command(tmp_p, "PRIVMSG", "%s :%s", c->name, msg);
             }
             c = c->next;
           }
