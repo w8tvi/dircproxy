@@ -5,7 +5,7 @@
  * irc_log.c
  *  - Handling of log files
  * --
- * @(#) $Id: irc_log.c,v 1.11 2000/08/25 09:38:23 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.12 2000/08/29 11:12:31 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include <time.h>
 
 #include <dircproxy.h>
 #include "sock.h"
@@ -31,15 +32,22 @@
 #include "irc_log.h"
 
 /* forward declarations */
-static int _irclog_write(struct logfile *, const char *, va_list);
-static int _irclog_notice(struct ircproxy *, struct logfile *, const char *,
-                          const char *, va_list);
+static struct logfile *_irclog_getlog(struct ircproxy *, const char *);
+static char *_irclog_read(struct logfile *);
+static int _irclog_write(struct logfile *, const char *, ...);
+static int _irclog_writetext(struct logfile *, char, const char *, char, int,
+                             const char *, va_list);
+static int _irclog_text(struct ircproxy *, const char *, char, const char *,
+                        char, const char *, va_list);
 
-/* Create a directory for log files */
-int irclog_makedir(struct ircproxy *p) {
+/* Log time format for strftime(3) */
+#define LOG_TIME_FORMAT "%a, %d %b %Y %H:%M:%S %z"
+
+/* Create a temporary directory for log files */
+int irclog_maketempdir(struct ircproxy *p) {
   struct passwd *pw;
 
-  if (p->logdir)
+  if (p->temp_logdir)
     return 0;
 
   pw = getpwuid(geteuid());
@@ -48,53 +56,69 @@ int irclog_makedir(struct ircproxy *p) {
     char *tmpdir;
 
     tmpdir = getenv("TMPDIR");
-    p->logdir = x_sprintf("%s/%s-%s-%d-%d", (tmpdir ? tmpdir : "/tmp"),
-                          PACKAGE, pw->pw_name, getpid(), p->client_sock);
+    debug("TMPDIR = '%s'", (tmpdir ? tmpdir : "(null)"));
+    debug("Username = '%s'", pw->pw_name);
+    debug("PID = '%d'", getpid());
+    p->temp_logdir = x_sprintf("%s/%s-%s-%d-%d", (tmpdir ? tmpdir : "/tmp"),
+                               PACKAGE, pw->pw_name, getpid(), p->client_sock);
+    debug("temp_logdir = '%s'", p->temp_logdir);
 
-    if (lstat(p->logdir, &statinfo)) {
+    if (lstat(p->temp_logdir, &statinfo)) {
       if (errno != ENOENT) {
-        syscall_fail("lstat", p->logdir, 0);
-        free(p->logdir);
-        p->logdir = 0;
+        syscall_fail("lstat", p->temp_logdir, 0);
+        free(p->temp_logdir);
+        p->temp_logdir = 0;
         return -1;
-       } else if (mkdir(p->logdir, 0700)) {
-        syscall_fail("mkdir", p->logdir, 0);
-        free(p->logdir);
-        p->logdir = 0;
+       } else if (mkdir(p->temp_logdir, 0700)) {
+        syscall_fail("mkdir", p->temp_logdir, 0);
+        free(p->temp_logdir);
+        p->temp_logdir = 0;
         return -1;
       }
     } else if (!S_ISDIR(statinfo.st_mode)) {
-      free(p->logdir);
-      p->logdir = 0;
+      debug("Existed, but not directory");
+      free(p->temp_logdir);
+      p->temp_logdir = 0;
       return -1;
     }
   } else {
+    debug("Couldn't get username!");
     return -1;
   }
 
   return 0;
 }
 
-/* Clean up directory of log files */
-int irclog_closedir(struct ircproxy *p) {
-  if (!p->logdir)
+/* Clean up temporary directory of log files */
+int irclog_closetempdir(struct ircproxy *p) {
+  if (!p->temp_logdir)
     return 0;
 
-  rmdir(p->logdir);
-
-  free(p->logdir);
-  p->logdir = 0;
+  debug("Freeing '%s'", p->temp_logdir);
+  rmdir(p->temp_logdir);
+  free(p->temp_logdir);
+  p->temp_logdir = 0;
   return 0;
 }
 
 /* Open a log file. 0 = ok, -1 = error */
-int irclog_open(struct ircproxy *p, const char *filename, struct logfile *log) {
-  char *ptr;
+int irclog_open(struct ircproxy *p, const char *to) {
+  char *ptr, *dir, *filename;
+  struct logfile *log;
 
-  if (!p->logdir)
-    return 0;
+  log = _irclog_getlog(p, to);
+  if (!log)
+    return -1;
 
-  log->filename = x_sprintf("%s/%s", p->logdir, filename);
+  if (log == &(p->other_log)) {
+    dir = (p->conn_class->other_log_dir ? p->conn_class->other_log_dir
+                                        : p->temp_logdir);
+    debug("Log is other_log, using '%s'", dir);
+  } else {
+    dir = (p->conn_class->chan_log_dir ? p->conn_class->chan_log_dir
+                                       : p->temp_logdir);
+    debug("Log is chan_log, using '%s'", dir);
+  }
 
   /* Channel names are allowed to contain . and / according to the IRC
      protocol.  These are nasty as it means someone could theoretically
@@ -103,7 +127,7 @@ int irclog_open(struct ircproxy *p, const char *filename, struct logfile *log) {
      this could be bad.  So to compensate we replace '.' with ',' and '/' with
      ':'.  These two characters are NOT allowed in channel names and thus seem
      to make good replacements */
-  ptr = log->filename + strlen(p->logdir) + 1;
+  ptr = filename = x_strdup(to);
   while (*ptr) {
     switch (*ptr) {
       case '.':
@@ -117,47 +141,192 @@ int irclog_open(struct ircproxy *p, const char *filename, struct logfile *log) {
     ptr++;
   }
 
-  if (unlink(log->filename) && (errno != ENOENT)) {
-    syscall_fail("unlink", log->filename, 0);
+  if (log->filename)
     free(log->filename);
-    return -1;
+  log->filename = x_sprintf("%s/%s", dir, filename);
+  free(filename);
+  debug("log->filename = '%s'", log->filename);
+
+  if (dir == p->temp_logdir) {
+    debug("Going under temp_logdir");
+
+    /* Unlink first for security, then open w+ */
+    if (unlink(log->filename) && (errno != ENOENT)) {
+      syscall_fail("unlink", log->filename, 0);
+      free(log->filename);
+      log->filename = 0;
+      return -1;
+    }
+
+    log->file = fopen(log->filename, "w+");
+    if (!log->file) {
+      syscall_fail("fopen", log->filename, 0);
+      free(log->filename);
+      log->filename = 0;
+      return -1;
+    }
+    log->open = 1;
+    
+    if (chmod(log->filename, 0600))
+      syscall_fail("chmod", log->filename, 0);
+    
+    log->nlines = 0;
+    log->keep = 0;
+
+  } else {
+    /* Open and append to existing files (as long as they are files) */
+    struct stat statinfo;
+    char *l, tbuf[40];
+    time_t now;
+
+    debug("Going under a user directory");
+
+    if (lstat(log->filename, &statinfo)) {
+      if (errno != ENOENT) {
+        syscall_fail("lstat", p->temp_logdir, 0);
+        free(log->filename);
+        log->filename = 0;
+        return -1;
+      }
+    } else if (!S_ISREG(statinfo.st_mode)) {
+      debug("File existed, but wasn't a file");
+      free(log->filename);
+      log->filename = 0;
+      return -1;
+    }
+
+    log->file = fopen(log->filename, "a+");
+    if (!log->file) {
+      syscall_fail("fopen", log->filename, 0);
+      free(log->filename);
+      log->filename = 0;
+      return -1;
+    }
+    log->open = 1;
+   
+    fseek(log->file, 0, SEEK_SET);
+    log->nlines = 0;
+    while ((l = _irclog_read(log))) {
+      free(l);
+      log->nlines++;
+    }
+    debug("Counted %lu lines in the file", log->nlines);
+
+    /* Output a "logging began" line */
+    time(&now);
+    strftime(tbuf, sizeof(tbuf), LOG_TIME_FORMAT, localtime(&now));
+    _irclog_write(log, "* Logging started %s", tbuf);
+    log->keep = 1;
   }
-
-  log->file = fopen(log->filename, "w+");
-  if (!log->file) {
-    syscall_fail("fopen", log->filename, 0);
-    free(log->filename);
-    return -1;
-  }
-
-  if (chmod(log->filename, 0600))
-    syscall_fail("chmod", log->filename, 0);
-
-  log->open = 1;
-  log->nlines = 0;
 
   return 0;
 }
 
-/* Close and free a log file */
-void irclog_close(struct logfile *log) {
+/* Close a log file */
+void irclog_close(struct ircproxy *p, const char *to) {
+  struct logfile *log;
+  
+  log = _irclog_getlog(p, to);
+  if (!log)
+    return;
+
+  irclog_free(log);
+}
+
+/* Actually close and free a log file */
+void irclog_free(struct logfile *log) {
   if (!log->open)
     return;
 
+  debug("Freeing up log file '%s'", log->filename);
+
+  if (log->keep) {
+    /* Output a "logging ended" line */
+    char tbuf[40];
+    time_t now;
+
+    time(&now);
+    strftime(tbuf, sizeof(tbuf), LOG_TIME_FORMAT, localtime(&now));
+    _irclog_write(log, "* Logging finished %s", tbuf);
+  }
+    
   fclose(log->file);
-  unlink(log->filename);
+  if (!log->keep)
+    unlink(log->filename);
   free(log->filename);
-  log->open = 0;
+  log->keep = log->nlines = log->open = 0;
 }
 
-/* Do an actual write to a log file */
-static int _irclog_write(struct logfile *log, const char *format, va_list ap) {
-  char *msg;
+/* Get a log file structure out of an ircproxy */
+static struct logfile *_irclog_getlog(struct ircproxy *p, const char *to) {
+  struct ircchannel *c;
+  
+  if (!to)
+    return 0;
+
+  c = ircnet_fetchchannel(p, to);
+  if (c) {
+    return &(c->log);
+  } else {
+    return &(p->other_log);
+  }
+}
+
+/* Read a line from the log */
+static char *_irclog_read(struct logfile *log) {
+  char buff[512], *line;
 
   if (!log->open)
     return 0;
 
+  line = 0;
+  while (1) {
+    if (!fgets(buff, 512, log->file)) {
+      debug("fgets() failed, no end-of-line reached");
+      free(line);
+      return 0;
+    } else if (!strlen(buff)) {
+      debug("fgets() returned empty string, no end-of-line reached");
+      free(line);
+      return 0;
+    } else {
+      char *ptr;
+
+      debug("fgets() returned a string");
+      
+      if (line) {
+        char *new;
+
+        new = x_sprintf("%s%s", line, buff);
+        free(line);
+        line = new;
+      } else {
+        line = x_strdup(buff);
+      }
+
+      ptr = line + strlen(line) - 1;
+      if (*ptr == '\n') {
+        debug("Ended in \n");
+        while ((ptr >= line) && (*ptr <= 32)) *(ptr--) = 0;
+        break;
+      }
+    }
+  }
+
+  return line;
+}
+
+/* Write a line to the log */
+static int _irclog_write(struct logfile *log, const char *format, ...) {
+  va_list ap;
+  char *msg;
+
+  if (!log->open)
+    return -1;
+
+  va_start(ap, format);
   msg = x_vsprintf(format, ap);
+  va_end(ap);
 
   fseek(log->file, 0, SEEK_END);
   fprintf(log->file, "%s\n", msg);
@@ -165,152 +334,94 @@ static int _irclog_write(struct logfile *log, const char *format, va_list ap) {
   log->nlines++;
 
   free(msg);
-
   return 0;
 }
 
-/* Do an actual write of a notice to a log file */
-static int _irclog_notice(struct ircproxy *p, struct logfile *log,
-                          const char *to, const char *format, va_list ap) {
-  char *msg;
-
-  if (!log->open)
-    return 0;
-
-  msg = x_vsprintf(format, ap);
-
-  fseek(log->file, 0, SEEK_END);
-  fprintf(log->file, ":%s %s %s :%s\n", PACKAGE, "NOTICE", to, msg);
-  fflush(log->file);
-  log->nlines++;
-
-  free(msg);
-
-  return 0;
-}
-
-/* Write to a log file */
-int irclog_write(struct logfile *log, const char *format, ...) {
+/* Write a PRIVMSG to log file(s) */
+int irclog_msg(struct ircproxy *p, const char *to, const char *from,
+               const char *format, ...) {
   va_list ap;
   int ret;
 
   va_start(ap, format);
-  ret = _irclog_write(log, format, ap);
+  ret = _irclog_text(p, to, '<', from, '>', format, ap);
   va_end(ap);
 
   return ret;
 }
 
-/* Find a log file and then write to it */
-int irclog_write_to(struct ircproxy *p, const char *dest,
-                    const char *format, ...) {
-  struct ircchannel *c;
-  struct logfile *log;
+/* Write a NOTICE to log file(s) */
+int irclog_notice(struct ircproxy *p, const char *to, const char *from,
+                  const char *format, ...) {
   va_list ap;
   int ret;
 
-  c = ircnet_fetchchannel(p, dest);
-  log = (c ? &(c->log) : &(p->misclog));
-
   va_start(ap, format);
-  ret = _irclog_write(log, format, ap);
+  ret = _irclog_text(p, to, '-', from, '-', format, ap);
   va_end(ap);
 
   return ret;
 }
 
-/* Find a log file and then write a notice to it */
-int irclog_notice_to(struct ircproxy *p, const char *dest,
-                     const char *format, ...) {
-  struct ircchannel *c;
-  va_list ap;
-  int ret;
+/* Write some text to a log file */
+static int _irclog_writetext(struct logfile *log, char prefrom,
+                             const char *from, char postfrom, int timestamp,
+                             const char *format, va_list ap) {
+  char *text;
 
-  c = ircnet_fetchchannel(p, dest);
+  text = x_vsprintf(format, ap);
 
-  va_start(ap, format);
-  ret = _irclog_notice(p, (c ? &(c->log) : &(p->misclog)),
-                       (c ? c->name : p->nickname), format, ap);
-  va_end(ap);
+  if (timestamp) {
+    char tbuf[40];
+    time_t now;
 
-  return ret;
-}
-
-/* Write a notice to all log files */
-int irclog_notice_toall(struct ircproxy *p, const char *format, ...) {
-  struct ircchannel *c;
-  va_list ap;
-
-  c = p->channels;
-  while (c) {
-    va_start(ap, format);
-    _irclog_notice(p, &(c->log), c->name, format, ap);
-    va_end(ap);
-
-    c = c->next;
-  }
-  
-  return 0; 
-}
-
-/* Read a line from the log */
-char *irclog_read(struct logfile *log) {
-  char buff[512];
-
-  if (!log->open)
-    return 0;
-
-  if (!fgets(buff, 512, log->file)) {
-    return 0;
+    time(&now);
+    strftime(tbuf, sizeof(tbuf), "%H:%M:%S", localtime(&now));
+    _irclog_write(log, "%c%s%c [%s] %s", prefrom, from, postfrom, tbuf, text);
   } else {
-    char *tmp;
-
-    tmp = buff + strlen(buff);
-    while ((tmp >= buff) && (*tmp <= 32)) *(tmp--) = 0;
-
-    tmp = x_strdup(buff);
-
-    return tmp;
+    _irclog_write(log, "%c%s%c %s", prefrom, from, postfrom, text);
   }
-}
 
-/* Start a read from a certain line */
-int irclog_startread(struct logfile *log, unsigned long skip) {
-  unsigned long i;
-
-  if (!log->open)
-    return 0;
-
-  fseek(log->file, 0, SEEK_SET);
-
-  for (i = 0; i < skip; i++) {
-    char *str;
-
-    str = irclog_read(log);
-    free(str);
-  }
+  free(text);
 
   return 0;
 }
 
-/* Do a recall */
-int irclog_recall(struct ircproxy *p, struct logfile *log,
-                  unsigned long numlines) {
-  if (!log->open)
-    return 0;
+/* Write some text to log file(s) */
+static int _irclog_text(struct ircproxy *p, const char *to, char prefrom,
+                        const char *from, char postfrom, const char *format,
+                        va_list ap) {
+  if (to) {
+    struct logfile *log;
+    int timestamp;
+    
+    /* Write to one file */
+    log = _irclog_getlog(p, to);
+    if (!log)
+      return -1;
 
-  irclog_startread(log, (log->nlines > numlines ? log->nlines - numlines : 0));
+    timestamp = (log == &(p->other_log) ? p->conn_class->other_log_timestamp
+                                        : p->conn_class->chan_log_timestamp);
 
-  while (1) {
-    char *str;
-    str = irclog_read(log);
-    if (str) {
-      sock_send(p->client_sock, "%s\r\n", str);
-      free(str);
-    } else {
-      break;
+    _irclog_writetext(log, prefrom, from, postfrom, timestamp, format, ap);
+  } else {
+    struct ircchannel *c;
+
+    /* Write to all files */
+    _irclog_writetext(&(p->other_log), prefrom, from, postfrom,
+                      p->conn_class->other_log_timestamp, format, ap);
+    c = p->channels;
+    while (c) {
+      _irclog_writetext(&(c->log), prefrom, from, postfrom,
+                        p->conn_class->chan_log_timestamp, format, ap);
+      c = c->next;
     }
   }
 
+  return 0;
+}
+
+/* Called to automatically recall stuff */
+int irclog_autorecall(struct ircproxy *p, const char *to) {
   return 0;
 }

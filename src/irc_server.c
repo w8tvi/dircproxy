@@ -5,7 +5,7 @@
  * irc_server.c
  *  - Handling of servers connected to the proxy
  * --
- * @(#) $Id: irc_server.c,v 1.16 2000/08/25 09:50:55 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.17 2000/08/29 11:12:31 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -134,17 +134,17 @@ int ircserver_connect(struct ircproxy *p) {
     ret = -1;
 
   } else {
-    if (p->conn_class->bind) {
+    if (p->conn_class->local_address) {
       host = 0;
       memset(&local_addr, 0, sizeof(struct sockaddr_in));
       local_addr.sin_family = AF_INET;
       local_addr.sin_addr.s_addr = INADDR_ANY;
 
-      if (dns_addrfromhost(p->conn_class->bind, &(local_addr.sin_addr),
+      if (dns_addrfromhost(p->conn_class->local_address, &(local_addr.sin_addr),
                            &host)) {
         if (IS_CLIENT_READY(p))
           ircclient_send_notice(p, "(warning) Couldn't find address for %s",
-                                p->conn_class->bind);
+                                p->conn_class->local_address);
       } else if (bind(p->server_sock, (struct sockaddr *)&local_addr,
                       sizeof(struct sockaddr_in))) {
         if (IS_CLIENT_READY(p))
@@ -328,8 +328,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     if (p->awaymessage) {
       ircserver_send_command(p, "AWAY", ":%s", p->awaymessage);
     } else if (!(p->client_status & IRC_CLIENT_AUTHED)
-               && p->conn_class->awaymessage) {
-      ircserver_send_command(p, "AWAY", ":%s", p->conn_class->awaymessage);
+               && p->conn_class->away_message) {
+      ircserver_send_command(p, "AWAY", ":%s", p->conn_class->away_message);
     }
 
     /* Restore the channel list */
@@ -419,11 +419,12 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
         /* No client connected?  Better notify it */
         if (p->client_status != IRC_CLIENT_ACTIVE) {
           if (msg.numparams >= 3) {
-          irclog_notice_to(p, p->nickname, "Couldn't rejoin %s: %s (%s)",
-                             msg.params[1], msg.params[2], msg.cmd);
+            irclog_notice(p, p->nickname, PACKAGE, 
+                          "Couldn't rejoin %s: %s (%s)",
+                          msg.params[1], msg.params[2], msg.cmd);
           } else {
-            irclog_notice_to(p, p->nickname, "Couldn't rejoin %s (%s)",
-                             msg.params[1], msg.cmd);
+            irclog_notice(p, p->nickname, PACKAGE,
+                          "Couldn't rejoin %s (%s)", msg.params[1], msg.cmd);
           }
         }
 
@@ -453,8 +454,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
             ircclient_send_selfcmd(p, "NICK", ":%s", msg.params[0]);
 
           ircclient_change_nick(p, msg.params[0]);
-          irclog_notice_toall(p, "You changed your nickname to %s\n",
-                              msg.params[0]);
+          irclog_notice(p, 0, p->servername,
+                        "You changed your nickname to %s\n", msg.params[0]);
         }
       }
     } else {
@@ -490,7 +491,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
              what they missed */
           if (p->client_status == IRC_CLIENT_ACTIVE) {
             sock_send(p->client_sock, "%s\r\n", msg.orig);
-            irclog_recall(p, &(c->log), log_autorecall);
+            irclog_autorecall(p, msg.params[0]);
           }
         } else if (!c) {
           /* Orginary join */
@@ -503,8 +504,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       }
     } else {
       if (msg.numparams >= 1)
-        irclog_notice_to(p, msg.params[0], "%s joined the channel",
-                        msg.src.fullname);
+        irclog_notice(p, msg.params[0], p->servername,
+                      "%s joined the channel", msg.src.fullname);
       squelch = 0;
     }
 
@@ -517,8 +518,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       }
     } else {
       if (msg.numparams >= 1)
-        irclog_notice_to(p, msg.params[0], "%s left the channel",
-                         msg.src.fullname);
+        irclog_notice(p, msg.params[0], p->servername,
+                      "%s left the channel", msg.src.fullname);
       squelch = 0;
     }
 
@@ -533,8 +534,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
           chan = ircnet_fetchchannel(p, msg.params[0]);
           if (chan) {
-            irclog_notice_to(p, chan->name, "Kicked off by %s",
-                             msg.src.fullname);
+            irclog_notice(p, msg.params[0], p->servername,
+                          "Kicked off by %s", msg.src.fullname);
             chan->inactive = 1;
             ircnet_rejoin(p, chan->name);
           }
@@ -557,12 +558,14 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       ircprot_stripctcp(str);
       if (strlen(str)) {
         if (msg.src.username && msg.src.hostname) {
-          irclog_write_to(p, msg.params[0], ":%s!%s@%s PRIVMSG %s :%s",
-                          msg.src.name, msg.src.username, msg.src.hostname,
-                          msg.params[0], str);
+          char *tmp;
+
+          tmp = x_sprintf("%s!%s@%s", msg.src.name, msg.src.username,
+                          msg.src.hostname);
+          irclog_msg(p, msg.params[0], tmp, str);
+          free(tmp);
         } else {
-          irclog_write_to(p, msg.params[0], ":%s PRIVMSG %s :%s",
-                          msg.src.name, msg.params[0], str);
+          irclog_msg(p, msg.params[0], msg.src.name, str);
         }
       }
       free(str);
@@ -579,12 +582,14 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       ircprot_stripctcp(str);
       if (strlen(str)) {
         if (msg.src.username && msg.src.hostname) {
-          irclog_write_to(p, msg.params[0], ":%s!%s@%s NOTICE %s :%s",
-                          msg.src.name, msg.src.username, msg.src.hostname,
-                          msg.params[0], str);
+          char *tmp;
+
+          tmp = x_sprintf("%s!%s@%s", msg.src.name, msg.src.username,
+                          msg.src.hostname);
+          irclog_notice(p, msg.params[0], tmp, str);
+          free(tmp);
         } else {
-          irclog_write_to(p, msg.params[0], ":%s NOTICE %s :%s",
-                          msg.src.name, msg.params[0], str);
+          irclog_notice(p, msg.params[0], msg.src.name, str);
         }
       }
       free(str);

@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.22 2000/08/29 10:45:19 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.23 2000/08/29 11:12:31 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -80,12 +80,12 @@ int ircclient_data(struct ircproxy *p) {
         ircserver_close_sock(p);
       } else {
         debug("Client disconnected, detaching proxy");
-        irclog_notice_toall(p, "You disconnected");
+        irclog_notice(p, 0, PACKAGE, "You disconnected");
 
         if ((p->server_status == IRC_SERVER_ACTIVE)
             && (p->client_status == IRC_CLIENT_ACTIVE)
-            && !p->awaymessage && p->conn_class->awaymessage)
-          ircserver_send_command(p, "AWAY", ":%s", p->conn_class->awaymessage);
+            && !p->awaymessage && p->conn_class->away_message)
+          ircserver_send_command(p, "AWAY", ":%s", p->conn_class->away_message);
 
         if ((p->client_status == IRC_CLIENT_ACTIVE)
             && p->conn_class->drop_modes) {
@@ -103,8 +103,22 @@ int ircclient_data(struct ircproxy *p) {
 
         ircclient_close(p);
 
-        /* Make a log to record notices/privmsgs while they are away */
-        irclog_open(p, "misc", &(p->misclog));
+        if (!p->conn_class->other_log_always) {
+          if (irclog_open(p, p->nickname))
+            ircclient_send_notice(p, "(warning) Unable to log server/private "
+                                  "messages");
+        }
+        if (!p->conn_class->chan_log_always) {
+          struct ircchannel *c;
+
+          c = p->channels;
+          while (c) {
+            if (irclog_open(p, c->name))
+              ircclient_send_notice(p, "(warning) Unable to log channel: %s",
+                                    c->name);
+            c = c->next;
+          }
+        }
       }
 
       return -1;
@@ -249,10 +263,13 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
           struct ircchannel *c;
 
           c = ircnet_fetchchannel(p, msg.params[0]);
-          if (c)
-            irclog_write(&(c->log), ":%s!%s@%s PRIVMSG %s :%s",
-                         p->nickname, p->username, p->hostname,
-                         msg.params[0], str);
+          if (c) {
+            char *tmp;
+
+            tmp = x_sprintf("%s!%s@%s", p->nickname, p->username, p->hostname);
+            irclog_msg(p, msg.params[0], tmp, "%s", str);
+            free(tmp);
+          }
         }
         free(str);
       }
@@ -270,10 +287,13 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
           struct ircchannel *c;
 
           c = ircnet_fetchchannel(p, msg.params[0]);
-          if (c)
-            irclog_write(&(c->log), ":%s!%s@%s NOTICE %s :%s",
-                         p->nickname, p->username, p->hostname,
-                         msg.params[0], str);
+          if (c) {
+            char *tmp;
+
+            tmp = x_sprintf("%s!%s@%s", p->nickname, p->username, p->hostname);
+            irclog_notice(p, msg.params[0], tmp, "%s", str);
+            free(tmp);
+          }
         }
         free(str);
       }
@@ -383,7 +403,7 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
       }
 
       if (!tmp_p->awaymessage && (tmp_p->server_status == IRC_SERVER_ACTIVE)
-          && tmp_p->conn_class->awaymessage)
+          && tmp_p->conn_class->away_message)
         ircserver_send_command(tmp_p, "AWAY", "");
 
       p->client_status = IRC_CLIENT_NONE;
@@ -396,9 +416,18 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
 
       /* Okay, they've authed for the first time, make the log directory
          here */
-      if (irclog_makedir(p))
-        ircclient_send_notice(p, "(warning) Unable to create log directory, %s",
-                                 "logging disabled");
+      if (!p->conn_class->chan_log_dir || !p->conn_class->other_log_dir) {
+        if (irclog_maketempdir(p))
+          ircclient_send_notice(p, "(warning) Unable to create log "
+                                   "directory, logging disabled");
+      }
+
+      if (p->conn_class->other_log_always) {
+        if (irclog_open(p, ""))
+          ircclient_send_notice(p, "(warning) Unable to log server/private "
+                                "messages");
+      }
+
     }
 
     return 0;
@@ -582,11 +611,24 @@ int ircclient_welcome(struct ircproxy *p) {
                            p->servername, p->serverver,
                            p->serverumodes, p->servercmodes);
   ircclient_send_numeric(p, 375, ":- %s Message of the Day -", p->servername);
-  if (p->misclog.open && p->misclog.nlines) {
+  if (p->other_log.open && p->other_log.nlines) {
+    char *s;
+
+    if (p->conn_class->other_log_recall == -1) {
+      s = x_strdup("all");
+    } else if (p->conn_class->other_log_recall == 0) {
+      s = x_strdup("none");
+    } else {
+      s = x_sprintf("%ld", p->conn_class->other_log_recall);
+    }
+
     ircclient_send_numeric(p, 372, ":- %s", "You missed:");
-    ircclient_send_numeric(p, 372, ":-   %ld %s", p->misclog.nlines,
-                           "server/private messages (all will be sent)");
+    ircclient_send_numeric(p, 372, ":-   %ld server/private message%s "
+                           "(%s will be sent)", p->other_log.nlines,
+                           (p->other_log.nlines == 1 ? "" : "s"), s);
     ircclient_send_numeric(p, 372, ":-");
+
+    free(s);
   }
   if (p->channels) {
     struct ircchannel *c;
@@ -598,10 +640,21 @@ int ircclient_welcome(struct ircproxy *p) {
         ircclient_send_numeric(p, 372, ":-   %s %s", c->name,
                                "(forcefully removed)");
       } else if (c->log.open && c->log.nlines) {
-        ircclient_send_numeric(p, 372, ":-   %s. %ld %s. (%ld %s)",
-                               c->name, c->log.nlines, "lines logged",
-                               MIN(c->log.nlines, log_autorecall),
-                               "will be sent");
+        char *s;
+
+        if (p->conn_class->chan_log_recall == -1) {
+          s = x_strdup("all");
+        } else if (p->conn_class->chan_log_recall == 0) {
+          s = x_strdup("none");
+        } else {
+          s = x_sprintf("%ld", MIN(p->other_log.nlines,
+                                   p->conn_class->chan_log_recall));
+        }
+
+        ircclient_send_numeric(p, 372, ":-   %s. %ld lines logged. "
+                               "(%s will be sent)", c->name, c->log.nlines, s);
+
+        free(s);
       } else {
         ircclient_send_numeric(p, 372, ":-   %s %s", c->name,
                                "(not logged)");
@@ -616,9 +669,12 @@ int ircclient_welcome(struct ircproxy *p) {
   if (p->modes)
     ircclient_send_selfcmd(p, "MODE", "%s +%s", p->nickname, p->modes);
 
-  if (p->misclog.open) {
-    irclog_recall(p, &(p->misclog), p->misclog.nlines);
-    irclog_close(&(p->misclog));
+  /* Recall other log file */
+  if (p->other_log.open) {
+    irclog_autorecall(p, p->nickname);
+
+    if (!p->conn_class->other_log_always)
+      irclog_close(p, p->nickname);
   }
 
   if (p->awaymessage) {
@@ -641,14 +697,16 @@ int ircclient_welcome(struct ircproxy *p) {
         ircserver_send_command(p, "TOPIC", ":%s", c->name);
         ircserver_send_command(p, "NAMES", ":%s", c->name);
 
-        irclog_recall(p, &(c->log), log_autorecall);
+        irclog_autorecall(p, c->name);
+        if (!p->conn_class->chan_log_always)
+          irclog_close(p, c->name);
       }
 
       c = c->next;
     }
   }
 
-  irclog_notice_toall(p, "You connected");
+  irclog_notice(p, 0, PACKAGE, "You connected");
   ircnet_announce_status(p);
 
   p->client_status |= IRC_CLIENT_SENTWELCOME;
