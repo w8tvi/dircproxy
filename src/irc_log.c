@@ -5,7 +5,7 @@
  * irc_log.c
  *  - Handling of log files
  * --
- * @(#) $Id: irc_log.c,v 1.18 2000/08/31 15:30:56 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.19 2000/09/01 12:13:32 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -38,8 +38,8 @@ static void _irclog_close(struct logfile *);
 static struct logfile *_irclog_getlog(struct ircproxy *, const char *);
 static char *_irclog_read(struct logfile *);
 static int _irclog_write(struct logfile *, const char *, ...);
-static int _irclog_writetext(struct logfile *, char, const char *, char, int,
-                             const char *, va_list);
+static int _irclog_writetext(struct logfile *, char, const char *, char,
+                             int, const char *, va_list);
 static int _irclog_text(struct ircproxy *, const char *, char, const char *,
                         char, const char *, va_list);
 static int _irclog_recall(struct ircproxy *, struct logfile *, unsigned long,
@@ -127,11 +127,13 @@ int irclog_open(struct ircproxy *p, const char *to) {
     dir = (p->conn_class->other_log_dir ? p->conn_class->other_log_dir
                                         : p->temp_logdir);
     ptr = filename = x_strdup("other");
+    log->maxlines = p->conn_class->other_log_maxsize;
     debug("Log is other_log, using '%s/%s'", dir, filename);
   } else {
     dir = (p->conn_class->chan_log_dir ? p->conn_class->chan_log_dir
                                        : p->temp_logdir);
     ptr = filename = x_strdup(to);
+    log->maxlines = p->conn_class->chan_log_maxsize;
     debug("Log is chan_log, using '%s/%s'", dir, filename);
   }
 
@@ -349,6 +351,42 @@ static int _irclog_write(struct logfile *log, const char *format, ...) {
   msg = x_vsprintf(format, ap);
   va_end(ap);
 
+  if (log->nlines >= log->maxlines) {
+    FILE *out;
+    char *l;
+
+    /* We can't simply add .tmp or something on the end, because there is
+       always a possibility that might be a channel name.  Besides using
+       temporary files always looks icky to me.  This "Sick Puppy" way of
+       reading from an unlinked file sits with me much better (says a lot
+       about me, that) */
+    fseek(log->file, 0, SEEK_SET);
+    unlink(log->filename);
+
+    /* This *really* shouldn't happen */
+    out = fopen(log->filename, "w+");
+    if (!out) {
+      syscall_fail("fopen", log->filename, 0);
+      return -1;
+    }
+
+    /* Eat from the start */
+    while ((log->nlines >= log->maxlines) && (l = _irclog_read(log))) {
+      free(l);
+      log->nlines--;
+    }
+
+    /* Write the rest */
+    while ((l = _irclog_read(log))) {
+      fprintf(out, "%s\n", l);
+      free(l);
+    }
+
+    /* Close the input file, thereby *whoosh*ing it */
+    fclose(log->file);
+    log->file = out;
+  }
+
   fseek(log->file, 0, SEEK_END);
   fprintf(log->file, "%s\n", msg);
   fflush(log->file);
@@ -385,9 +423,9 @@ int irclog_notice(struct ircproxy *p, const char *to, const char *from,
 }
 
 /* Write some text to a log file */
-static int _irclog_writetext(struct logfile *log, char prefrom,
-                             const char *from, char postfrom, int timestamp,
-                             const char *format, va_list ap) {
+static int _irclog_writetext(struct logfile *log,
+                             char prefrom, const char *from, char postfrom,
+                             int timestamp, const char *format, va_list ap) {
   char *text;
 
   text = x_vsprintf(format, ap);
