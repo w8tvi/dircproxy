@@ -5,7 +5,7 @@
  * irc_server.c
  *  - Handling of servers connected to the proxy
  * --
- * @(#) $Id: irc_server.c,v 1.3 2000/05/13 05:12:52 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.4 2000/05/13 05:25:04 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -257,7 +257,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     /* Use 001 to get the servername */
     if (msg.src.type & IRC_SERVER) {
       free(p->servername);
-      p->servername = strdup(msg.src.name);
+      p->servername = x_strdup(msg.src.name);
     }
 
   } else if (!strcasecmp(msg.cmd, "002")) {
@@ -272,10 +272,10 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       free(p->serverumodes);
       free(p->servercmodes);
 
-      p->servername = strdup(msg.params[1]);
-      p->serverver = strdup(msg.params[2]);
-      p->serverumodes = strdup(msg.params[3]);
-      p->servercmodes = strdup(msg.params[4]);
+      p->servername = x_strdup(msg.params[1]);
+      p->serverver = x_strdup(msg.params[2]);
+      p->serverumodes = x_strdup(msg.params[3]);
+      p->servercmodes = x_strdup(msg.params[4]);
 
       p->server_status |= IRC_SERVER_GOTWELCOME;
 
@@ -330,7 +330,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
         if (p->client_status & IRC_CLIENT_CONNECTED)
           ircclient_send_selfcmd(p, "NICK", ":%s", msg.params[0]);
 
-        p->nickname = strdup(msg.params[0]);
+        p->nickname = x_strdup(msg.params[0]);
 
         squelch = 0;
       } else {
@@ -441,7 +441,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
         if (p->client_status != IRC_CLIENT_ACTIVE) {
           char *str;
 
-          str = strdup(msg.params[0]);
+          str = x_strdup(msg.params[0]);
           if (DEFAULT_CHANNEL_REJOIN == 0) {
             _ircserver_rejoin(p, (void *)str);
           } else if (DEFAULT_CHANNEL_REJOIN > 0) {
@@ -458,7 +458,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     if (msg.numparams >= 2) {
       char *str;
 
-      str = strdup(msg.params[1]);
+      str = x_strdup(msg.params[1]);
       ircprot_stripctcp(str);
       if (strlen(str)) {
         if (msg.src.username && msg.src.hostname) {
@@ -480,7 +480,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     if (msg.numparams >= 1) {
       char *str;
 
-      str = strdup(msg.params[1]);
+      str = x_strdup(msg.params[1]);
       ircprot_stripctcp(str);
       if (strlen(str)) {
         if (msg.src.username && msg.src.hostname) {
@@ -546,13 +546,13 @@ static int _ircserver_forclient(struct ircproxy *p, struct ircmessage *msg) {
   if (msg->src.username) {
     free(p->username);
 
-    p->username = strdup(msg->src.username);
+    p->username = x_strdup(msg->src.username);
   }
 
   if (msg->src.hostname) {
     free(p->hostname);
 
-    p->hostname = strdup(msg->src.hostname);
+    p->hostname = x_strdup(msg->src.hostname);
   }
 
   return 1;

@@ -9,7 +9,7 @@
  * its a lot smaller than anyone elses that I know of, which worries
  * me slightly :) - But it seems to work
  * --
- * @(#) $Id: match.c,v 1.2 2000/05/13 04:41:55 keybuk Exp $
+ * @(#) $Id: match.c,v 1.3 2000/05/13 05:25:04 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -56,8 +56,8 @@ int strcasematch(const char *str, const char *mask) {
   char *newstr, *newmask;
   int ret;
 
-  newstr = strlwr(strdup(str));
-  newmask = strlwr(strdup(mask));
+  newstr = strlwr(x_strdup(str));
+  newmask = strlwr(x_strdup(mask));
 
   ret = strmatch(newstr, newmask);
 

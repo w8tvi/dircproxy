@@ -5,7 +5,7 @@
  * irc_string.c
  *  - Case conversion functions for IRC protocol
  * --
- * @(#) $Id: irc_string.c,v 1.2 2000/05/13 04:41:55 keybuk Exp $
+ * @(#) $Id: irc_string.c,v 1.3 2000/05/13 05:25:04 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -18,6 +18,7 @@
 
 #include <dircproxy.h>
 #include "match.h"
+#include "sprintf.h"
 #include "irc_string.h"
 
 /* Changes the case of a string to lowercase */
@@ -77,8 +78,8 @@ int irc_strcasecmp(const char *s1, const char *s2) {
   char *news1, *news2;
   int ret;
 
-  news1 = irc_strlwr(strdup(s1));
-  news2 = irc_strlwr(strdup(s2));
+  news1 = irc_strlwr(x_strdup(s1));
+  news2 = irc_strlwr(x_strdup(s2));
 
   ret = strcmp(news1, news2);
 
@@ -93,8 +94,8 @@ int irc_strcasematch(const char *str, const char *mask) {
   char *newstr, *newmask;
   int ret;
 
-  newstr = irc_strlwr(strdup(str));
-  newmask = irc_strlwr(strdup(mask));
+  newstr = irc_strlwr(x_strdup(str));
+  newmask = irc_strlwr(x_strdup(mask));
 
   ret = strmatch(newstr, newmask);
 
