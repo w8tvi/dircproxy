@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.54 2001/07/12 14:29:49 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.55 2001/12/21 19:59:25 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -250,6 +250,9 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
     ret = -1;
 
   } else {
+    if (p->conn_class->server_keepalive)
+      net_keepalive(p->server_sock);
+
     if (p->conn_class->local_address) {
       if (addr) {
         struct sockaddr_in local_addr;

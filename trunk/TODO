@@ -21,6 +21,4 @@ so your mileage may vary.
 
 Some outstanding things to be implemented are:
 
-SO_KEEPALIVE option on sockets, in replacment of stoned server checking.
-
 Display ERROR messages on first login.

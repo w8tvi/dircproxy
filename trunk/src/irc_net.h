@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.42 2001/01/11 15:29:21 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.43 2001/12/21 19:59:25 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -46,6 +46,7 @@ struct ircconnclass {
   long server_dnsretry;
   long server_maxattempts;
   long server_maxinitattempts;
+  int server_keepalive;
   long server_pingtimeout;
   long *server_throttle;
   int server_autoconnect;

@@ -2,7 +2,7 @@
 .\" Copyright (C) 2001 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.32 2001/01/11 15:29:21 keybuk Exp $
+.\" @(#) $Id: dircproxy.1,v 1.33 2001/12/21 19:59:25 keybuk Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -155,13 +155,26 @@ before giving up and declaring the proxied connection dead?
  0 = iterate forever.  This isn't recommended.
 
 .TP
+.B server_keepalive
+This checks whether the dircproxy to server connection is alive at the TCP
+level.  If no data is sent in either direction for a period of time, a TCP
+keepalive probe is sent.
+
+ yes = send keepalive probes
+ no = don't send keepalive probes
+
+.TP
 .B server_pingtimeout
 For some people, \fBdircproxy\fR doesn't notice that the connection to the
 server has been dropped because the socket remains open.  For example,
 those behind a NAT'd firewall.  \fBdircproxy\fR can ping the server and make
 sure it gets replies back.  If the time since the last reply was
 received exceeds the number of seconds below the server is assumed to be
-"stoned" and \fBdircproxy\fR leaves it.
+"stoned" and \fBdircproxy\fR leaves it.  If you have a high latency connection
+to the server, it can wrongly assume the server is stoned because the PINGs
+don't arrive in time.  Either raise the value, or use
+the '\fBserver_keepalive\fR' option instead.
+
 
  0 = don't send PINGs
 
