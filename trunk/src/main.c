@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.10 2000/05/24 21:29:04 keybuk Exp $
+ * @(#) $Id: main.c,v 1.11 2000/05/25 22:23:18 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.10 2000/05/24 21:29:04 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.11 2000/05/25 22:23:18 keybuk Exp $";
 
 /* The name of the program */
 char *progname;
@@ -72,19 +72,18 @@ struct option long_opts[] = {
   { "version", 0, NULL, 'v' },
   { "no-daemon", 0, NULL, 'D' },
   { "inetd", 0, NULL, 'I' },
-  { "no-global-config", 0, NULL, 'G' },
-  { "listen-port", 0, NULL, 'P' },
-  { "config-file", 0, NULL, 'f' }
+  { "listen-port", 1, NULL, 'P' },
+  { "config-file", 1, NULL, 'f' }
 };
 
 /* Options */
-#define GETOPTIONS "hvDIGP:f:"
+#define GETOPTIONS "hvDIP:f:"
 
 /* We need this */
 int main(int argc, char *argv[]) {
   int optc, show_help, show_version, show_usage;
-  int inetd_mode, no_daemon, no_global_config;
-  char *local_file;
+  char *local_file, *cmd_listen_port;
+  int inetd_mode, no_daemon;
 
   /* Set up some globals */
   progname = argv[0];
@@ -96,8 +95,8 @@ int main(int argc, char *argv[]) {
 #else /* DEBUG */
   no_daemon = 1;
 #endif
-  local_file = 0;
-  show_help = show_version = show_usage = inetd_mode = no_global_config = 0;
+  local_file = cmd_listen_port = 0;
+  show_help = show_version = show_usage = inetd_mode = 0;
   while ((optc = getopt_long(argc, argv, GETOPTIONS, long_opts, NULL)) != -1) {
     switch (optc) {
       case 'h':
@@ -112,12 +111,9 @@ int main(int argc, char *argv[]) {
       case 'I':
         inetd_mode = 1;
         break;
-      case 'G':
-        no_global_config = 1;
-        break;
       case 'P':
-        free(listen_port);
-        listen_port = x_strdup(optarg);
+        free(cmd_listen_port);
+        cmd_listen_port = x_strdup(optarg);
         break;
       case 'f':
         free(local_file);
@@ -145,15 +141,6 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-  /* Read global config file */
-  if (!no_global_config) {
-    char *global_file;
-
-    global_file = x_sprintf("%s/%s", SYSCONFDIR, GLOBAL_CONFIG_FILENAME);
-    cfg_read(global_file);
-    free(global_file);
-  }
-
   /* If no -f was specified use the home directory */
   if (!local_file) {
     struct passwd *pw;
@@ -161,17 +148,32 @@ int main(int argc, char *argv[]) {
     pw = getpwuid(geteuid());
     if (pw && pw->pw_dir) {
       local_file = x_sprintf("%s/%s", pw->pw_dir, USER_CONFIG_FILENAME);
-      cfg_read(local_file);
-      free(local_file);
+      if (cfg_read(local_file)) {
+        /* If the local one didn't exist, set to 0 so we open
+           global one */
+        free(local_file);
+        local_file = 0;
+      }
     }
   } else {
     if (cfg_read(local_file)) {
+      /* This is fatal! */
       fprintf(stderr, "%s: Couldn't read configuration from %s: %s\n",
               progname, local_file, strerror(errno));
       free(local_file);
       return 2;
     }
+  }
 
+  /* Read global config file if local one not found */
+  if (!local_file) {
+    char *global_file;
+
+    /* Not fatal if it doesn't exist */
+    global_file = x_sprintf("%s/%s", SYSCONFDIR, GLOBAL_CONFIG_FILENAME);
+    cfg_read(global_file);
+    free(global_file);
+  } else {
     free(local_file);
   }
 
@@ -180,6 +182,12 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "No configuration classes are defined.  You need to "
             "create a\nconfiguration file and define some in it.\n");
     return 2;
+  }
+
+  /* -P overrides config file */
+  if (cmd_listen_port) {
+    free(listen_port);
+    listen_port = cmd_listen_port;
   }
 
   /* Set signal handlers */
