@@ -1,3 +1,24 @@
+2000-05-13 16:11  Scott James Remnant <scott@netsplit.com>
+
+	* src/main.c: Logic on the -D option was wrong, should set
+        no_daemon to 1.
+
+2000-05-13 16:05  Scott James Remnant <scott@netsplit.com>
+
+	* src/match.c: Requires sprintf.c because it uses strdup()
+
+2000-05-13 16:04  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in, src/sprintf.c: If --enable-debug is set, we
+	actually don't want to check for strdup(), that way we are only
+	checking for vsnprintf() and the code at the top of sprintf.c isn't
+	required.  (This gets rid of all those pesky "Free of illegal
+        block" messages).
+
+2000-05-13 15:47  Scott James Remnant <scott@netsplit.com>
+
+	* ChangeLog, NEWS, TODO: Version 0.5.3 released.
+
 2000-05-13 05:25  Scott James Remnant <scott@netsplit.com>
 
 	* configure.in, src/dns.c, src/irc_client.c, src/irc_log.c,
