@@ -1,5 +1,7 @@
 Need to do
 
+	* Investigate why the 'misc' log is dissapearing
+
 	* Think better how to do PRIVMSGs/NOTICEs from people that you missed
 	  perhaps one per person...
 
@@ -20,9 +22,6 @@ Would be nice
 	* when -I is used, it won't close the socket, because it is waiting
 	  for a client to reconnect.  Either enter listen mode somehow, or
 	  disconnect everything.
-
-	* message of the day file, or perhaps use this to tell them what
-	  they missed
 
 	* config file
 

@@ -1,7 +1,14 @@
 NEWS about changes for existing users.
 --------------------------------------
 
-Version 0.5 - Tue May  9 22:47:55 BST 2000
+Version 0.5.3 - Sat May 13 16:32:00 BST 2000
 
-	* Initial release
+	* Many of the TODO_CFG_* options defined in dircproxy.h have now
+	  been given documentation and renamed.  You'll need to recheck this
+	  file if you've changed them.  The PASS/SERVER/BIND ones are still
+	  at the bottom and still the same however.
+
+Version 0.5.2 - Fri May 12 23:00:00 BST 2000
+
+	* Initial public release
 
