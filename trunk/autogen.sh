@@ -7,4 +7,4 @@ aclocal-1.6
 autoheader
 automake-1.6 --add-missing --copy
 autoconf
-./configure $@
+./configure --enable-maintainer-mode "$@"
