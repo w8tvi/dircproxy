@@ -5,7 +5,7 @@
  * irc_log.c
  *  - Handling of log files
  * --
- * @(#) $Id: irc_log.c,v 1.17 2000/08/30 14:25:59 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.18 2000/08/31 15:30:56 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -308,18 +308,14 @@ static char *_irclog_read(struct logfile *log) {
   line = 0;
   while (1) {
     if (!fgets(buff, 512, log->file)) {
-      debug("fgets() failed, no end-of-line reached");
       free(line);
       return 0;
     } else if (!strlen(buff)) {
-      debug("fgets() returned empty string, no end-of-line reached");
       free(line);
       return 0;
     } else {
       char *ptr;
 
-      debug("fgets() returned a string");
-      
       if (line) {
         char *new;
 
@@ -332,7 +328,6 @@ static char *_irclog_read(struct logfile *log) {
 
       ptr = line + strlen(line) - 1;
       if (*ptr == '\n') {
-        debug("Ended in \\n");
         while ((ptr >= line) && (*ptr <= 32)) *(ptr--) = 0;
         break;
       }
@@ -475,6 +470,28 @@ int irclog_autorecall(struct ircproxy *p, const char *to) {
   lines = log->nlines - start;
 
   return _irclog_recall(p, log, start, lines, to, 0);
+}
+
+/* Called to manually recall stuff */
+int irclog_recall(struct ircproxy *p, const char *to,
+                  unsigned long start, unsigned long lines, const char *from) {
+  struct logfile *log;
+
+  log = _irclog_getlog(p, to);
+  if (!log)
+    return -1;
+
+  /* Recall everything */
+  if (lines == -1) {
+    start = 0;
+    lines = log->nlines;
+  }
+
+  /* Recall recent */
+  if (start == -1)
+    start = (lines > log->nlines ? 0 : log->nlines - lines);
+
+  return _irclog_recall(p, log, start, lines, to, from);
 }
 
 /* Called to do the recall from a log file */
