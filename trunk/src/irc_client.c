@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.48 2000/10/12 16:02:42 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.49 2000/10/12 16:05:08 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -1251,13 +1251,6 @@ int ircclient_welcome(struct ircproxy *p) {
   if (p->modes)
     ircclient_send_selfcmd(p, "MODE", "%s +%s", p->nickname, p->modes);
 
-  /* Recall other log file */
-  if (p->conn_class->other_log_enabled) {
-    irclog_autorecall(p, p->nickname);
-    if (!p->conn_class->other_log_always)
-      irclog_close(p, p->nickname);
-  }
-
   if (p->awaymessage) {
     /* Ack.  There's no reason for a client to expect AWAY from a server,
        so we cheat and send a 306, reminding them what their away message
@@ -1287,6 +1280,13 @@ int ircclient_welcome(struct ircproxy *p) {
 
       c = c->next;
     }
+  }
+
+  /* Recall other log file */
+  if (p->conn_class->other_log_enabled) {
+    irclog_autorecall(p, p->nickname);
+    if (!p->conn_class->other_log_always)
+      irclog_close(p, p->nickname);
   }
 
   irclog_notice(p, 0, PACKAGE, "You connected");
