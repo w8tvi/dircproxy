@@ -12,6 +12,7 @@ of system:
         FreeBSD 3.x, 4.x+
         Solaris 2.5+
 	Windows NT (with cygwin compiler)
+	Mac OS X on G3 (you'll need to specify host to configure)
 
 If (and you should) get it to work on any other type of system,
 please e-mail me so I can it to this list.
