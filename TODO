@@ -1,7 +1,5 @@
 For the next release (0.7.0)
 
-	* Write log recall output code
-
 	* the /DIRCPROXY command.
 	  HELP
 	  RECALL [ nickname | [#chan] [from] ] < nlines | all >
