@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.13 2000/08/24 11:10:21 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.14 2000/08/24 11:25:10 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -157,7 +157,8 @@
 /* global variables */
 extern char *progname;
 extern int in_background;
-extern char *listen_port;
+
+/* obsolete! obsolete! delete me! */
 extern unsigned long log_autorecall;
 
 #endif /* __DIRCPROXY_DIRCPROXY_H */

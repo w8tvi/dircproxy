@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.6 2000/08/24 11:10:21 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.7 2000/08/24 11:25:10 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -34,7 +34,7 @@ static int _cfg_read_string(char **, char **);
                                 filename); valid = 0; break; }
 
 /* Read a config file */
-int cfg_read(const char *filename) {
+int cfg_read(const char *filename, char **listen_port) {
   long server_maxattempts, server_maxinitattempts;
   long server_retry, server_dnsretry;
   struct ircconnclass *class;
@@ -118,8 +118,11 @@ int cfg_read(const char *filename) {
         if (_cfg_read_string(&buf, &str))
           UNMATCHED_QUOTE;
 
-        free(listen_port);
-        listen_port = str;
+        /* Make sure the silly programmer supplied the pointer! */
+        if (listen_port) {
+          free(*listen_port);
+          *listen_port = str;
+        }
 
       } else if (!strcasecmp(key, "server_port")) {
         /* server_port 6667
