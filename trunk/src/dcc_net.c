@@ -8,7 +8,7 @@
  *  - The list of currently active DCC proxies
  *  - Miscellaneous DCC functions
  * --
- * @(#) $Id: dcc_net.c,v 1.12 2001/12/21 20:15:55 keybuk Exp $
+ * @(#) $Id: dcc_net.c,v 1.13 2002/08/17 19:38:14 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -52,7 +52,8 @@ static struct dccproxy *proxies = 0;
 int dccnet_new(int type, long timeout, int *range, size_t range_sz,
                int *lport, struct in_addr addr, int port,
                const char *filename, long maxsize,
-               int (*n_f)(void *, const char *), void *n_p, const char *n_msg) {
+               int (*n_f)(void *, const char *, const char *),
+               void *n_p, const char *n_msg) {
   struct dccproxy *p;
 
   p = (struct dccproxy *)malloc(sizeof(struct dccproxy));
@@ -102,8 +103,6 @@ int dccnet_new(int type, long timeout, int *range, size_t range_sz,
       free(p);
       return -1;
     }
-
-
   }
 
   p->notify_func = n_f;
@@ -265,7 +264,8 @@ static void _dccnet_timedout(struct dccproxy *p, void *data) {
                                "remote peer\n", PACKAGE);
     } else if (p->type & DCC_SEND) {
       if (p->notify_func)
-        p->notify_func(p->notify_data, p->notify_msg);
+        p->notify_func(p->notify_data, p->notify_msg,
+                       "Timed out awaiting connection from peer");
     }
 
   } else if (p->sender_status != DCC_SENDER_ACTIVE) {
@@ -279,7 +279,8 @@ static void _dccnet_timedout(struct dccproxy *p, void *data) {
         return;
       } else {
         if (p->notify_func)
-          p->notify_func(p->notify_data, p->notify_msg);
+          p->notify_func(p->notify_data, p->notify_msg,
+                         "Connection to peer timed out");
       }
     }
 
