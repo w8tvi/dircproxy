@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.10 2000/08/29 10:42:42 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.11 2000/08/29 11:10:24 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -30,21 +30,37 @@ static int _cfg_read_string(char **, char **);
 #define WS " \t\r\n"
 
 /* Quick and easy "Unmatched Quote" define */
-#define UNMATCHED_QUOTE { fprintf(stderr, "%s: Unmatched quote for key '%s' " \
-                                "at line %ld of %s\n", progname, key, line, \
+#define UNMATCHED_QUOTE { error("Unmatched quote for key '%s' " \
+                                "at line %ld of %s", key, line, \
                                 filename); valid = 0; break; }
 
 /* Read a config file */
 int cfg_read(const char *filename, char **listen_port) {
-  long server_maxattempts, server_maxinitattempts;
-  long server_retry, server_dnsretry;
-  char *server_port, *drop_modes;
   struct ircconnclass *class;
-  int disconnect_existing;
-  long channel_rejoin;
   int valid;
   long line;
   FILE *fd;
+
+  char *server_port;
+  long server_retry;
+  long server_dnsretry;
+  long server_maxattempts;
+  long server_maxinitattempts;
+  long channel_rejoin;
+  int disconnect_existing;
+  char *drop_modes;
+  char *local_address;
+  char *away_message;
+  char *chan_log_dir;
+  int chan_log_always;
+  int chan_log_timestamp;
+  long chan_log_maxsize;
+  long chan_log_recall;
+  char *other_log_dir;
+  int other_log_always;
+  int other_log_timestamp;
+  long other_log_maxsize;
+  long other_log_recall;
 
   class = 0;
   line = 0;
@@ -62,6 +78,18 @@ int cfg_read(const char *filename, char **listen_port) {
   channel_rejoin = DEFAULT_CHANNEL_REJOIN;
   disconnect_existing = DEFAULT_DISCONNECT_EXISTING;
   drop_modes = x_strdup(DEFAULT_DROP_MODES);
+  local_address = (DEFAULT_LOCAL_ADDRESS ? x_strdup(DEFAULT_LOCAL_ADDRESS) : 0);
+  away_message = (DEFAULT_AWAY_MESSAGE ? x_strdup(DEFAULT_AWAY_MESSAGE) : 0);
+  chan_log_dir = (DEFAULT_CHAN_LOG_DIR ? x_strdup(DEFAULT_CHAN_LOG_DIR) : 0);
+  chan_log_always = DEFAULT_CHAN_LOG_ALWAYS;
+  chan_log_timestamp = DEFAULT_CHAN_LOG_TIMESTAMP;
+  chan_log_maxsize = DEFAULT_CHAN_LOG_MAXSIZE;
+  chan_log_recall = DEFAULT_CHAN_LOG_RECALL;
+  other_log_dir = (DEFAULT_OTHER_LOG_DIR ? x_strdup(DEFAULT_OTHER_LOG_DIR) : 0);
+  other_log_always = DEFAULT_OTHER_LOG_ALWAYS;
+  other_log_timestamp = DEFAULT_OTHER_LOG_TIMESTAMP;
+  other_log_maxsize = DEFAULT_OTHER_LOG_MAXSIZE;
+  other_log_recall = DEFAULT_OTHER_LOG_RECALL;
 
   while (valid) {
     char buff[512], *buf;
@@ -93,8 +121,7 @@ int cfg_read(const char *filename, char **listen_port) {
         /* Close brace is only allowed when class is defined
            (we check here, because its a special case and has no value) */
         if (!strcmp(key, "}") && !class) {
-          fprintf(stderr, "%s: Close brace without open at line %ld of %s\n",
-                  progname, line, filename);
+          error("Close brace without open at line %ld of %s", line, filename);
           valid = 0;
           break;
         }
@@ -105,8 +132,8 @@ int cfg_read(const char *filename, char **listen_port) {
       /* If we reached the end of the buffer, or a comment, that means
          this key has no value.  Unless the key is '}' then thats bad */
       if ((!*buf || (*buf == '#')) && strcmp(key, "}")) {
-        fprintf(stderr, "%s: Missing value for key '%s' at line %ld of %s\n",
-                progname, key, line, filename);
+        error("Missing value for key '%s' at line %ld of %s",
+              key, line, filename);
         valid = 0;
         break;
       }
@@ -172,10 +199,12 @@ int cfg_read(const char *filename, char **listen_port) {
                           &(class ? class->channel_rejoin : channel_rejoin));
  
       } else if (!strcasecmp(key, "disconnect_existing")) {
-        /* disconnect_existing no */
+        /* disconnect_existing yes
+           disconnect_existing no */
         _cfg_read_bool(&buf,
-                       &(disconnect_existing ? class->disconnect_existing
-                                             : disconnect_existing));
+                       &(class ? class->disconnect_existing
+                               : disconnect_existing));
+
       } else if (!strcasecmp(key, "drop_modes")) {
         /* drop_modes "ow" */
         char *str;
@@ -199,10 +228,177 @@ int cfg_read(const char *filename, char **listen_port) {
           drop_modes = str;
         }
 
-      } else if (!class && !strcasecmp(key, "log_autorecall")) {
-        /* log_autorecall 128 */
-        _cfg_read_numeric(&buf, &log_autorecall);
- 
+      } else if (!strcasecmp(key, "local_address")) {
+        /* local_address none
+           local_address "i.am.a.virtual.host.com" */
+        char *str;
+
+        if (_cfg_read_string(&buf, &str))
+          UNMATCHED_QUOTE;
+
+        if (!strcasecmp(str, "none")) {
+          free(str);
+          str = 0;
+        }
+
+        if (class) {
+          free(class->local_address);
+          class->local_address = str;
+        } else {
+          free(local_address);
+          class->local_address = str;
+        }
+
+      } else if (!strcasecmp(key, "away_message")) {
+        /* away_message none
+         * away_message "Not available, messages are logged" */
+        char *str;
+
+        if (_cfg_read_string(&buf, &str))
+          UNMATCHED_QUOTE;
+
+        if (!strcasecmp(str, "none")) {
+          free(str);
+          str = 0;
+        }
+
+        if (class) {
+          free(class->away_message);
+          class->away_message = str;
+        } else {
+          free(away_message);
+          away_message = str;
+        }
+        
+      } else if (!strcasecmp(key, "chan_log_dir")) {
+        /* chan_log_dir none
+           chan_log_dir "/log"
+           chan_log_dir "~/logs" */
+        char *str;
+
+        if (_cfg_read_string(&buf, &str))
+          UNMATCHED_QUOTE;
+
+        if (!strcasecmp(str, "none")) {
+          free(str);
+          str = 0;
+
+        } else if (!strncmp(str, "~/", 2)) {
+          char *home;
+
+          home = getenv("HOME");
+          if (home) {
+            char *tmp;
+
+            tmp = x_sprintf("%s%s", home, str + 1);
+            free(str);
+            str = tmp;
+          } else {
+            /* Best we can do */
+            *str = '.';
+          }
+        }
+
+        if (class) {
+          free(class->chan_log_dir);
+          class->chan_log_dir = str;
+        } else {
+          free(chan_log_dir);
+          chan_log_dir = str;
+        }
+
+      } else if (!strcasecmp(key, "chan_log_always")) {
+        /* chan_log_always yes
+           chan_log_always no */
+        _cfg_read_bool(&buf,
+                       &(class ? class->chan_log_always : chan_log_always));
+
+      } else if (!strcasecmp(key, "chan_log_timestamp`")) {
+        /* chan_log_timestamp yes
+           chan_log_timestamp no */
+        _cfg_read_bool(&buf,
+                       &(class ? class->chan_log_timestamp
+                               : chan_log_timestamp));
+
+      } else if (!strcasecmp(key, "chan_log_maxsize")) {
+        /* chan_log_maxsize 128
+           chan_log_maxsize 0 */
+        _cfg_read_numeric(&buf,
+                          &(class ? class->chan_log_maxsize
+                                  : chan_log_maxsize));
+
+      } else if (!strcasecmp(key, "chan_log_recall")) {
+        /* chan_log_recall 128
+           chan_log_recall 0
+           chan_log_recall -1 */
+        _cfg_read_numeric(&buf,
+                          &(class ? class->chan_log_recall : chan_log_recall));
+
+      } else if (!strcasecmp(key, "other_log_dir")) {
+        /* other_log_dir none
+           other_log_dir "/log"
+           other_log_dir "~/logs" */
+        char *str;
+
+        if (_cfg_read_string(&buf, &str))
+          UNMATCHED_QUOTE;
+
+        if (!strcasecmp(str, "none")) {
+          free(str);
+          str = 0;
+          
+        } else if (!strncmp(str, "~/", 2)) {
+          char *home;
+
+          home = getenv("HOME");
+          if (home) {
+            char *tmp;
+
+            tmp = x_sprintf("%s%s", home, str + 1);
+            free(str);
+            str = tmp;
+          } else {
+            /* Best we can do */
+            *str = '.';
+          }
+        }
+
+        if (class) {
+          free(class->other_log_dir);
+          class->other_log_dir = str;
+        } else {
+          free(other_log_dir);
+          other_log_dir = str;
+        }
+
+      } else if (!strcasecmp(key, "other_log_always")) {
+        /* other_log_always yes
+           other_log_always no */
+        _cfg_read_bool(&buf,
+                       &(class ? class->other_log_always : other_log_always));
+
+      } else if (!strcasecmp(key, "other_log_timestamp`")) {
+        /* other_log_timestamp yes
+           other_log_timestamp no */
+        _cfg_read_bool(&buf,
+                       &(class ? class->other_log_timestamp
+                               : other_log_timestamp));
+
+      } else if (!strcasecmp(key, "other_log_maxsize")) {
+        /* other_log_maxsize 128
+           other_log_maxsize 0 */
+        _cfg_read_numeric(&buf,
+                          &(class ? class->other_log_maxsize
+                                  : other_log_maxsize));
+
+      } else if (!strcasecmp(key, "other_log_recall")) {
+        /* other_log_recall 128
+           other_log_recall 0
+           other_log_recall -1 */
+        _cfg_read_numeric(&buf,
+                          &(class ? class->other_log_recall
+                                  : other_log_recall));
+
       } else if (!class && !strcasecmp(key, "connection")) {
         /* connection {
              :
@@ -212,9 +408,8 @@ int cfg_read(const char *filename, char **listen_port) {
         if (*buf != '{') {
           /* Connection is a bit special, because the only valid value is '{'
              the internals are handled elsewhere */
-          fprintf(stderr,
-                  "%s: Expected open brace for key '%s' at line %ld of %s\n",
-                  progname, key, line, filename);
+          error("Expected open brace for key '%s' at line %ld of %s",
+                key, line, filename);
           valid = 0;
           break;
         }
@@ -223,7 +418,6 @@ int cfg_read(const char *filename, char **listen_port) {
         /* Allocate memory, it'll be filled later */
         class = (struct ircconnclass *)malloc(sizeof(struct ircconnclass));
         memset(class, 0, sizeof(struct ircconnclass));
-        class->awaymessage = x_strdup(DEFAULT_DETACH_AWAY);
         class->server_port = x_strdup(server_port);
         class->server_retry = server_retry;
         class->server_dnsretry = server_dnsretry;
@@ -232,6 +426,18 @@ int cfg_read(const char *filename, char **listen_port) {
         class->channel_rejoin = channel_rejoin;
         class->disconnect_existing = disconnect_existing;
         class->drop_modes = x_strdup(drop_modes);
+        class->local_address = (local_address ? x_strdup(local_address) : 0);
+        class->away_message = (away_message ? x_strdup(away_message) : 0);
+        class->chan_log_dir = (chan_log_dir ? x_strdup(chan_log_dir) : 0);
+        class->chan_log_always = chan_log_always;
+        class->chan_log_timestamp = chan_log_timestamp;
+        class->chan_log_maxsize = chan_log_maxsize;
+        class->chan_log_recall = chan_log_recall;
+        class->other_log_dir = (other_log_dir ? x_strdup(other_log_dir) : 0);
+        class->other_log_always = other_log_always;
+        class->other_log_timestamp = other_log_timestamp;
+        class->other_log_maxsize = other_log_maxsize;
+        class->other_log_recall = other_log_recall;
 
       } else if (class && !strcasecmp(key, "password")) {
         /* connection {
@@ -246,39 +452,6 @@ int cfg_read(const char *filename, char **listen_port) {
 
         free(class->password);
         class->password = str;
-
-      } else if (class && !strcasecmp(key, "local_address")) {
-        /* connection {
-             :
-             local_address "i.am.a.virtual.host.com"
-             :
-           } */
-        char *str;
-
-        if (_cfg_read_string(&buf, &str))
-          UNMATCHED_QUOTE;
-
-        free(class->bind);
-        class->bind = str;
-
-      } else if (class && !strcasecmp(key, "away_message")) {
-        /* connection {
-             :
-             away_message "Not available, messages are logged"
-             :
-           } */
-        char *str;
-
-        if (_cfg_read_string(&buf, &str))
-          UNMATCHED_QUOTE;
-
-        free(class->awaymessage);
-        if (strcmp(str, "none")) {
-          class->awaymessage = str;
-        } else {
-          free(str);
-          class->awaymessage = 0;
-        }
 
       } else if (class && !strcasecmp(key, "server")) {
         /* connection {
@@ -334,12 +507,12 @@ int cfg_read(const char *filename, char **listen_port) {
       } else if (class && !strcmp(key, "}")) {
         /* Check that a password and at least one server were defined */
         if (!class->password) {
-          fprintf(stderr, "%s: Connection class defined without password "
-                  "before line %ld of %s\n", progname, line, filename);
+          error("Connection class defined without password "
+                "before line %ld of %s", line, filename);
           valid = 0;
         } else if (!class->servers) {
-          fprintf(stderr, "%s: Connection class defined without a server "
-                  "before line %ld of %s\n", progname, line, filename);
+          error("Connection class defined without a server "
+                "before line %ld of %s", line, filename);
           valid = 0;
         }
 
@@ -357,8 +530,8 @@ int cfg_read(const char *filename, char **listen_port) {
 
       } else {
         /* Bad key! */
-        fprintf(stderr, "%s: Unknown config file key '%s' at line %ld of %s\n",
-                progname, key, line, filename);
+        error("Unknown config file key '%s' at line %ld of %s",
+              key, line, filename);
         valid = 0;
         break;
       }
@@ -367,8 +540,7 @@ int cfg_read(const char *filename, char **listen_port) {
          and close braces, and we re-pass to do those */
       buf += strspn(buf, WS);
       if (*buf && (*buf != '#') && (*buf != '}')) {
-        fprintf(stderr, "%s: Unexpected data at and of line %ld of %s\n",
-                progname, line, filename);
+        error("Unexpected data at and of line %ld of %s", line, filename);
         valid = 0;
         break;
       }
@@ -380,7 +552,7 @@ int cfg_read(const char *filename, char **listen_port) {
     ircnet_freeconnclass(class);
     class = 0;
     if (valid) {
-      fprintf(stderr, "%s: Unmatched open brace in %s\n", progname, filename);
+      error("Unmatched open brace in %s", filename);
       valid = 0;
     }
   }
@@ -388,6 +560,10 @@ int cfg_read(const char *filename, char **listen_port) {
   fclose(fd);
   free(server_port);
   free(drop_modes);
+  free(local_address);
+  free(away_message);
+  free(chan_log_dir);
+  free(other_log_dir);
   return (valid ? 0 : -1);
 }
 
