@@ -66,7 +66,7 @@
 #
 # The rest of the options in this configuration file may be placed in
 # connection classes or in the main body of the configuration file.  If
-# placed in the main body, they only affect configuration classes
+# placed in the main body, they only affect connection classes
 # defined *after* them in the configuration file.
 #
 
