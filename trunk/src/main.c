@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.36 2000/10/10 13:08:35 keybuk Exp $
+ * @(#) $Id: main.c,v 1.37 2000/10/12 16:02:15 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,6 +43,7 @@
 #include "irc_client.h"
 #include "irc_server.h"
 #include "timers.h"
+#include "dns.h"
 
 /* forward declarations */
 static void sig_term(int);
@@ -56,7 +57,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.36 2000/10/10 13:08:35 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.37 2000/10/12 16:02:15 keybuk Exp $";
 
 /* The name of the program */
 static char *progname;
@@ -302,6 +303,7 @@ int main(int argc, char *argv[]) {
 
   /* Free up stuff */
   ircnet_flush();
+  dns_flush();
   timer_flush();
   if (!inetd_mode && !no_daemon)
     closelog();
@@ -406,11 +408,15 @@ static void sig_hup(int sig) {
 
 /* Signal to reap child process */
 static void sig_child(int sig) {
-  int pid, status;
+  int status;
+  pid_t pid;
 
   debug("Received signal %d to reap", sig);
   pid = wait(&status);
   debug("Reaped process %d, exit status %d", pid, status);
+
+  /* Handle any DNS children */
+  dns_endrequest(pid, status);
 
   /* Restore the signal */
   signal(sig, sig_child);
