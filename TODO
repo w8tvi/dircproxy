@@ -39,6 +39,10 @@ TODO:
 	* Seperate private messages into private_log_file
 	* Better DCC debug?
 
+	* Debian package should have a debconf frontend asking if they
+	  want a global dircproxy or just user ones.  (Could suggest a
+	  fake-identd daemon).
+
 --
 
 dircproxy is being maintained, however it pretty well does everything
