@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.37 2000/09/26 10:58:57 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.38 2000/09/26 11:45:42 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -103,16 +103,17 @@ int ircclient_data(struct ircproxy *p) {
 static int _ircclient_detach(struct ircproxy *p, const char *message) {
   if (p->die_on_close) {
     debug("Killing proxy");
-    p->conn_class = 0;
-    ircclient_close(p);
 
     if (message) {
-      ircserver_send_command(p, "QUIT", ":%s", message);
+      ircserver_send_peercmd(p, "QUIT", ":%s", message);
     } else {
-      ircserver_send_command(p, "QUIT", ":Leaving IRC - %s %s",
+      ircserver_send_peercmd(p, "QUIT", ":Leaving IRC - %s %s",
                              PACKAGE, VERSION);
     }
     ircserver_close_sock(p);
+
+    p->conn_class = 0;
+    ircclient_close(p);
 
   } else {
     debug("Detaching proxy");
@@ -362,18 +363,18 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
 
         } else if (!strcasecmp(msg.params[0], "QUIT")) {
           /* User wants to detach and end their proxy session */
-          p->conn_class = 0;
-          ircclient_close(p);
 
           /* Optional QUIT message can be supplied */
           if ((msg.numparams >= 2) && strlen(msg.params[1])) {
-            ircserver_send_command(p, "QUIT", ":%s", msg.params[1]);
+            ircserver_send_peercmd(p, "QUIT", ":%s", msg.params[1]);
           } else {
-            ircserver_send_command(p, "QUIT", ":Leaving IRC - %s %s",
+            ircserver_send_peercmd(p, "QUIT", ":Leaving IRC - %s %s",
                                    PACKAGE, VERSION);
           }
 
           ircserver_close_sock(p);
+          p->conn_class = 0;
+          ircclient_close(p);
           ircprot_freemsg(&msg);
           return 0;
 
