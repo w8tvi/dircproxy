@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.7 2000/08/24 11:25:10 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.8 2000/08/25 09:19:54 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -250,7 +250,9 @@ int cfg_read(const char *filename, char **listen_port) {
         /* connection {
              :
              server "irc.linux.com"
-             server "irc.linux.com:6670"    # Port other than default
+             server "irc.linux.com:6670"     # Port other than default
+             server "irc.linux.com:6670:foo" # Port and password
+             server "irc.linux.com::foo"     # Password and default port
              :
            } */
         struct strlist *s;
