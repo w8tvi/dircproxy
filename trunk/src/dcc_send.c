@@ -5,7 +5,7 @@
  * dcc_send.c
  *  - DCC send protocol
  * --
- * @(#) $Id: dcc_send.c,v 1.3 2000/11/15 16:10:25 keybuk Exp $
+ * @(#) $Id: dcc_send.c,v 1.4 2000/11/20 12:22:56 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -59,6 +59,7 @@ void dccsend_connectfailed(struct dccproxy *p, int sock, int bad) {
 
   debug("DCC Connection failed");
   p->sender_status &= ~(DCC_SENDER_CREATED);
+  net_close(p->sender_sock);
   p->dead = 1;
 }
 
@@ -140,8 +141,12 @@ static void _dccsend_error(struct dccproxy *p, int sock, int bad) {
 
   if (sock == p->sender_sock) {
     who = "Sender";
+    p->sender_status &= ~(DCC_SENDER_CREATED);
+    net_close(p->sender_sock);
   } else if (sock == p->sendee_sock) {
     who = "Sendee";
+    p->sendee_status &= ~(DCC_SENDEE_CREATED);
+    net_close(p->sendee_sock);
   } else {
     error("Unexpected socket %d in dccsend_error, expected %d or %d", sock,
           p->sender_sock, p->sendee_sock);
