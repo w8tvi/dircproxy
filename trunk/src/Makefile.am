@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
-INCLUDES = \
-	-DSYSCONFDIR="\"${sysconfdir}\""
+AM_CPPFLAGS = \
+	-I$(top_srcdir) -DSYSCONFDIR="\"${sysconfdir}\""
 
 bin_PROGRAMS = \
 	dircproxy
