@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.31 2000/08/30 13:14:29 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.32 2000/08/30 14:17:03 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -91,7 +91,8 @@ int ircclient_data(struct ircproxy *p) {
         ircserver_close_sock(p);
       } else {
         debug("Client disconnected, detaching proxy");
-        irclog_notice(p, 0, PACKAGE, "You disconnected");
+        if (p->client_status == IRC_CLIENT_ACTIVE)
+          irclog_notice(p, 0, PACKAGE, "You disconnected");
 
         if ((p->server_status == IRC_SERVER_ACTIVE)
             && (p->client_status == IRC_CLIENT_ACTIVE)
