@@ -7,7 +7,7 @@
  *  - Handling of log programs
  *  - Recalling from log files
  * --
- * @(#) $Id: irc_log.c,v 1.30 2000/11/14 11:49:08 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.31 2000/12/07 18:27:08 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -146,6 +146,7 @@ int irclog_init(struct ircproxy *p, const char *to) {
                ? p->conn_class->other_log_copydir : 0);
   } else {
     ptr = filename = x_strdup(to);
+    irc_strlwr(filename);
     log->maxlines = p->conn_class->chan_log_maxsize;
     log->always = p->conn_class->chan_log_always;
     log->timestamp = p->conn_class->chan_log_timestamp;
