@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.43 2002/08/17 19:52:05 scott Exp $
+ * @(#) $Id: cfgfile.c,v 1.44 2002/08/17 21:05:55 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -97,34 +97,24 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
                           ? x_strdup(DEFAULT_DETACH_NICKNAME) : 0);
   def->nick_keep = DEFAULT_NICK_KEEP;
   def->ctcp_replies = DEFAULT_CTCP_REPLIES;
-  def->chan_log_enabled = DEFAULT_CHAN_LOG_ENABLED;
-  def->chan_log_always = DEFAULT_CHAN_LOG_ALWAYS;
-  def->chan_log_maxsize = DEFAULT_CHAN_LOG_MAXSIZE;
-  def->chan_log_recall = DEFAULT_CHAN_LOG_RECALL;
-  def->chan_log_copydir = (DEFAULT_CHAN_LOG_COPYDIR
-                           ? x_strdup(DEFAULT_CHAN_LOG_COPYDIR) : 0);
-  def->chan_log_program = (DEFAULT_CHAN_LOG_PROGRAM
-                           ? x_strdup(DEFAULT_CHAN_LOG_PROGRAM) : 0);
-  def->other_log_enabled = DEFAULT_OTHER_LOG_ENABLED;
-  def->other_log_always = DEFAULT_OTHER_LOG_ALWAYS;
-  def->other_log_maxsize = DEFAULT_OTHER_LOG_MAXSIZE;
-  def->other_log_recall = DEFAULT_OTHER_LOG_RECALL;
-  def->other_log_copydir = (DEFAULT_OTHER_LOG_COPYDIR
-                            ? x_strdup(DEFAULT_OTHER_LOG_COPYDIR) : 0);
-  def->other_log_program = (DEFAULT_OTHER_LOG_PROGRAM
-                            ? x_strdup(DEFAULT_OTHER_LOG_PROGRAM) : 0);
-  def->private_log_enabled = DEFAULT_PRIVATE_LOG_ENABLED;
-  def->private_log_always = DEFAULT_PRIVATE_LOG_ALWAYS;
-  def->private_log_maxsize = DEFAULT_PRIVATE_LOG_MAXSIZE;
-  def->private_log_recall = DEFAULT_PRIVATE_LOG_RECALL;
-  def->private_log_copydir = (DEFAULT_PRIVATE_LOG_COPYDIR
-                              ? x_strdup(DEFAULT_PRIVATE_LOG_COPYDIR) : 0);
-  def->private_log_program = (DEFAULT_PRIVATE_LOG_PROGRAM
-                              ? x_strdup(DEFAULT_PRIVATE_LOG_PROGRAM) : 0);
   def->log_timestamp = DEFAULT_LOG_TIMESTAMP;
   def->log_relativetime = DEFAULT_LOG_RELATIVETIME;
   def->log_timeoffset = DEFAULT_LOG_TIMEOFFSET;
   def->log_events = DEFAULT_LOG_EVENTS;
+  def->log_dir = (DEFAULT_LOG_DIR ? x_strdup(DEFAULT_LOG_DIR) : 0);
+  def->log_program = (DEFAULT_LOG_PROGRAM ? x_strdup(DEFAULT_LOG_PROGRAM) : 0);
+  def->chan_log_enabled = DEFAULT_CHAN_LOG_ENABLED;
+  def->chan_log_always = DEFAULT_CHAN_LOG_ALWAYS;
+  def->chan_log_maxsize = DEFAULT_CHAN_LOG_MAXSIZE;
+  def->chan_log_recall = DEFAULT_CHAN_LOG_RECALL;
+  def->private_log_enabled = DEFAULT_PRIVATE_LOG_ENABLED;
+  def->private_log_always = DEFAULT_PRIVATE_LOG_ALWAYS;
+  def->private_log_maxsize = DEFAULT_PRIVATE_LOG_MAXSIZE;
+  def->private_log_recall = DEFAULT_PRIVATE_LOG_RECALL;
+  def->server_log_enabled = DEFAULT_SERVER_LOG_ENABLED;
+  def->server_log_always = DEFAULT_SERVER_LOG_ALWAYS;
+  def->server_log_maxsize = DEFAULT_SERVER_LOG_MAXSIZE;
+  def->server_log_recall = DEFAULT_SERVER_LOG_RECALL;
   def->dcc_proxy_incoming = DEFAULT_DCC_PROXY_INCOMING;
   def->dcc_proxy_outgoing = DEFAULT_DCC_PROXY_OUTGOING;
   def->dcc_proxy_ports = 0;
@@ -530,297 +520,6 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
            ctcp_replies no */
         _cfg_read_bool(&buf, &(class ? class : def)->ctcp_replies);
 
-      } else if (!strcasecmp(key, "chan_log_enabled")) {
-        /* chan_log_enabled yes
-           chan_log_disabled no */
-        _cfg_read_bool(&buf, &(class ? class : def)->chan_log_enabled);
-
-      } else if (!strcasecmp(key, "chan_log_always")) {
-        /* chan_log_always yes
-           chan_log_always no */
-        _cfg_read_bool(&buf, &(class ? class : def)->chan_log_always);
-
-      } else if (!strcasecmp(key, "chan_log_maxsize")) {
-        /* chan_log_maxsize 128
-           chan_log_maxsize 0 */
-        _cfg_read_numeric(&buf, &(class ? class : def)->chan_log_maxsize);
-
-      } else if (!strcasecmp(key, "chan_log_recall")) {
-        /* chan_log_recall 128
-           chan_log_recall 0
-           chan_log_recall -1 */
-        _cfg_read_numeric(&buf, &(class ? class : def)->chan_log_recall);
-
-      } else if (!strcasecmp(key, "chan_log_timestamp")) {
-        error("Deprecated key '%s' at line %ld of %s, replace with "
-              "'log_timestamp'", key, line, filename);
-        _cfg_read_bool(&buf, &(class ? class : def)->log_timestamp);
-
-      } else if (!strcasecmp(key, "chan_log_relativetime")) {
-        error("Deprecated key '%s' at line %ld of %s, replace with "
-              "'log_relativetime'", key, line, filename);
-        _cfg_read_bool(&buf, &(class ? class : def)->log_relativetime);
-
-      } else if (!strcasecmp(key, "chan_log_copydir")) {
-        /* chan_log_copydir none
-           chan_log_copydir ""    # same as none
-           chan_log_copydir "/log"
-           chan_log_copydir "~/logs" */
-        char *str;
-
-        if (_cfg_read_string(&buf, &str))
-          UNMATCHED_QUOTE;
-
-        if (!strcasecmp(str, "none") || !strlen(str)) {
-          free(str);
-          str = 0;
-
-        } else if (!strncmp(str, "~/", 2)) {
-          char *home;
-
-          home = getenv("HOME");
-          if (home) {
-            char *tmp;
-
-            tmp = x_sprintf("%s%s", home, str + 1);
-            free(str);
-            str = tmp;
-          } else {
-            /* Best we can do */
-            *str = '.';
-          }
-        }
-
-        free((class ? class : def)->chan_log_copydir);
-        (class ? class : def)->chan_log_copydir = str;
-
-      } else if (!strcasecmp(key, "chan_log_program")) {
-        /* chan_log_program none
-           chan_log_program ""    # same as none
-           chan_log_program "/logprog"
-           chan_log_program "~/logprog" */
-        char *str;
-
-        if (_cfg_read_string(&buf, &str))
-          UNMATCHED_QUOTE;
-
-        if (!strcasecmp(str, "none") || !strlen(str)) {
-          free(str);
-          str = 0;
-
-        } else if (!strncmp(str, "~/", 2)) {
-          char *home;
-
-          home = getenv("HOME");
-          if (home) {
-            char *tmp;
-
-            tmp = x_sprintf("%s%s", home, str + 1);
-            free(str);
-            str = tmp;
-          } else {
-            /* Best we can do */
-            *str = '.';
-          }
-        }
-
-        free((class ? class : def)->chan_log_program);
-        (class ? class : def)->chan_log_program = str;
-
-      } else if (!strcasecmp(key, "other_log_enabled")) {
-        /* other_log_enabled yes
-           other_log_disabled no */
-        _cfg_read_bool(&buf, &(class ? class : def)->other_log_enabled);
-
-      } else if (!strcasecmp(key, "other_log_always")) {
-        /* other_log_always yes
-           other_log_always no */
-        _cfg_read_bool(&buf, &(class ? class : def)->other_log_always);
-
-      } else if (!strcasecmp(key, "other_log_maxsize")) {
-        /* other_log_maxsize 128
-           other_log_maxsize 0 */
-        _cfg_read_numeric(&buf, &(class ? class : def)->other_log_maxsize);
-
-      } else if (!strcasecmp(key, "other_log_recall")) {
-        /* other_log_recall 128
-           other_log_recall 0
-           other_log_recall -1 */
-        _cfg_read_numeric(&buf, &(class ? class : def)->other_log_recall);
-
-      } else if (!strcasecmp(key, "other_log_timestamp")) {
-        error("Deprecated key '%s' at line %ld of %s, replace with "
-              "'log_timestamp'", key, line, filename);
-        _cfg_read_bool(&buf, &(class ? class : def)->log_timestamp);
-
-      } else if (!strcasecmp(key, "other_log_relativetime")) {
-        error("Deprecated key '%s' at line %ld of %s, replace with "
-              "'log_relativetime'", key, line, filename);
-        _cfg_read_bool(&buf, &(class ? class : def)->log_relativetime);
-
-      } else if (!strcasecmp(key, "other_log_copydir")) {
-        /* other_log_copydir none
-           other_log_copydir ""    # same as none
-           other_log_copydir "/log"
-           other_log_copydir "~/logs" */
-        char *str;
-
-        if (_cfg_read_string(&buf, &str))
-          UNMATCHED_QUOTE;
-
-        if (!strcasecmp(str, "none") || !strlen(str)) {
-          free(str);
-          str = 0;
-          
-        } else if (!strncmp(str, "~/", 2)) {
-          char *home;
-
-          home = getenv("HOME");
-          if (home) {
-            char *tmp;
-
-            tmp = x_sprintf("%s%s", home, str + 1);
-            free(str);
-            str = tmp;
-          } else {
-            /* Best we can do */
-            *str = '.';
-          }
-        }
-
-        free((class ? class : def)->other_log_copydir);
-        (class ? class : def)->other_log_copydir = str;
-
-      } else if (!strcasecmp(key, "other_log_program")) {
-        /* other_log_program none
-           other_log_program ""    # same as none
-           other_log_program "/logprog"
-           other_log_program "~/logprog" */
-        char *str;
-
-        if (_cfg_read_string(&buf, &str))
-          UNMATCHED_QUOTE;
-
-        if (!strcasecmp(str, "none") || !strlen(str)) {
-          free(str);
-          str = 0;
-          
-        } else if (!strncmp(str, "~/", 2)) {
-          char *home;
-
-          home = getenv("HOME");
-          if (home) {
-            char *tmp;
-
-            tmp = x_sprintf("%s%s", home, str + 1);
-            free(str);
-            str = tmp;
-          } else {
-            /* Best we can do */
-            *str = '.';
-          }
-        }
-
-        free((class ? class : def)->other_log_program);
-        (class ? class : def)->other_log_program = str;
-
-      } else if (!strcasecmp(key, "private_log_enabled")) {
-        /* private_log_enabled yes
-           private_log_disabled no */
-        _cfg_read_bool(&buf, &(class ? class : def)->private_log_enabled);
-
-      } else if (!strcasecmp(key, "private_log_always")) {
-        /* private_log_always yes
-           private_log_always no */
-        _cfg_read_bool(&buf, &(class ? class : def)->private_log_always);
-
-      } else if (!strcasecmp(key, "private_log_maxsize")) {
-        /* private_log_maxsize 128
-           private_log_maxsize 0 */
-        _cfg_read_numeric(&buf, &(class ? class : def)->private_log_maxsize);
-
-      } else if (!strcasecmp(key, "private_log_recall")) {
-        /* private_log_recall 128
-           private_log_recall 0
-           private_log_recall -1 */
-        _cfg_read_numeric(&buf, &(class ? class : def)->private_log_recall);
-
-      } else if (!strcasecmp(key, "private_log_timestamp")) {
-        error("Deprecated key '%s' at line %ld of %s, replace with "
-              "'log_timestamp'", key, line, filename);
-        _cfg_read_bool(&buf, &(class ? class : def)->log_timestamp);
-
-      } else if (!strcasecmp(key, "private_log_relativetime")) {
-        error("Deprecated key '%s' at line %ld of %s, replace with "
-              "'log_relativetime'", key, line, filename);
-        _cfg_read_bool(&buf, &(class ? class : def)->log_relativetime);
-
-      } else if (!strcasecmp(key, "private_log_copydir")) {
-        /* private_log_copydir none
-           private_log_copydir ""    # same as none
-           private_log_copydir "/log"
-           private_log_copydir "~/logs" */
-        char *str;
-
-        if (_cfg_read_string(&buf, &str))
-          UNMATCHED_QUOTE;
-
-        if (!strcasecmp(str, "none") || !strlen(str)) {
-          free(str);
-          str = 0;
-          
-        } else if (!strncmp(str, "~/", 2)) {
-          char *home;
-
-          home = getenv("HOME");
-          if (home) {
-            char *tmp;
-
-            tmp = x_sprintf("%s%s", home, str + 1);
-            free(str);
-            str = tmp;
-          } else {
-            /* Best we can do */
-            *str = '.';
-          }
-        }
-
-        free((class ? class : def)->private_log_copydir);
-        (class ? class : def)->private_log_copydir = str;
-
-      } else if (!strcasecmp(key, "private_log_program")) {
-        /* private_log_program none
-           private_log_program ""    # same as none
-           private_log_program "/logprog"
-           private_log_program "~/logprog" */
-        char *str;
-
-        if (_cfg_read_string(&buf, &str))
-          UNMATCHED_QUOTE;
-
-        if (!strcasecmp(str, "none") || !strlen(str)) {
-          free(str);
-          str = 0;
-          
-        } else if (!strncmp(str, "~/", 2)) {
-          char *home;
-
-          home = getenv("HOME");
-          if (home) {
-            char *tmp;
-
-            tmp = x_sprintf("%s%s", home, str + 1);
-            free(str);
-            str = tmp;
-          } else {
-            /* Best we can do */
-            *str = '.';
-          }
-        }
-
-        free((class ? class : def)->private_log_program);
-        (class ? class : def)->private_log_program = str;
-
       } else if (!strcasecmp(key, "log_timestamp")) {
         /* log_timestamp yes
            log_timestamp no */
@@ -930,6 +629,135 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
         free(orig);
         if (!valid)
           break;
+
+      } else if (!strcasecmp(key, "log_dir")) {
+        /* log_dir none
+           log_dir ""    # same as none
+           log_dir "/log"
+           log_dir "~/logs" */
+        char *str;
+
+        if (_cfg_read_string(&buf, &str))
+          UNMATCHED_QUOTE;
+
+        if (!strcasecmp(str, "none") || !strlen(str)) {
+          free(str);
+          str = 0;
+
+        } else if (!strncmp(str, "~/", 2)) {
+          char *home;
+
+          home = getenv("HOME");
+          if (home) {
+            char *tmp;
+
+            tmp = x_sprintf("%s%s", home, str + 1);
+            free(str);
+            str = tmp;
+          } else {
+            /* Best we can do */
+            *str = '.';
+          }
+        }
+
+        free((class ? class : def)->log_dir);
+        (class ? class : def)->log_dir = str;
+
+      } else if (!strcasecmp(key, "log_program")) {
+        /* log_program none
+           log_program ""    # same as none
+           log_program "/logprog"
+           log_program "~/logprog" */
+        char *str;
+
+        if (_cfg_read_string(&buf, &str))
+          UNMATCHED_QUOTE;
+
+        if (!strcasecmp(str, "none") || !strlen(str)) {
+          free(str);
+          str = 0;
+
+        } else if (!strncmp(str, "~/", 2)) {
+          char *home;
+
+          home = getenv("HOME");
+          if (home) {
+            char *tmp;
+
+            tmp = x_sprintf("%s%s", home, str + 1);
+            free(str);
+            str = tmp;
+          } else {
+            /* Best we can do */
+            *str = '.';
+          }
+        }
+
+        free((class ? class : def)->log_program);
+        (class ? class : def)->log_program = str;
+
+      } else if (!strcasecmp(key, "chan_log_enabled")) {
+        /* chan_log_enabled yes
+           chan_log_disabled no */
+        _cfg_read_bool(&buf, &(class ? class : def)->chan_log_enabled);
+
+      } else if (!strcasecmp(key, "chan_log_always")) {
+        /* chan_log_always yes
+           chan_log_always no */
+        _cfg_read_bool(&buf, &(class ? class : def)->chan_log_always);
+
+      } else if (!strcasecmp(key, "chan_log_maxsize")) {
+        /* chan_log_maxsize 128
+           chan_log_maxsize 0 */
+        _cfg_read_numeric(&buf, &(class ? class : def)->chan_log_maxsize);
+
+      } else if (!strcasecmp(key, "chan_log_recall")) {
+        /* chan_log_recall 128
+           chan_log_recall 0
+           chan_log_recall -1 */
+        _cfg_read_numeric(&buf, &(class ? class : def)->chan_log_recall);
+
+      } else if (!strcasecmp(key, "private_log_enabled")) {
+        /* private_log_enabled yes
+           private_log_disabled no */
+        _cfg_read_bool(&buf, &(class ? class : def)->private_log_enabled);
+
+      } else if (!strcasecmp(key, "private_log_always")) {
+        /* private_log_always yes
+           private_log_always no */
+        _cfg_read_bool(&buf, &(class ? class : def)->private_log_always);
+
+      } else if (!strcasecmp(key, "private_log_maxsize")) {
+        /* private_log_maxsize 128
+           private_log_maxsize 0 */
+        _cfg_read_numeric(&buf, &(class ? class : def)->private_log_maxsize);
+
+      } else if (!strcasecmp(key, "private_log_recall")) {
+        /* private_log_recall 128
+           private_log_recall 0
+           private_log_recall -1 */
+        _cfg_read_numeric(&buf, &(class ? class : def)->private_log_recall);
+
+      } else if (!strcasecmp(key, "server_log_enabled")) {
+        /* server_log_enabled yes
+           server_log_disabled no */
+        _cfg_read_bool(&buf, &(class ? class : def)->server_log_enabled);
+
+      } else if (!strcasecmp(key, "server_log_always")) {
+        /* server_log_always yes
+           server_log_always no */
+        _cfg_read_bool(&buf, &(class ? class : def)->server_log_always);
+
+      } else if (!strcasecmp(key, "server_log_maxsize")) {
+        /* server_log_maxsize 128
+           server_log_maxsize 0 */
+        _cfg_read_numeric(&buf, &(class ? class : def)->server_log_maxsize);
+
+      } else if (!strcasecmp(key, "server_log_recall")) {
+        /* server_log_recall 128
+           server_log_recall 0
+           server_log_recall -1 */
+        _cfg_read_numeric(&buf, &(class ? class : def)->server_log_recall);
 
       } else if (!strcasecmp(key, "dcc_proxy_incoming")) {
         /* dcc_proxy_incoming yes
@@ -1261,14 +1089,9 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
                                  ? x_strdup(def->detach_message) : 0);
         class->detach_nickname = (def->detach_nickname
                                   ? x_strdup(def->detach_nickname) : 0);
-        class->chan_log_copydir = (def->chan_log_copydir
-                                   ? x_strdup(def->chan_log_copydir) : 0);
-        class->chan_log_program = (def->chan_log_program
-                                   ? x_strdup(def->chan_log_program) : 0);
-        class->other_log_copydir = (def->other_log_copydir
-                                    ? x_strdup(def->other_log_copydir) : 0);
-        class->other_log_program = (def->other_log_program
-                                    ? x_strdup(def->other_log_program) : 0);
+        class->log_dir = (def->log_dir ? x_strdup(def->log_dir) : 0);
+        class->log_program = (def->log_program 
+                              ? x_strdup(def->log_program) : 0);
         if (def->dcc_proxy_ports) {
           class->dcc_proxy_ports = (int *)malloc(sizeof(int)
                                                  * def->dcc_proxy_ports_sz);
@@ -1473,10 +1296,8 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
   free(def->attach_message);
   free(def->detach_message);
   free(def->detach_nickname);
-  free(def->chan_log_copydir);
-  free(def->chan_log_program);
-  free(def->other_log_copydir);
-  free(def->other_log_program);
+  free(def->log_dir);
+  free(def->log_program);
   free(def->dcc_proxy_ports);
   free(def->dcc_capture_directory);
   free(def->dcc_tunnel_incoming);

@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.48 2002/08/17 19:52:06 scott Exp $
+ * @(#) $Id: irc_net.h,v 1.49 2002/08/17 21:05:55 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -29,8 +29,6 @@ struct logfile {
   int open, made;
   char *filename;
   FILE *file;
-  FILE *copy;
-  char *program;
 
   unsigned long nlines, maxlines;
 
@@ -74,37 +72,27 @@ struct ircconnclass {
 
   int ctcp_replies;
 
+  long log_timeoffset;
+  int log_events;
+  int log_timestamp;
+  int log_relativetime;
+  char *log_dir;
+  char *log_program;
+
   int chan_log_enabled;
   int chan_log_always;
   long chan_log_maxsize;
   long chan_log_recall;
-  int chan_log_timestamp;
-  int chan_log_relativetime;
-  char *chan_log_copydir;
-  char *chan_log_program;
-
-  int other_log_enabled;
-  int other_log_always;
-  long other_log_maxsize;
-  long other_log_recall;
-  int other_log_timestamp;
-  int other_log_relativetime;
-  char *other_log_copydir;
-  char *other_log_program;
 
   int private_log_enabled;
   int private_log_always;
   long private_log_maxsize;
   long private_log_recall;
-  int private_log_timestamp;
-  int private_log_relativetime;
-  char *private_log_copydir;
-  char *private_log_program;
 
-  long log_timeoffset;
-  int log_events;
-  int log_timestamp;
-  int log_relativetime;
+  int server_log_enabled;
+  int server_log_always;
+  long server_log_maxsize;
+  long server_log_recall;
 
   int dcc_proxy_incoming;
   int dcc_proxy_outgoing;
@@ -206,7 +194,7 @@ struct ircproxy {
   struct ircchannel *channels;
 
   char *temp_logdir;
-  struct logfile other_log, private_log;
+  struct logfile private_log, server_log;
 
   struct ircproxy *next;
 };

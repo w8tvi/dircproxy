@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.87 2002/08/17 19:40:38 scott Exp $
+ * @(#) $Id: irc_client.c,v 1.88 2002/08/17 21:05:55 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -274,14 +274,6 @@ static int _ircclient_detach(struct ircproxy *p, const char *message) {
       free(nick);
     }
      
-    /* Open other_log */
-    if ((p->client_status == IRC_CLIENT_ACTIVE)
-        && p->conn_class->other_log_enabled
-        && !p->conn_class->other_log_always) {
-      if (irclog_open(p, 0))
-        ircclient_send_notice(p, "(warning) Unable to log server messages");
-    }
-
     /* Open private_log */
     if ((p->client_status == IRC_CLIENT_ACTIVE)
         && p->conn_class->private_log_enabled
@@ -290,6 +282,13 @@ static int _ircclient_detach(struct ircproxy *p, const char *message) {
         ircclient_send_notice(p, "(warning) Unable to log private messages");
     }
 
+    /* Open server log */
+    if ((p->client_status == IRC_CLIENT_ACTIVE)
+        && p->conn_class->server_log_enabled
+        && !p->conn_class->server_log_always) {
+      if (irclog_open(p, 0))
+        ircclient_send_notice(p, "(warning) Unable to log server messages");
+    }
 
     /* Open channel logs */
     if ((p->client_status == IRC_CLIENT_ACTIVE)
@@ -1390,24 +1389,16 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
 
       /* Okay, they've authed for the first time, make the log directory
          here */
-      if (p->conn_class->other_log_enabled || p->conn_class->chan_log_enabled
-          || p->conn_class->private_log_enabled) {
+      if (p->conn_class->chan_log_enabled
+          || p->conn_class->private_log_enabled
+          || p->conn_class->server_log_enabled) {
         if (irclog_maketempdir(p))
           ircclient_send_notice(p, "(warning) Unable to create log "
                                    "directory, logging disabled");
       }
 
-      /* Initialise the server message log */
-      irclog_init(p, 0);
-
       /* Initialise the private message log */
       irclog_init(p, "");
-
-      /* Open a log file if we're always logging */
-      if (p->conn_class->other_log_enabled && p->conn_class->other_log_always) {
-        if (irclog_open(p, 0))
-          ircclient_send_notice(p, "(warning) Unable to log server messages");
-      }
 
       /* Open a log file if we're always logging */
       if (p->conn_class->private_log_enabled
@@ -1416,6 +1407,15 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
           ircclient_send_notice(p, "(warning) Unable to log private messages");
       }
 
+      /* Initialise the server message log */
+      irclog_init(p, 0);
+
+      /* Open a log file if we're always logging */
+      if (p->conn_class->server_log_enabled
+          && p->conn_class->server_log_always) {
+        if (irclog_open(p, 0))
+          ircclient_send_notice(p, "(warning) Unable to log server messages");
+      }
 
       /* Join initial channels */
       s = p->conn_class->channels;
@@ -1770,28 +1770,6 @@ static int _ircclient_motd(struct ircproxy *p) {
 
   /* Send some stats */
   if (p->conn_class->motd_stats) {
-    /* Server messages */
-    if (p->other_log.filename) {
-      char *s;
-
-      if (p->conn_class->other_log_recall == -1) {
-        s = x_strdup(p->other_log.nlines ? "all" : "none");
-      } else if (p->conn_class->other_log_recall == 0) {
-        s = x_strdup("none");
-      } else if (p->conn_class->other_log_recall == p->other_log.nlines) {
-        s = x_strdup("all");
-      } else {
-        s = x_sprintf("%ld", p->conn_class->other_log_recall);
-      }
-
-      ircclient_send_numeric(p, 372, ":- %ld server message%s "
-                             "(%s will be sent)", p->other_log.nlines,
-                             (p->other_log.nlines == 1 ? "" : "s"), s);
-      ircclient_send_numeric(p, 372, ":-");
-
-      free(s);
-    }
-
     /* Private messages */
     if (p->private_log.filename) {
       char *s;
@@ -1813,6 +1791,29 @@ static int _ircclient_motd(struct ircproxy *p) {
 
       free(s);
     }
+ 
+    /* Server messages */
+    if (p->server_log.filename) {
+      char *s;
+
+      if (p->conn_class->server_log_recall == -1) {
+        s = x_strdup(p->server_log.nlines ? "all" : "none");
+      } else if (p->conn_class->server_log_recall == 0) {
+        s = x_strdup("none");
+      } else if (p->conn_class->server_log_recall == p->server_log.nlines) {
+        s = x_strdup("all");
+      } else {
+        s = x_sprintf("%ld", p->conn_class->server_log_recall);
+      }
+
+      ircclient_send_numeric(p, 372, ":- %ld server message%s "
+                             "(%s will be sent)", p->server_log.nlines,
+                             (p->server_log.nlines == 1 ? "" : "s"), s);
+      ircclient_send_numeric(p, 372, ":-");
+
+      free(s);
+    }
+
  
     /* Channels they were on */
     if (p->channels) {
@@ -1900,12 +1901,13 @@ int ircclient_welcome(struct ircproxy *p) {
   }
 
   /* Recall other log file */
-  if (p->conn_class->other_log_enabled) {
+  if (p->conn_class->server_log_enabled) {
     irclog_autorecall(p, 0);
-    if (!p->conn_class->other_log_always)
+    if (!p->conn_class->server_log_always)
       irclog_close(p, 0);
   }
 
+  /* Recall channel log files, and get channel topic and members from server */
   if (p->channels) {
     struct ircchannel *c;
 
