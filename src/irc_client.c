@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.34 2000/09/01 12:13:13 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.35 2000/09/04 13:39:15 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -722,11 +722,11 @@ int ircclient_change_mode(struct ircproxy *p, const char *change) {
             p->modes[strlen(p->modes) + 1] = 0;
             p->modes[strlen(p->modes)] = *ptr;
           }
-        } else {
+        } else if (p->modes) {
           char *pos;
 
           pos = strchr(p->modes, *ptr);
-          if (p->modes && pos) {
+          if (pos) {
             char *tmp;
 
             tmp = p->modes;
