@@ -110,6 +110,12 @@
 #     class is used.  Don't have have two classes with the same password.
 #     Only one person may use one connection class at a time.
 #
+#     Please note that although the passwords are shown in plain text here
+#     they must be encrypted (unless you manually edit src/dircproxy.h and
+#     remove the ENCRYPTED_PASSWORDS #define).  Encrypt the passwords using
+#     your system's standard crypt() function, there's a handy 'crypt'
+#     utility in the contrib directory of the dircproxy source.
+#
 #connection {
 #    password "foobar"
 #    server "irc.linux.com"
