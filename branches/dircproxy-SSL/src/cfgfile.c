@@ -37,6 +37,7 @@ static int _cfg_read_pair(char **, long **);
 
 /* Read a config file */
 int cfg_read(const char *filename, char **listen_port, char **pid_file,
+             char **pk_file, char **cert_file,
              struct globalvars *globals) {
   struct ircconnclass defaults, *def, *class;
   int valid;
@@ -245,6 +246,82 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
         if (pid_file) {
           free(*pid_file);
           *pid_file = str;
+        }
+
+      } else if (!class && !strcasecmp(key, "cert_file")) {
+        /* cert_file none
+           cert_file ""   # same as none
+           cert_file "/path/file"
+           cert_file "~/file"
+         
+           ( cannot go in a connection {} ) */
+        char *str;
+
+        if (_cfg_read_string(&buf, &str))
+          UNMATCHED_QUOTE;
+
+        if (!strcasecmp(str, "none") || !strlen(str)) {
+          free(str);
+          str = 0;
+
+        } else if (!strncmp(str, "~/", 2)) {
+          char *home;
+
+          home = getenv("HOME");
+          if (home) {
+            char *tmp;
+
+            tmp = x_sprintf("%s%s", home, str + 1);
+            free(str);
+            str = tmp;
+          } else {
+            /* Best we can do */
+            *str = '.';
+          }
+        }
+
+        /* Make sure the silly programmer supplied the pointer! */
+        if (cert_file) {
+          free(*cert_file);
+          *cert_file = str;
+        }
+
+      } else if (!class && !strcasecmp(key, "pk_file")) {
+        /* pk_file none
+           pk_file ""   # same as none
+           pk_file "/path/file"
+           pk_file "~/file"
+         
+           ( cannot go in a connection {} ) */
+        char *str;
+
+        if (_cfg_read_string(&buf, &str))
+          UNMATCHED_QUOTE;
+
+        if (!strcasecmp(str, "none") || !strlen(str)) {
+          free(str);
+          str = 0;
+
+        } else if (!strncmp(str, "~/", 2)) {
+          char *home;
+
+          home = getenv("HOME");
+          if (home) {
+            char *tmp;
+
+            tmp = x_sprintf("%s%s", home, str + 1);
+            free(str);
+            str = tmp;
+          } else {
+            /* Best we can do */
+            *str = '.';
+          }
+        }
+
+        /* Make sure the silly programmer supplied the pointer! */
+        if (pk_file) {
+          free(*pk_file);
+          *pk_file = str;
         }
 
       } else if (!class && !strcasecmp(key, "client_timeout")) {

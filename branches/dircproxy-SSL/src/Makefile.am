@@ -29,4 +29,5 @@ dircproxy_SOURCES = \
 	memdebug.c memdebug.h
 
 dircproxy_LDADD = \
+  -lssl -lcrypto \
 	../getopt/libgetopt.a

@@ -14,6 +14,6 @@
 #define __DIRCPROXY_CFGFILE_H
 
 /* functions */
-extern int cfg_read(const char *, char **, char **, struct globalvars *);
+extern int cfg_read(const char *, char **, char **, char **, char **, struct globalvars *);
 
 #endif /* __DIRCPROXY_CFGFILE_H */

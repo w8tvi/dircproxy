@@ -616,6 +616,18 @@
  */
 #define DEFAULT_ALLOW_NOTIFY 0
 
+/* DEFAULT_CERT_FILE
+ * Path to certficate file.
+ * 0 = don't use this
+ */
+#define DEFAULT_CERT_FILE 0
+
+/* DEFAULT_PK_FILE
+ * Path to private key file.
+ * 0 = don't use this
+ */
+#define DEFAULT_PK_FILE 0
+
 /* Global variables */
 struct globalvars {
   long client_timeout;
@@ -625,6 +637,7 @@ struct globalvars {
 
 /* global variables */
 extern struct globalvars g;
+extern char *pk_file, *cert_file;
 
 /* functions in main.c */
 extern int syscall_fail(const char *, const char *, const char *);

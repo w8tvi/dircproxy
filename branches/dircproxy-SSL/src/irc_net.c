@@ -189,25 +189,53 @@ static void _ircnet_acceptclient(void *data, int sock) {
     return;
   }
   
-		  SSL_load_error_strings();
-		  SSLeay_add_ssl_algorithms();
-		  p->cliSSL.method = SSLv23_server_method();
-		  p->cliSSL.ctx = SSL_CTX_new(p->cliSSL.method);
-			if(!SSL_CTX_use_certificate_file(p->cliSSL.ctx, "cert", SSL_FILETYPE_PEM))
-				debug("CA file problem");
-	  	if(!SSL_CTX_use_PrivateKey_file(p->cliSSL.ctx, "pvkey", SSL_FILETYPE_PEM))
-				debug("PK file problem");
-			if (!SSL_CTX_check_private_key(p->cliSSL.ctx))
-				debug("PK doesn't match CA");
-			
-			p->cliSSL.ssl = SSL_new(p->cliSSL.ctx);
-			if(p->cliSSL.ssl == NULL)
-				debug("p->clSSL_struct.ssl == NULL");
-			if(!SSL_set_fd(p->cliSSL.ssl, p->client_sock))
-				debug("SSL_set_fd()");
-			while(SSL_accept(p->cliSSL.ssl) != 1);
+  if(pk_file && cert_file)
+  {
+    SSL_load_error_strings();
+		SSLeay_add_ssl_algorithms();
+		p->cliSSL.method = SSLv23_server_method();
+		p->cliSSL.ctx = SSL_CTX_new(p->cliSSL.method);
+		if(p->cliSSL.ctx == NULL) {
+      syscall_fail("SSL_CTX_new", 0, 0);
+      free(p);
+      return;
+    }
+		if(!SSL_CTX_use_certificate_file(p->cliSSL.ctx, cert_file, SSL_FILETYPE_PEM)) {
+			debug("Certificate file problem!");
+      syscall_fail("SSL_CTX_use_certificate_file", 0, 0);
+      free(p);
+      return;
+		}
+	  if(!SSL_CTX_use_PrivateKey_file(p->cliSSL.ctx, pk_file, SSL_FILETYPE_PEM)) {
+			debug("Private key file problem!");
+      syscall_fail("SSL_CTX_use_PrivateKey_file", 0, 0);
+      free(p);
+      return;
+		}
+		if (!SSL_CTX_check_private_key(p->cliSSL.ctx)) {
+			debug("Certificate doesn't match private key!");
+      syscall_fail("SSL_CTX_check_private_key", 0, 0);
+      free(p);
+      return;
+		}
+		
+		p->cliSSL.ssl = SSL_new(p->cliSSL.ctx);
+		if(p->cliSSL.ssl == NULL) {
+      syscall_fail("SSL_new", 0, 0);
+      free(p);
+      return;
+		}
+		if(!SSL_set_fd(p->cliSSL.ssl, p->client_sock)) {
+      syscall_fail("SSL_set_fd", 0, 0);
+      SSL_free(p->cliSSL.ssl);
+      free(p);
+      return;
+		}
+		
+		while(SSL_accept(p->cliSSL.ssl) != 1);
 	 
-		  debug("SSL connection using %s\n", SSL_get_cipher(p->cliSSL.ssl));
+		debug("SSL connection using %s\n", SSL_get_cipher(p->cliSSL.ssl));
+  }
   
   net_create(&(p->client_sock), p->cliSSL.ssl);
 
