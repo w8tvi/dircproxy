@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.35 2000/10/31 13:11:20 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.36 2000/11/06 17:02:01 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -90,6 +90,18 @@ struct ircconnclass {
 
   long log_timeoffset;
   int log_events;
+
+  int dcc_proxy_incoming;
+  int dcc_proxy_outgoing;
+  int *dcc_proxy_ports;
+  size_t dcc_proxy_ports_sz;
+  long dcc_proxy_timeout;
+  int dcc_proxy_sendreject;
+
+  int dcc_send_fast;
+
+  char *dcc_tunnel_incoming;
+  char *dcc_tunnel_outgoing;
 
   int motd_logo;
   char *motd_file;

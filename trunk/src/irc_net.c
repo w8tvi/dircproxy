@@ -8,7 +8,7 @@
  *  - The list of currently active proxies
  *  - Miscellaneous IRC functions
  * --
- * @(#) $Id: irc_net.c,v 1.35 2000/11/01 15:02:00 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.36 2000/11/06 17:02:01 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -470,6 +470,9 @@ void ircnet_freeconnclass(struct ircconnclass *class) {
   free(class->chan_log_program);
   free(class->other_log_copydir);
   free(class->other_log_program);
+  free(class->dcc_proxy_ports);
+  free(class->dcc_tunnel_incoming);
+  free(class->dcc_tunnel_outgoing);
   free(class->motd_file);
 
   free(class->orig_local_address);
@@ -587,7 +590,7 @@ int ircnet_dedicate(struct ircproxy *p) {
 /* send the dedicated listening port to the user */
 int ircnet_announce_dedicated(struct ircproxy *p) {
   struct sockaddr_in listen_addr;
-  unsigned short int port;
+  unsigned int port;
   int len;
 
   if (!IS_CLIENT_READY(p))
