@@ -8,7 +8,7 @@
  *  - The list of currently active proxies
  *  - Miscellaneous IRC functions
  * --
- * @(#) $Id: irc_net.c,v 1.40 2000/11/28 12:14:34 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.41 2000/12/06 15:17:15 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -469,6 +469,7 @@ void ircnet_freeconnclass(struct ircconnclass *class) {
 
   free(class->server_port);
   free(class->server_throttle);
+  free(class->initial_modes);
   free(class->drop_modes);
   free(class->refuse_modes);
   free(class->local_address);
