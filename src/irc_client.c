@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.60 2000/10/20 11:03:18 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.61 2000/10/23 12:33:55 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -22,9 +22,9 @@
 #include <dircproxy.h>
 
 #ifdef HAVE_CRYPT_H
-#include <crypt.h>
+# include <crypt.h>
 #else /* HAVE_CRYPT_H */
-#include <unistd.h>
+# include <unistd.h>
 #endif /* HAVE_CRYPT_H */
 
 #include "sprintf.h"
@@ -69,7 +69,8 @@ static void _ircclient_timedout(struct ircproxy *, void *);
 int ircclient_connected(struct ircproxy *p) {
   ircclient_send_notice(p, "Looking up your hostname...");
 
-  dns_hostfromaddr(p, 0, p->client_addr.sin_addr, _ircclient_connected2);
+  dns_hostfromaddr((void *)p, 0, p->client_addr.sin_addr,
+                   DNS_FUNCTION(_ircclient_connected2));
 
   return 0;
 }
@@ -87,7 +88,8 @@ static void _ircclient_connected2(struct ircproxy *p, void *data,
 
   debug("Client connected from %s", p->client_host);
 
-  timer_new(p, "client_auth", g.client_timeout, _ircclient_timedout, (void *)0);
+  timer_new((void *)p, "client_auth", g.client_timeout,
+            TIMER_FUNCTION(_ircclient_timedout), (void *)0);
 }
 
 /* Called when a client sends us stuff. */
@@ -101,7 +103,8 @@ static void _ircclient_data(struct ircproxy *p, int sock) {
   }
 
   str = 0;
-  while (net_gets(p->client_sock, &str, "\r\n") > 0) {
+  while (!p->dead && (p->client_status & IRC_CLIENT_CONNECTED)
+         && net_gets(p->client_sock, &str, "\r\n") > 0) {
     debug(">> '%s'", str);
     _ircclient_gotmsg(p, str);
     free(str);
@@ -808,8 +811,8 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
                                 "server");
 
           /* This won't delete an existing timer */
-          timer_new(p, "client_connect", g.connect_timeout,
-                    _ircclient_timedout, (void *)1);
+          timer_new((void *)p, "client_connect", g.connect_timeout,
+                    TIMER_FUNCTION(_ircclient_timedout), (void *)1);
         }
       } else if (!IS_SERVER_READY(p)) {
         ircclient_send_notice(p, "Connection to server is in progress...");
@@ -1014,6 +1017,7 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
   }
 
   ircclient_send_numeric(p, 464, ":Password incorrect");
+  ircclient_send_error(p, "Bad Password");
   ircclient_close(p);
   return -1;
 }
@@ -1037,16 +1041,14 @@ int ircclient_generate_nick(struct ircproxy *p, const char *tried) {
   strcpy(nick, tried);
   c += strlen(nick) - 1;
 
-  /* Okay the principle of this is we add a '-' character to the end of the
-     nickname.  If the last char is already - we increment it through 0..9
-     once its past nine, we set the character before that to '-' and repeat.
-     Keep going until we end up with 9999... as a nickname.  Once that happens
-     we just use 'dircproxy' and do it all over again */
-  if ((strlen(nick) < 9) && (*c != '-') && ((*c < '0') || (*c > '9'))) {
+  /* We add -'s until we can't, then we move back through them cycling them
+     0..9 then finally _ until the whole nickname is _________.  Once that
+     happens we just use 'dircproxy' and do it all over again */
+  if (strlen(nick) < 9) {
     *(++c) = '-';
     *(++c) = 0;
   } else {
-    while (c >= tried) {
+    while (c >= nick) {
       if (*c == '-') {
         *c = '0';
         break;
@@ -1054,6 +1056,9 @@ int ircclient_generate_nick(struct ircproxy *p, const char *tried) {
         (*c)++;
         break;
       } else if (*c == '9') {
+        *c = '_';
+        break;
+      } else if (*c == '_') {
         c--;
       } else {
         *c = '-';
@@ -1061,7 +1066,7 @@ int ircclient_generate_nick(struct ircproxy *p, const char *tried) {
       }
     }
 
-    if (c < tried) {
+    if (c < nick) {
       free(nick);
       nick = x_strdup(FALLBACK_NICKNAME);
     }
@@ -1161,8 +1166,8 @@ int ircclient_change_mode(struct ircproxy *p, const char *change) {
 
 /* Close the client socket */
 int ircclient_close(struct ircproxy *p) {
-  timer_del(p, "client_auth");
-  timer_del(p, "client_connect");
+  timer_del((void *)p, "client_auth");
+  timer_del((void *)p, "client_connect");
 
   net_close(p->client_sock);
   p->client_status &= ~(IRC_CLIENT_CONNECTED | IRC_CLIENT_AUTHED
@@ -1516,17 +1521,22 @@ int ircclient_send_selfcmd(struct ircproxy *p, const char *command,
 
 /* send an error to the user */
 int ircclient_send_error(struct ircproxy *p, const char *format, ...) {
+  char *msg, *nick, *user, *host;
   va_list ap;
-  char *msg;
   int ret;
 
   va_start(ap, format);
   msg = x_vsprintf(format, ap);
   va_end(ap);
 
-  ret = net_send(p->client_sock, "%s :%s: %s\r\n", "ERROR", "Closing Link",
-                  msg);
-  debug("<- %s :%s: %s", "ERROR", "Closing Link", msg);
+  nick = p->nickname ? p->nickname : "AUTH";
+  user = p->username ? p->username : "user";
+  host = p->hostname ? p->hostname : "host";
+
+  ret = net_send(p->client_sock, "%s :%s: %s[%s@%s] (%s)\r\n",
+                 "ERROR", "Closing Link", nick, user, host, msg);
+  debug("<- %s :%s: %s[%s@%s] (%s)", "ERROR", "Closing Link",
+        nick, user, host, msg);
 
   free(msg);
   return ret;
