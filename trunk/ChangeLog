@@ -1,3 +1,7 @@
+2004-04-02 22:55  Francois Harvey <fharvey@securiweb.net>
+	* irc_client.c : initial 005 support (thanks to Gabor Nyeki)
+	* dcc_net.c : small fixes in debug mode
+
 2004-02-26 21:10  Francois Harvey <fharvey@securiweb.net>
 	* src/irc_log.c, src/irc_net.h: Fixed minor error for building on 
 	  MacOS X 10.2
