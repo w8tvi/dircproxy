@@ -79,12 +79,12 @@ Answers
 
      The dircproxy home page is at:
 
-         http://dircproxy.sourceforge.net/
+         http://www.dircproxy.net/
 
      New releases along with other news are announced there.
      If you'd prefer an FTP site, there is one at:
 
-         ftp://ftp.netsplit.com/pub/dircproxy/
+         ftp://ftp.dircproxy.net/pub/dircproxy/
 
  1.3  Are there any mailing lists?
 
@@ -95,7 +95,7 @@ Answers
 
      For more information, including how to subscribe, see:
 
-         http://dircproxy.sourceforge.net/lists.html
+         http://www.dircproxy.net/lists.html
 
  1.4  Is there a dircproxy IRC channel?
 
@@ -106,14 +106,14 @@ Answers
 
      Bug tracking is done using our Bugzilla bug tracking system at:
 
-         http://bugzilla.netsplit.com/
+         http://bugzilla.dircproxy.net/
 
  1.6  Is there an anonymous CVS server?
 
      Yes.  This can be used to retrieve any release, including the
      current developmental release.  For more information see:
 
-         http://dircproxy.sourceforge.net/cvs.html
+         http://www.dircproxy.net/cvs.html
 
  1.7  How do I add a question to the FAQ?
 
@@ -125,7 +125,7 @@ Answers
 
      Read the INSTALL file in the dircproxy distribution, or see:
 
-         http://dircproxy.sourceforge.net/install.html
+         http://www.dircproxy.net/install.html
 
  2.2  I get "couldn't find your xxx() function" from configure
 
