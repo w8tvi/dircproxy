@@ -1,3 +1,31 @@
+2000-09-18 10:07  Scott James Remnant <scott@netsplit.com>
+
+	* src/main.c: listen_port problem should return 3 [ port error ]
+	not 2 [ config error ] from main.
+
+2000-09-18 10:06  Scott James Remnant <scott@netsplit.com>
+
+	* src/main.c: The ~/.dircproxyrc file should only be able to be
+	read/write/exec by the user.  It has passwords in it.
+	
+	We don't make the same restrictions for the others though.
+	
+	thanks to: Scott Bronson <bronson@trestle.com>
+
+2000-09-18 09:54  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: [ Bug #114688 ] Need to break out of the big
+	while() loop as well if we get a matching mask list, otherwise we
+	never report success.
+
+2000-09-14 12:27  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in: CVS version now 0.7.2.
+
+2000-09-14 12:14  Scott James Remnant <scott@netsplit.com>
+
+	* ChangeLog, NEWS: Version 0.7.1 released.
+
 2000-09-14 12:07  Scott James Remnant <scott@netsplit.com>
 
 	* src/irc_server.c: [ Bug #114352 ] Thought dircproxy had none of
