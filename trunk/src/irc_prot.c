@@ -6,7 +6,7 @@
  *  - IRC protocol message parsing
  *  - IRC x!y@z parsing
  * --
- * @(#) $Id: irc_prot.c,v 1.5 2000/05/24 18:05:43 keybuk Exp $
+ * @(#) $Id: irc_prot.c,v 1.6 2000/10/11 16:02:06 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -24,7 +24,7 @@
 /* forward declarations */
 static int _ircprot_parse_prefix(char *, struct ircsource *);
 static int _ircprot_count_params(char *);
-static int _ircprot_get_params(char *, char ***);
+static int _ircprot_get_params(char *, char ***, char ***);
 static char *_ircprot_skip_spaces(char *);
 
 /* Parse an IRC message. num of params or -1 if no command */
@@ -79,9 +79,11 @@ int ircprot_parsemsg(const char *message, struct ircmessage *msg) {
   msg->numparams = _ircprot_count_params(ptr);
   if (msg->numparams) {
     msg->params = (char **)malloc(sizeof(char *) * msg->numparams);
-    _ircprot_get_params(ptr, &(msg->params));
+    msg->paramstarts = (char **)malloc(sizeof(char *) * msg->numparams);
+    _ircprot_get_params(ptr, &(msg->params), &(msg->paramstarts));
   } else {
     msg->params = 0;
+    msg->paramstarts = 0;
   }
 
   return msg->numparams;
@@ -100,6 +102,7 @@ void ircprot_freemsg(struct ircmessage *msg) {
   free(msg->src.fullname);
   free(msg->cmd);
   free(msg->params);
+  free(msg->paramstarts);
   free(msg->orig);
 }
 
@@ -163,7 +166,8 @@ static int _ircprot_count_params(char *message) {
 }
 
 /* Split an irc message into an array */
-static int _ircprot_get_params(char *message, char ***params) {
+static int _ircprot_get_params(char *message, char ***params,
+                               char ***paramstarts) {
   char *ptr, *start;
   int param;
 
@@ -173,8 +177,11 @@ static int _ircprot_get_params(char *message, char ***params) {
   while (*ptr) {
     if (*ptr == ':') {
       (*params)[param] = x_strdup(ptr + 1);
+      (*paramstarts)[param] = ptr + 1;
       break;
     } else {
+      (*paramstarts)[param] = start;
+
       while (*ptr && (*ptr != ' ')) ptr++;
 
       (*params)[param] = (char *)malloc(ptr - start + 1);
