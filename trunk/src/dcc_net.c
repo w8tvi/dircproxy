@@ -8,7 +8,7 @@
  *  - The list of currently active DCC proxies
  *  - Miscellaneous DCC functions
  * --
- * @(#) $Id: dcc_net.c,v 1.4 2000/11/06 16:56:29 keybuk Exp $
+ * @(#) $Id: dcc_net.c,v 1.5 2000/11/10 15:06:20 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -48,20 +48,50 @@ static struct dccproxy *proxies = 0;
 
 /* Create a new DCC connection */
 int dccnet_new(int type, long timeout, int *range, size_t range_sz,
-               int *lport, struct in_addr addr, int port) {
+               int *lport, struct in_addr addr, int port,
+               const char *filename, long maxsize) {
   struct dccproxy *p;
 
   p = (struct dccproxy *)malloc(sizeof(struct dccproxy));
   memset(p, 0, sizeof(struct dccproxy));
   p->type = type;
 
-  if (_dccnet_listen(p, range, range_sz, lport)) {
+  /* If we're capturing, we do not need to listen for the client connecting
+     because its not going to! */
+  if (p->type & DCC_SEND_CAPTURE) {
+    /* Unlink first for security */
+    if (unlink(filename) && (errno != ENOENT)) {
+      syscall_fail("unlink", filename, 0);
+      free(p);
+      return -1;
+    }
+
+    /* Open for writing */
+    p->cap_file = fopen(filename, "w");
+    if (!p->cap_file) {
+      syscall_fail("fopen", filename, 0);
+      free(p);
+      return -1;
+    }
+
+    p->cap_filename = x_strdup(filename);
+    p->bytes_max = maxsize * 1024;
+
+  /* Not capturing, so need to listen for client connection */
+  } else if (_dccnet_listen(p, range, range_sz, lport)) {
     free(p);
     return -1;
   }
 
+  /* Connect to the sender */
   if (_dccnet_connect(p, addr, port)) {
-    net_close(p->sendee_sock);
+    if (p->type & DCC_SEND_CAPTURE) {
+      if (p->cap_file)
+        fclose(p->cap_file);
+      free(p->cap_filename);
+    } else {
+      net_close(p->sendee_sock);
+    }
     free(p);
     return -1;
   }
@@ -191,9 +221,13 @@ static void _dccnet_timedout(struct dccproxy *p, void *data) {
                PACKAGE);
 
   } else if (p->sendee_status != DCC_SENDEE_ACTIVE) {
-    if (p->type & DCC_CHAT)
+    if (p->type & DCC_CHAT) {
       net_send(p->sender_sock, "--(%s)-- Timed out awaiting connection from "
                                "remote peer\n", PACKAGE);
+    } else if (p->type & DCC_SEND_CAPTURE) {
+      debug("Capturing, and we've connected to sender");
+      return;
+    }
 
   } else {
     debug("They are talking");
@@ -242,8 +276,17 @@ static void _dccnet_accept(struct dccproxy *p, int sock) {
 static void _dccnet_free(struct dccproxy *p) {
   debug("Freeing DCC proxy %p", p);
 
-  net_close(p->sender_sock);
-  net_close(p->sendee_sock);
+  if (p->sender_status & DCC_SENDER_CREATED)
+    net_close(p->sender_sock);
+  if (p->sendee_status & DCC_SENDEE_CREATED)
+    net_close(p->sendee_sock);
+
+  if (p->cap_filename) {
+    unlink(p->cap_filename);
+    free(p->cap_filename);
+  }
+  if (p->cap_file)
+    fclose(p->cap_file);
 
   dns_delall((void *)p);
   timer_delall((void *)p);

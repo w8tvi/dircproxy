@@ -5,7 +5,7 @@
  * dcc_send.c
  *  - DCC send protocol
  * --
- * @(#) $Id: dcc_send.c,v 1.1 2000/11/06 16:47:39 keybuk Exp $
+ * @(#) $Id: dcc_send.c,v 1.2 2000/11/10 15:06:20 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -72,7 +72,8 @@ void dccsend_accepted(struct dccproxy *p) {
 /* Called when we get data over a DCC link */
 static void _dccsend_data(struct dccproxy *p, int sock) {
   if (sock == p->sender_sock) {
-    if (p->sendee_status != DCC_SENDEE_ACTIVE)
+    if ((p->sendee_status != DCC_SENDEE_ACTIVE)
+        && !(p->type & DCC_SEND_CAPTURE))
       return;
 
   } else if (sock == p->sendee_sock) {
@@ -82,7 +83,7 @@ static void _dccsend_data(struct dccproxy *p, int sock) {
     if (p->sender_status != DCC_SENDER_ACTIVE)
       return;
 
-    if (p->type == DCC_SEND_SIMPLE) {
+    if (p->type & DCC_SEND_SIMPLE) {
       len = net_read(p->sendee_sock, (void *)&ack, sizeof(u_int32_t));
       if (len == sizeof(u_int32_t))
         p->bytes_ackd = ntohl(ack);
@@ -93,7 +94,8 @@ static void _dccsend_data(struct dccproxy *p, int sock) {
     return;
   }
 
-  if ((p->type == DCC_SEND_FAST) || (p->bytes_ackd >= p->bytes_sent)) {
+  if ((p->type & DCC_SEND_FAST) || (p->type & DCC_SEND_CAPTURE) || 
+      (p->bytes_ackd >= p->bytes_sent)) {
     int buflen;
 
     buflen = net_read(p->sender_sock, 0, 0);
@@ -106,8 +108,22 @@ static void _dccsend_data(struct dccproxy *p, int sock) {
       if (nr > 0) {
         u_int32_t na;
 
-        net_queue(p->sendee_sock, (void *)buf, nr);
         p->bytes_sent += nr;
+
+        if (p->type & DCC_SEND_CAPTURE) {
+          /* Write it to the file */
+          fwrite((void *)buf, 1, nr, p->cap_file);
+
+          /* Check we haven't exceeded the maximum size */
+          if (p->bytes_max && (p->bytes_sent >= p->bytes_max)) {
+            /* We have, kill it.  It'll automatically get unlinked */
+            debug("Too big for my boots!");
+            p->dead = 1;
+          }
+        } else {
+          /* Send it to the sendee */
+          net_queue(p->sendee_sock, (void *)buf, nr);
+        }
 
         /* Report how many bytes we've ackd so far */
         na = htonl(p->bytes_sent);
@@ -136,6 +152,15 @@ static void _dccsend_error(struct dccproxy *p, int sock, int bad) {
     debug("Socket error with %s", who);
   } else {
     debug("%s disconnected", who);
+
+    /* Close the file nicely if we're capturing, so it doesn't get unlinked */
+    if (p->type & DCC_SEND_CAPTURE) {
+      debug("%s closed", p->cap_filename);
+      free(p->cap_filename);
+      fclose(p->cap_file);
+      p->cap_filename = 0;
+      p->cap_file = 0;
+    }
   }
 
   p->dead = 1;
