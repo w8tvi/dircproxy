@@ -12,17 +12,21 @@
  * get accidentally overrun.  This is purely debug, you should
  * NEVER use this in a real program.
  * --
- * @(#) $Id: memdebug.c,v 1.2 2000/05/24 20:47:38 keybuk Exp $
+ * @(#) $Id: memdebug.c,v 1.3 2000/05/25 13:59:46 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
  * file called COPYING that was distributed with this code.
  */
 
-#include <sys/param.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+/* Define MIN() */
+#ifndef MIN
+#define MIN(x, y) ((x) < (y) ? (x) : (y))
+#endif /* MIN */
 
 /* This is the structure that goes in front of EVERY chunk or hunk of
    memory alloc'd. Take a good long look at how big it is, imagine your
