@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.12 2000/08/29 10:45:19 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.13 2000/08/29 11:12:31 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -24,7 +24,7 @@
 
 /* a log file - there are good reasons why this isn't defined in irc_log.h */
 struct logfile {
-  int open;
+  int open, keep;
   char *filename;
   FILE *file;
 
@@ -33,9 +33,6 @@ struct logfile {
 
 /* a description of an authorised connction */
 struct ircconnclass {
-  char *password;
-  char *bind;
-  char *awaymessage;
   char *server_port;
   long server_retry;
   long server_dnsretry;
@@ -44,6 +41,20 @@ struct ircconnclass {
   long channel_rejoin;
   int disconnect_existing;
   char *drop_modes;
+  char *local_address;
+  char *away_message;
+  char *chan_log_dir;
+  int chan_log_always;
+  int chan_log_timestamp;
+  long chan_log_maxsize;
+  long chan_log_recall;
+  char *other_log_dir;
+  int other_log_always;
+  int other_log_timestamp;
+  long other_log_maxsize;
+  long other_log_recall;
+
+  char *password;
   struct strlist *servers, *next_server;
   struct strlist *masklist;
 
@@ -89,8 +100,8 @@ struct ircproxy {
   char *modes;
   struct ircchannel *channels;
 
-  char *logdir;
-  struct logfile misclog;
+  char *temp_logdir;
+  struct logfile other_log;
 
   struct ircproxy *next;
 };

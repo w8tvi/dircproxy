@@ -5,7 +5,7 @@
  * irc_net.c
  *  - Polling of sockets and acting on any data
  * --
- * @(#) $Id: irc_net.c,v 1.17 2000/08/29 10:45:19 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.18 2000/08/29 11:12:31 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -299,10 +299,6 @@ int ircnet_addchannel(struct ircproxy *p, const char *name) {
   c->name = x_strdup(name);
   debug("Joined channel '%s'", c->name);
 
-  if (irclog_open(p, c->name, &(c->log)))
-    ircclient_send_channotice(p, c->name, "(warning) Unable to log channel: %s",
-                              c->name);
-
   if (p->channels) {
     struct ircchannel *cc;
 
@@ -313,6 +309,12 @@ int ircnet_addchannel(struct ircproxy *p, const char *name) {
     cc->next = c;
   } else {
     p->channels = c;
+  }
+
+  if (p->conn_class->chan_log_always) {
+    if (irclog_open(p, c->name))
+      ircclient_send_channotice(p, c->name,
+                                "(warning) Unable to log channel: %s", c->name);
   }
 
   return 0;
@@ -353,7 +355,7 @@ struct ircchannel *ircnet_freechannel(struct ircchannel *chan) {
 
   ret = chan->next;
 
-  irclog_close(&(chan->log));
+  irclog_free(&(chan->log));
   free(chan->name);
   free(chan);
 
@@ -394,8 +396,8 @@ static void _ircnet_freeproxy(struct ircproxy *p) {
       c = ircnet_freechannel(c);
   }
 
-  irclog_close(&(p->misclog));
-  irclog_closedir(p);
+  irclog_free(&(p->other_log));
+  irclog_closetempdir(p);
   free(p);
 }
 
@@ -461,12 +463,14 @@ void ircnet_flush_connclasses(struct ircconnclass **c) {
 void ircnet_freeconnclass(struct ircconnclass *class) {
   struct strlist *s;
 
-  free(class->password);
-  free(class->bind);
-  free(class->awaymessage);
   free(class->server_port);
   free(class->drop_modes);
+  free(class->local_address);
+  free(class->away_message);
+  free(class->chan_log_dir);
+  free(class->other_log_dir);
 
+  free(class->password);
   s = class->servers;
   while (s) {
     struct strlist *t;
