@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.19 2000/08/23 14:30:27 keybuk Exp $
+ * @(#) $Id: main.c,v 1.20 2000/08/24 11:10:21 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,18 +48,13 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.19 2000/08/23 14:30:27 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.20 2000/08/24 11:10:21 keybuk Exp $";
 
 /* The name of the program */
 char *progname;
 
 /* Configuration variables */
 char *listen_port = 0;
-char *server_port = 0;
-long server_retry = DEFAULT_SERVER_RETRY;
-long server_dnsretry = DEFAULT_SERVER_DNSRETRY;
-long server_maxattempts = DEFAULT_SERVER_MAXATTEMPTS;
-long server_maxinitattempts = DEFAULT_SERVER_MAXINITATTEMPTS;
 long channel_rejoin = DEFAULT_CHANNEL_REJOIN;
 unsigned long log_autorecall = DEFAULT_LOG_AUTORECALL;
 
@@ -91,7 +86,6 @@ int main(int argc, char *argv[]) {
   /* Set up some globals */
   progname = argv[0];
   listen_port = x_strdup(DEFAULT_LISTEN_PORT);
-  server_port = x_strdup(DEFAULT_SERVER_PORT);
 
 #ifndef DEBUG
   no_daemon = 0;
@@ -271,7 +265,6 @@ int main(int argc, char *argv[]) {
   timer_flush();
   if (!inetd_mode && !no_daemon)
     closelog();
-  free(server_port);
   free(listen_port);
 
 #ifdef DEBUG_MEMORY
