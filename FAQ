@@ -57,10 +57,12 @@ Questions
 
 5.  DCC Proxying
      5.1  Why would I want dircproxy to proxy DCC requests as well?
-     5.2  What's "DCC over ssh" and how do I use it?
-     5.3  Does text I type before dircproxy tells me the remote peer
+     5.2  What should the "Local IP" setting on my IRC client be set
+          to?
+     5.3  What's "DCC over ssh" and how do I use it?
+     5.4  Does text I type before dircproxy tells me the remote peer
           has connected ever reach them?
-     5.4  Why doesn't dircproxy support DCC RESUME?
+     5.5  Why doesn't dircproxy support DCC RESUME?
 
 6.  Advanced Use
      6.1  How do I change what username is presented on IRC?
@@ -513,7 +515,20 @@ Answers
      can actually get on IRC, you'll be able to do DCCs to as it
      will be proxying them between the two networks for you.
 
- 5.2  What's "DCC over ssh" and how do I use it?
+ 5.2  What should the "Local IP" setting on my IRC client be set to?
+
+     It must be set to the local IP address of the machine running
+     that IRC client.  Specifically, this is the address dircproxy
+     will connect to your client on while performing DCC proxying.
+
+     Do NOT set it to the IP address of the machine running
+     dircproxy.  Dircproxy will perform that change for you when
+     doing DCC proxying.
+
+     If your IRC client machine has two or more interfaces, set it
+     to the address that dircproxy will be able to connect to it on.
+     
+ 5.3  What's "DCC over ssh" and how do I use it?
 
      For a complete description, including how to do it, see
      the README.dcc-via-ssh file in the dircproxy distribution.
@@ -521,13 +536,13 @@ Answers
      any firewalls that might be in the way that would normally
      prevent even the most determined proxy from allowing DCCs.
 
- 5.3  Does text I type before dircproxy tells me the remote peer
+ 5.4  Does text I type before dircproxy tells me the remote peer
       has connected ever reach them?
 
      Yes, its simply queued until the remote side connects, then
      is sent to them.
 
- 5.4  Why doesn't dircproxy support DCC RESUME?
+ 5.5  Why doesn't dircproxy support DCC RESUME?
 
      The DCC RESUME protocol is an mIRC extension to the standard,
      and is documented at:
