@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.11 2000/05/24 20:58:06 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.12 2000/05/24 21:02:06 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -635,8 +635,7 @@ int ircclient_send_notice(struct ircproxy *p, const char *format, ...) {
   msg = x_vsprintf(format, ap);
   va_end(ap);
 
-  ret = sock_send(p->client_sock, ":%s %s %s :%s\r\n",
-                  (p->servername ? p->servername : PACKAGE), "NOTICE",
+  ret = sock_send(p->client_sock, ":%s %s %s :%s\r\n", PACKAGE, "NOTICE",
                   (p->nickname ? p->nickname : "AUTH"), msg);
 
   free(msg);
