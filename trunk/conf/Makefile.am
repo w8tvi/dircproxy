@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
 pkgdata_DATA = \
-	dircproxy.conf
+	dircproxyrc
 
 EXTRA_DIST = \
 	$(pkgdata_DATA)

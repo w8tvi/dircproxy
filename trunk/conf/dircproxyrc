@@ -1,23 +1,24 @@
 # Welcome to dircproxy!
 #
 # This is an example configuration file for dircproxy.  It can be placed
-# in any number of possible locations:
+# in any number of possible locations, depending on exactly how you are
+# running dircproxy.
 #
-# If you call dircproxy with the -f parameter, you can specify any file
-# on disk:
-#    $ ./src/dircproxy -f ./conf/dircproxy.conf
+# You can put this file anywhere on the disk and tell dircproxy where using
+# the -f parameter:
+#    $ ./src/dircproxy -f ./conf/dircproxyrc
+# 
+# Otherwise, if you want to just stash your config file somewhere and not
+# worry about telling dircproxy where it is, place it in your home directory
+# as ~/.dircproxyrc - it'll be automatically read.
 #
-# If you don't, ~/.dircproxyrc is tried, this is if you wish to customise
-# it just for you.
+# If its a bit more system-wide (if you're running a big dircproxy server
+# for example) then place this file as /usr/local/etc/dircproxyrc (the exact
+# location depends on the arguments you gave to the configure script).
 #
-# Otherwise /usr/local/etc/dircproxy.conf is tried (depending on your
-# arguments to configure), this can be for when you are the machine admin
-# and wish to run a dircproxy for many clients etc.
-#
-# If none of these are found, dircproxy will not start.
-#
-# All the values are commented out, so they use the default value, or the
-# one set by the configuration file.  The default value is shown.
+# All the values are commented out, so they use the default value.  For each
+# the default value is shown.  So to set something, you have to uncomment
+# AND change the value.
 
 # server_port
 #     What port do we connect to IRC servers on if the server string doesn't
