@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.82 2002/02/05 10:05:46 scott Exp $
+ * @(#) $Id: irc_client.c,v 1.83 2002/02/06 10:10:00 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -775,6 +775,92 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
           ircclient_send_notice(p, "I'm melting!");
           stop();
 
+        } else if (p->conn_class->allow_users
+                   && !irc_strcasecmp(msg.params[0], "USERS")) {
+          struct ircconnclass *c;
+          struct ircproxy *cp;
+          int i;
+
+          c = connclasses;
+          i = 0;
+
+          ircclient_send_notice(p, "Connection classes:");
+
+          while (c) {
+            cp = ircnet_fetchclass(c);
+            if (!cp) {
+              c = c->next;
+              continue;
+            }
+
+            ircclient_send_notice(p, "-%s %2d. %s -> %s (%s)",
+                                  (cp == p ? ">" : " "), ++i,
+                                  cp->client_host ? cp->client_host : "(none)",
+                                  cp->servername ? cp->servername : "(none)",
+                                  cp->nickname ? cp->nickname : "no nickname");
+            c = c->next;
+          }
+
+        } else if (p->conn_class->allow_kill
+                   && !irc_strcasecmp(msg.params[0], "KILL")) {
+          struct ircproxy *proxy;
+
+          /* User wants to kill a user */
+          if (msg.numparams >= 2) {
+            struct ircconnclass *c;
+            struct ircproxy *cp;
+            int i;
+
+            /* Check the user list */
+            proxy = 0;
+            c = connclasses;
+            i = 0;
+            while (c) {
+              cp = ircnet_fetchclass(c);
+              if (!cp) {
+                c = c->next;
+                continue;
+              }
+
+              if ((atoi(msg.params[1]) == ++i)
+                  || (cp->client_host
+                      && !irc_strcasecmp(msg.params[1], cp->client_host))
+                  || (cp->servername
+                      && !irc_strcasecmp(msg.params[1], cp->servername))
+                  || (cp->nickname
+                      && !irc_strcasecmp(msg.params[1], cp->nickname))) {
+                proxy = cp;
+                break;
+              }
+
+              c = c->next;
+            }
+
+            if (proxy && (proxy == p)) {
+              ircclient_send_notice(p, "Use /DIRCPROXY QUIT to kill yourself");
+            } else if (proxy) {
+              if (IS_SERVER_READY(proxy)) {
+                ircserver_send_command(proxy, "QUIT",
+                                       ":Killed by adminstrator - %s %s",
+                                       PACKAGE, VERSION);
+              }
+              if (IS_CLIENT_READY(proxy)) {
+                ircclient_send_error(proxy, "Killed by administrator");
+              }
+
+              ircserver_close_sock(proxy);
+              proxy->conn_class = 0;
+              ircclient_close(proxy);
+
+            } else {
+              ircclient_send_numeric(p, 401, "No such user, "
+                                     "use /DIRCPROXY USERS to see them");
+            }
+
+          } else {
+            ircclient_send_numeric(p, 461, ":Not enough parameters");
+          }
+
         } else if (!irc_strcasecmp(msg.params[0], "SERVERS")) {
           struct strlist *s;
           int i;
@@ -901,9 +987,9 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
 
           ircclient_send_notice(p, "- Client status: %s",
                                 IS_CLIENT_READY(p) ? "Ready" : "");
-	  if (p->client_status != IRC_CLIENT_ACTIVE) {
+          if (p->client_status != IRC_CLIENT_ACTIVE) {
             if (p->client_status & IRC_CLIENT_CONNECTED)
-              ircclient_send_notice(p, "-   Client connected");
+              ircclient_send_notice(p, "-   Connected");
             if (p->client_status & IRC_CLIENT_GOTPASS)
               ircclient_send_notice(p, "-   Received password");
             if (p->client_status & IRC_CLIENT_GOTNICK)
@@ -919,13 +1005,13 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
 
           ircclient_send_notice(p, "- Server status: %s",
                                 IS_SERVER_READY(p) ? "Ready" : "");
-	  if (p->server_status != IRC_SERVER_ACTIVE) {
+          if (p->server_status != IRC_SERVER_ACTIVE) {
             if (p->server_status & IRC_SERVER_CREATED)
-              ircclient_send_notice(p, "-   Socket created");
+              ircclient_send_notice(p, "-   Created");
             if (p->server_status & IRC_SERVER_SEEN)
-              ircclient_send_notice(p, "-   Server seen");
+              ircclient_send_notice(p, "-   Seen");
             if (p->server_status & IRC_SERVER_CONNECTED)
-              ircclient_send_notice(p, "-   Connected to server");
+              ircclient_send_notice(p, "-   Connected");
             if (p->server_status & IRC_SERVER_INTRODUCED)
               ircclient_send_notice(p, "-   Introduced ourselves");
             if (p->server_status & IRC_SERVER_GOTWELCOME)
@@ -933,7 +1019,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
           }
           ircclient_send_notice(p, "-");
 
-          ircclient_send_notice(p,  "- Servers.  Current/next marked by '->'");
+          ircclient_send_notice(p,  "- Servers.  Current marked by '->'");
           s = p->conn_class->servers;
           while (s) {
             ircclient_send_notice(p, "-%s  %s",
@@ -1004,6 +1090,10 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
               help_page = help_host;
             } else if (!irc_strcasecmp(msg.params[1], "STATUS")) {
               help_page = help_status;
+            } else if (!irc_strcasecmp(msg.params[1], "USERS")) {
+              help_page = help_users;
+            } else if (!irc_strcasecmp(msg.params[1], "KILL")) {
+              help_page = help_kill;
             } else if (!irc_strcasecmp(msg.params[1], "HELP")) {
               help_page = help_help;
             } else {
@@ -1030,7 +1120,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
               ircclient_send_notice(p, "-     MOTD      "
                                    "(show dircproxy message of the day)");
               ircclient_send_notice(p, "-     STATUS    "
-                                   "(show dircproxy status information)");
+                                    "(show dircproxy status information)");
               ircclient_send_notice(p, "-     RECALL    "
                                     "(recall text from log files)");
               ircclient_send_notice(p, "-     DETACH    "
@@ -1043,6 +1133,12 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
               if (p->conn_class->allow_die)
                 ircclient_send_notice(p, "-     DIE       "
                                       "(terminate dircproxy)");
+              if (p->conn_class->allow_users)
+                ircclient_send_notice(p, "-     USERS     "
+                                      "(show users using dircproxy)");
+              if (p->conn_class->allow_kill)
+                ircclient_send_notice(p, "-     KILL      "
+                                      "(terminate a user's session)");
               ircclient_send_notice(p, "-     SERVERS   "
                                     "(show servers list)");
               if (p->conn_class->allow_jump)
