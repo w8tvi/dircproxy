@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.39 2000/11/06 16:54:21 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.40 2000/11/10 15:07:10 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -435,6 +435,33 @@
  */
 #define DEFAULT_DCC_SEND_FAST 0
 
+/* DEFAULT_DCC_CAPTURE_DIRECTORY
+ * Directory to capture DCC sends in.
+ * 0 = Do not capture
+ */
+#define DEFAULT_DCC_CAPTURE_DIRECTORY 0
+
+/* DEFAULT_DCC_CAPTURE_ALWAYS
+ * Capture DCC sends even when we've got a client connected?
+ * 1 = Yes
+ * 0 = No
+ */
+#define DEFAULT_DCC_CAPTURE_ALWAYS 0
+
+/* DEFAULT_DCC_CAPTURE_WITHNICK
+ * Include the nickname at the front of the captured filename?
+ * 1 = Yes
+ * 0 = No
+ */
+#define DEFAULT_DCC_CAPTURE_WITHNICK 0
+
+/* DEFAULT_DCC_CAPTURE_MAXSIZE
+ * Maximum size of a captured file, if they reach this size then the
+ * transfer will be refused.
+ * 0 = No limit
+ */
+#define DEFAULT_DCC_CAPTURE_MAXSIZE 0
+
 /* DEFAULT_DCC_TUNNEL_INCOMING
  * Local port that all incoming DCC connections should go through
  * 0 = Don't do this
@@ -446,6 +473,12 @@
  * 0 = Don't do this
  */
 #define DEFAULT_DCC_TUNNEL_OUTGOING 0
+
+/* DEFAULT_SWITCH_USER
+ * Username to create server socket with
+ * 0 = Don't do this
+ */
+#define DEFAULT_SWITCH_USER 0
 
 /* DEFAULT_MOTD_LOGO
  * Display a nice dircproxy logo in the message of the day.  This logo is
@@ -521,5 +554,6 @@ extern int syscall_fail(const char *, const char *, const char *);
 extern int error(const char *, ...);
 extern int debug(const char *, ...);
 extern int stop(void);
+extern int go_daemon(void);
 
 #endif /* __DIRCPROXY_DIRCPROXY_H */
