@@ -5,4 +5,5 @@ EXTRA_DIST = \
 	README.inetd
 
 SUBDIRS = \
+	conf \
 	src
