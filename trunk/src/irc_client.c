@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.69 2000/11/20 11:12:15 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.70 2000/11/20 15:25:54 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -102,6 +102,7 @@ static void _ircclient_data(struct ircproxy *p, int sock) {
   if (sock != p->client_sock) {
     error("Unexpected socket %d in _ircclient_data, expected %d", sock,
           p->client_sock);
+    net_close(sock);
     return;
   }
 
@@ -119,6 +120,7 @@ static void _ircclient_error(struct ircproxy *p, int sock, int bad) {
   if (sock != p->client_sock) {
     error("Unexpected socket %d in _ircclient_error, expected %d", sock,
           p->client_sock);
+    net_close(sock);
     return;
   }
 
