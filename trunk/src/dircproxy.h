@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.35 2000/10/20 12:44:13 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.36 2000/10/23 12:19:45 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -47,6 +47,13 @@
  * gonna be more likely for one to fail.
  */
 #define NET_BLOCK_SIZE 8192
+
+/* NET_LINGER_TIME
+ * Maximum amount of time to allow sockets to send whatever data remains
+ * in their output buffer before we just give up and let the dircproxy
+ * shutdown continue
+ */
+#define NET_LINGER_TIME 5
 
 /* FALLBACK_USERNAME
  * Before sending username's to the server in a USER command, we strip it
