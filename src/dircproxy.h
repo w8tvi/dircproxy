@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.16 2000/08/29 10:34:37 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.17 2000/08/29 10:42:42 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -135,6 +135,11 @@
  *  0 = No, disconnect the new user
  */
 #define DEFAULT_DISCONNECT_EXISTING 0
+
+/* DEFAULT_DROP_MODES
+ * User modes to automatically drop when the client detaches.
+ */
+#define DEFAULT_DROP_MODES "oOws"
 
 /* DEFAULT_LOG_AUTORECALL
  * How many lines of log off the bottom do we give to the client when it

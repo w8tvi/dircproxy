@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.9 2000/08/29 10:34:37 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.10 2000/08/29 10:42:42 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -38,10 +38,10 @@ static int _cfg_read_string(char **, char **);
 int cfg_read(const char *filename, char **listen_port) {
   long server_maxattempts, server_maxinitattempts;
   long server_retry, server_dnsretry;
-  int disconnect_existing;
+  char *server_port, *drop_modes;
   struct ircconnclass *class;
+  int disconnect_existing;
   long channel_rejoin;
-  char *server_port;
   int valid;
   long line;
   FILE *fd;
@@ -61,6 +61,7 @@ int cfg_read(const char *filename, char **listen_port) {
   server_maxinitattempts = DEFAULT_SERVER_MAXINITATTEMPTS;
   channel_rejoin = DEFAULT_CHANNEL_REJOIN;
   disconnect_existing = DEFAULT_DISCONNECT_EXISTING;
+  drop_modes = x_strdup(DEFAULT_DROP_MODES);
 
   while (valid) {
     char buff[512], *buf;
@@ -175,7 +176,29 @@ int cfg_read(const char *filename, char **listen_port) {
         _cfg_read_bool(&buf,
                        &(disconnect_existing ? class->disconnect_existing
                                              : disconnect_existing));
- 
+      } else if (!strcasecmp(key, "drop_modes")) {
+        /* drop_modes "ow" */
+        char *str;
+
+        if (_cfg_read_string(&buf, &str))
+          UNMATCHED_QUOTE;
+
+        while ((*str == '+') || (*str == '-')) {
+          char *tmp;
+          
+          tmp = str;
+          str = x_strdup(tmp + 1);
+          free(tmp);
+        }
+
+        if (class) {
+          free(class->drop_modes);
+          class->drop_modes = str;
+        } else {
+          free(drop_modes);
+          drop_modes = str;
+        }
+
       } else if (!class && !strcasecmp(key, "log_autorecall")) {
         /* log_autorecall 128 */
         _cfg_read_numeric(&buf, &log_autorecall);
@@ -208,6 +231,7 @@ int cfg_read(const char *filename, char **listen_port) {
         class->server_maxinitattempts = server_maxinitattempts;
         class->channel_rejoin = channel_rejoin;
         class->disconnect_existing = disconnect_existing;
+        class->drop_modes = x_strdup(drop_modes);
 
       } else if (class && !strcasecmp(key, "password")) {
         /* connection {
@@ -363,6 +387,7 @@ int cfg_read(const char *filename, char **listen_port) {
 
   fclose(fd);
   free(server_port);
+  free(drop_modes);
   return (valid ? 0 : -1);
 }
 

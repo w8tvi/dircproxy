@@ -5,7 +5,7 @@
  * irc_net.c
  *  - Polling of sockets and acting on any data
  * --
- * @(#) $Id: irc_net.c,v 1.15 2000/08/25 09:47:42 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.16 2000/08/29 10:42:42 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -461,6 +461,7 @@ void ircnet_freeconnclass(struct ircconnclass *class) {
   free(class->bind);
   free(class->awaymessage);
   free(class->server_port);
+  free(class->drop_modes);
 
   s = class->servers;
   while (s) {
