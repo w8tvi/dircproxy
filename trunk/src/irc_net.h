@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.49 2002/08/17 21:05:55 scott Exp $
+ * @(#) $Id: irc_net.h,v 1.50 2002/10/17 18:39:19 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -223,21 +223,6 @@ struct ircproxy {
 
 /* Can we send data to the server? */
 #define IS_SERVER_READY(_c) (((_c)->server_status & 0x0c) == 0x0c)
-
-/* types of event we can log */
-#define IRC_LOG_TEXT   0x0001
-#define IRC_LOG_ACTION 0x0002
-#define IRC_LOG_CTCP   0x0004
-#define IRC_LOG_JOIN   0x0008
-#define IRC_LOG_PART   0x0010
-#define IRC_LOG_KICK   0x0020
-#define IRC_LOG_QUIT   0x0040
-#define IRC_LOG_NICK   0x0080
-#define IRC_LOG_MODE   0x0100
-#define IRC_LOG_TOPIC  0x0200
-#define IRC_LOG_CLIENT 0x0400
-#define IRC_LOG_SERVER 0x0800
-#define IRC_LOG_ERROR  0x1000
 
 /* global variables */
 extern struct ircconnclass *connclasses;
