@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/dircproxy.h)
-AM_INIT_AUTOMAKE(dircproxy, 1.1.0)
+AM_INIT_AUTOMAKE(dircproxy, 1.1.1)
 AM_CONFIG_HEADER(config.h)
 AC_CANONICAL_HOST
 AM_MAINTAINER_MODE
