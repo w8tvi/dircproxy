@@ -40,6 +40,7 @@ I have personally got this compiling on the following architectures:
 
 	i586-pc-linux-gnu	Linux 2.2 with glibc 2.0 (RedHat 5.2)
 	i686-pc-linux-gnu	Linux 2.2 with glibc 2.1 (RedHat 6.1)
+	i686-pc-linux-gnu	Linux 2.2 with glibc 2.1 (Debian 2.2)
 	i686-pc-linux-gnu	Linux 2.2 with glibc 2.1 (Caldera 2.3)
 	i686-pc-linux-gnu	Linux 2.2 with glibc 2.1 (Mandrake 7.0)
 	i686-pc-linux-gnu	Linux 2.2 with glibc 2.1 (Slackware 7.0)
