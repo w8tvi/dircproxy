@@ -5,7 +5,7 @@
  * irc_net.c
  *  - Polling of sockets and acting on any data
  * --
- * @(#) $Id: irc_net.c,v 1.16 2000/08/29 10:42:42 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.17 2000/08/29 10:45:19 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -429,28 +429,32 @@ static int _ircnet_expunge_proxies(void) {
 
 /* Get rid of all the proxies and connection classes */
 void ircnet_flush(void) {
-  struct ircconnclass *c;
-  struct ircproxy *p;
+  ircnet_flush_proxies(&proxies);
+  ircnet_flush_connclasses(&connclasses);
+}
 
-  p = proxies;
-  while (p) {
+/* Get rid of all the proxies */
+void ircnet_flush_proxies(struct ircproxy **p) {
+  while (*p) {
     struct ircproxy *t;
 
-    t = p;
-    p = p->next;
+    t = *p;
+    *p = (*p)->next;
     _ircnet_freeproxy(t);
   }
-  proxies = 0;
+  *p = 0;
+}
 
-  c = connclasses;
-  while (c) {
+/* Get rid of all the connection classes */
+void ircnet_flush_connclasses(struct ircconnclass **c) {
+  while (*c) {
     struct ircconnclass *t;
 
-    t = c;
-    c = c->next;
+    t = *c;
+    *c = (*c)->next;
     ircnet_freeconnclass(t);
   }
-  connclasses = 0;
+  *c = 0;
 }
 
 /* Free a connection class structure */

@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.21 2000/08/29 10:42:42 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.22 2000/08/29 10:45:19 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -83,10 +83,12 @@ int ircclient_data(struct ircproxy *p) {
         irclog_notice_toall(p, "You disconnected");
 
         if ((p->server_status == IRC_SERVER_ACTIVE)
+            && (p->client_status == IRC_CLIENT_ACTIVE)
             && !p->awaymessage && p->conn_class->awaymessage)
           ircserver_send_command(p, "AWAY", ":%s", p->conn_class->awaymessage);
 
-        if (p->conn_class->drop_modes) {
+        if ((p->client_status == IRC_CLIENT_ACTIVE)
+            && p->conn_class->drop_modes) {
           char *mode;
 
           mode = x_sprintf("-%s", p->conn_class->drop_modes);

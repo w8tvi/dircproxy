@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.27 2000/08/25 09:56:39 keybuk Exp $
+ * @(#) $Id: main.c,v 1.28 2000/08/29 10:45:19 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,10 +39,13 @@
 #include "sprintf.h"
 #include "cfgfile.h"
 #include "irc_net.h"
+#include "irc_client.h"
+#include "irc_server.h"
 #include "timers.h"
 
 /* forward declarations */
 static void sig_term(int);
+static void sig_hup(int);
 #ifdef DEBUG_MEMORY
 static void sig_usr(int);
 #endif /* DEBUG_MEMORY */
@@ -51,7 +54,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.27 2000/08/25 09:56:39 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.28 2000/08/29 10:45:19 keybuk Exp $";
 
 /* The name of the program */
 char *progname;
@@ -64,6 +67,12 @@ unsigned long log_autorecall = DEFAULT_LOG_AUTORECALL;
 
 /* set to 1 to abort the main loop */
 static int stop_poll = 0;
+
+/* Port we're listening on */
+static char *listen_port;
+
+/* The configuration file we used */
+static char *config_file;
 
 /* Long options */
 struct option long_opts[] = {
@@ -84,8 +93,8 @@ struct option long_opts[] = {
 
 /* We need this */
 int main(int argc, char *argv[]) {
-  char *local_file, *cmd_listen_port, *listen_port;
   int optc, show_help, show_version, show_usage;
+  char *local_file, *cmd_listen_port;
   int inetd_mode, no_daemon;
 
   /* Set up some globals */
@@ -160,6 +169,8 @@ int main(int argc, char *argv[]) {
            global one */
         free(local_file);
         local_file = 0;
+      } else {
+        config_file = x_strdup(local_file);
       }
     }
   } else {
@@ -169,6 +180,8 @@ int main(int argc, char *argv[]) {
               progname, local_file, strerror(errno));
       free(local_file);
       return 2;
+    } else {
+      config_file = x_strdup(local_file);
     }
   }
 
@@ -180,6 +193,7 @@ int main(int argc, char *argv[]) {
     global_file = x_sprintf("%s/%s", SYSCONFDIR, GLOBAL_CONFIG_FILENAME);
     debug("Global config file: %s", global_file);
     cfg_read(global_file, &listen_port);
+    config_file = x_strdup(global_file);
     free(global_file);
   } else {
     free(local_file);
@@ -201,6 +215,7 @@ int main(int argc, char *argv[]) {
   /* Set signal handlers */
   signal(SIGTERM, sig_term);
   signal(SIGINT, sig_term);
+  signal(SIGHUP, sig_hup);
 #ifdef DEBUG_MEMORY
   signal(SIGUSR1, sig_usr);
   signal(SIGUSR2, sig_usr);
@@ -287,6 +302,7 @@ int main(int argc, char *argv[]) {
   if (!inetd_mode && !no_daemon)
     closelog();
   free(listen_port);
+  free(config_file);
 
 #ifdef DEBUG_MEMORY
   mem_report("termination");
@@ -299,6 +315,88 @@ int main(int argc, char *argv[]) {
 static void sig_term(int sig) {
   debug("Received signal %d to stop", sig);
   stop_poll = 1;
+}
+
+/* Signal to reload configuration file */
+static void sig_hup(int sig) {
+  struct ircconnclass *oldclasses, *c;
+  char *new_listen_port;
+
+  debug("Received signal %d to reload from %s", sig, config_file);
+  new_listen_port = x_strdup(DEFAULT_LISTEN_PORT);
+  oldclasses = connclasses;
+  connclasses = 0;
+
+  if (cfg_read(config_file, &new_listen_port)) {
+    /* Config file reload failed */
+    error("Reload of configuration file %s failed", config_file);
+    ircnet_flush_connclasses(&connclasses);
+    connclasses = oldclasses;
+    free(new_listen_port);
+    return;
+  }
+
+  /* Listen port changed */
+  if (strcmp(listen_port, new_listen_port)) {
+    debug("Changing listen_port from %s to %s", listen_port, new_listen_port);
+    if (ircnet_listen(new_listen_port)) {
+      /* This isn't fatal */
+      error("Unable to change listen_port from %s to %s",
+            listen_port, new_listen_port);
+    } else {
+      free(listen_port);
+      listen_port = new_listen_port;
+      new_listen_port = 0;
+    }
+  }
+
+  /* Match everything back up to the old stuff */
+  c = connclasses;
+  while (c) {
+    struct ircconnclass *o;
+
+    o = oldclasses;
+    while (o) {
+      if (!strcmp(c->password, o->password)) {
+        struct ircproxy *p;
+
+        p = ircnet_fetchclass(o);
+        if (p)
+          p->conn_class = c;
+
+        break;
+      }
+
+      o = o->next;
+    }
+
+    c = c->next;
+  }
+
+  /* Kill anyone who got lost in the reload */
+  c = oldclasses;
+  while (c) {
+    struct ircproxy *p;
+
+    p = ircnet_fetchclass(c);
+    if (p) {
+      p->conn_class = 0;
+      ircclient_send_error(p, "No longer permitted to use this proxy");
+      ircclient_close(p);
+      ircserver_send_command(p, "QUIT", ":Leaving IRC - %s %s",
+                             PACKAGE, VERSION);
+      ircserver_close_sock(p);
+    }
+
+    c = c->next;
+  }
+  
+  /* Clean up */
+  ircnet_flush_connclasses(&oldclasses);
+  free(new_listen_port);
+
+  /* Restore the signal */
+  signal(sig, sig_hup);
 }
 
 #ifdef DEBUG_MEMORY
@@ -354,6 +452,25 @@ int syscall_fail(const char *function, const char *arg, const char *message) {
                   (message ? message : strerror(errno)));
   if (in_background) {
     syslog(LOG_NOTICE, "%s", msg);
+  } else {
+    fprintf(stderr, "%s: %s\n", progname, msg);
+  }
+
+  free(msg);
+  return 0;
+}
+
+/* Called to log an error */
+int error(const char *format, ...) {
+  va_list ap;
+  char *msg;
+
+  va_start(ap, format);
+  msg = x_vsprintf(format, ap);
+  va_end(ap);
+ 
+  if (in_background) {
+    syslog(LOG_ERR, "%s", msg);
   } else {
     fprintf(stderr, "%s: %s\n", progname, msg);
   }

@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.17 2000/08/29 10:42:42 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.18 2000/08/29 10:45:19 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -163,6 +163,7 @@ extern unsigned long log_autorecall;
 
 /* functions in main.c */
 extern int syscall_fail(const char *, const char *, const char *);
+extern int error(const char *, ...);
 extern int debug(const char *, ...);
 
 #endif /* __DIRCPROXY_DIRCPROXY_H */
