@@ -4,7 +4,7 @@
  *
  * irc_prot.h
  * --
- * @(#) $Id: irc_prot.h,v 1.1 2000/05/13 02:14:01 keybuk Exp $
+ * @(#) $Id: irc_prot.h,v 1.2 2000/08/21 14:53:00 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -39,11 +39,6 @@ struct ircmessage {
 #define IRC_SERVER 0x1
 #define IRC_USER   0x2
 #define IRC_EITHER 0x3
-
-/* RFC1459 says parameters are seperated by multiple spaces, however
-   RFC2821 says they are seperated by a single space. Change this to
-   change behaviour */
-#undef OLD_RFC1459_PARAM_SPACE
 
 /* functions */
 extern int ircprot_parsemsg(const char *, struct ircmessage *);

@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.9 2000/08/17 15:03:21 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.10 2000/08/21 14:53:00 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -29,6 +29,22 @@
 #include "memdebug.h"
 
 /* Configuration values that aren't in the config file */
+
+/* OLD_RFC1459_PARAM_SPACE
+ * RFC1459 says parameters are seperated by one or mode spaces,
+ * however RFC2812 says they are seperated by a single space (thus
+ * allowing empty parameters).  Define this to use the old RFC1459
+ * behaviour IF (and only IF) you have problems.
+ */
+#undef OLD_RFC1459_PARAM_SPACE
+
+/* ENCRYPTED_PASSWORDS
+ * If this is defined, then passwords in the config file are assumed to
+ * be encrypted using the system's crypt() function.  This gives added
+ * security and means that people who manage to read your config file
+ * can't pretend to be you on IRC.
+ */
+#define ENCRYPTED_PASSWORDS
 
 /* FALLBACK_USERNAME
  * Before sending username's to the server in a USER command, we strip it
@@ -140,6 +156,7 @@
 
 /* global variables */
 extern char *progname;
+extern int in_background;
 extern char *listen_port;
 extern char *server_port;
 extern long server_retry;
