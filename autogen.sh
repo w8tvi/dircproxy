@@ -3,8 +3,8 @@
 # Scott James Remnant <scott@netsplit.com>
 
 # gettextize
-aclocal
-autoheader
-automake --add-missing --copy
-autoconf
+aclocal-1.4
+autoheader-1.4
+automake-1.4 --add-missing --copy
+autoconf2.13
 ./configure $@
