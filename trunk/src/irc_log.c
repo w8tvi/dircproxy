@@ -5,7 +5,7 @@
  * irc_log.c
  *  - Handling of log files
  * --
- * @(#) $Id: irc_log.c,v 1.15 2000/08/30 13:09:10 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.16 2000/08/30 13:40:04 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -273,10 +273,10 @@ void irclog_free(struct logfile *log) {
   if (!log->filename)
     return;
 
-  debug("Freeing up log file '%s'", log->filename);
-
   if (log->open)
     _irclog_close(log);
+
+  debug("Freeing up log file '%s'", log->filename);
   if (!log->keep)
     unlink(log->filename);
   free(log->filename);
