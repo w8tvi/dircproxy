@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.26 2000/10/13 13:55:13 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.27 2000/10/20 11:03:18 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -25,6 +25,7 @@
 static int _cfg_read_bool(char **, int *);
 static int _cfg_read_numeric(char **, long *);
 static int _cfg_read_string(char **, char **);
+static int _cfg_read_pair(char **, long **);
 
 /* Whitespace */
 #define WS " \t\r\n"
@@ -63,6 +64,11 @@ int cfg_read(const char *filename, char **listen_port,
   def->server_maxattempts = DEFAULT_SERVER_MAXATTEMPTS;
   def->server_maxinitattempts = DEFAULT_SERVER_MAXINITATTEMPTS;
   def->server_pingtimeout = DEFAULT_SERVER_PINGTIMEOUT;
+  if (DEFAULT_SERVER_THROTTLE_BYTES || DEFAULT_SERVER_THROTTLE_PERIOD) {
+    def->server_throttle = (long *)malloc(sizeof(long) * 2);
+    def->server_throttle[0] = DEFAULT_SERVER_THROTTLE_BYTES;
+    def->server_throttle[1] = DEFAULT_SERVER_THROTTLE_PERIOD;
+  }
   def->server_autoconnect = DEFAULT_SERVER_AUTOCONNECT;
   def->channel_rejoin = DEFAULT_CHANNEL_REJOIN;
   def->channel_leave_on_detach = DEFAULT_CHANNEL_LEAVE_ON_DETACH;
@@ -214,6 +220,17 @@ int cfg_read(const char *filename, char **listen_port,
       } else if (!strcasecmp(key, "server_pingtimeout")) {
         /* server_pingtimeout 600 */
         _cfg_read_numeric(&buf, &(class ? class : def)->server_pingtimeout);
+
+      } else if (!strcasecmp(key, "server_throttle")) {
+        /* server_throttle 0
+           server_throttle 512
+           server_throttle 1024:10 */
+        long *pair;
+
+        _cfg_read_pair(&buf, &pair);
+
+        free((class ? class : def)->server_throttle);
+        (class ? class : def)->server_throttle = pair;
 
       } else if (!strcasecmp(key, "server_autoconnect")) {
         /* server_autoconnect yes
@@ -674,6 +691,11 @@ int cfg_read(const char *filename, char **listen_port,
         memcpy(class, def, sizeof(struct ircconnclass));
         class->server_port = (def->server_port
                               ? x_strdup(def->server_port) : 0);
+        if (def->server_throttle) {
+          class->server_throttle = (long *)malloc(sizeof(long) * 2);
+          memcpy(class->server_throttle, def->server_throttle,
+                 sizeof(long) * 2);
+        }
         class->drop_modes = (def->drop_modes
                              ? x_strdup(def->drop_modes) : 0);
         class->refuse_modes = (def->refuse_modes
@@ -868,6 +890,7 @@ int cfg_read(const char *filename, char **listen_port,
 
   fclose(fd);
   free(def->server_port);
+  free(def->server_throttle);
   free(def->drop_modes);
   free(def->refuse_modes);
   free(def->local_address);
@@ -884,7 +907,7 @@ int cfg_read(const char *filename, char **listen_port,
   return (valid ? 0 : -1);
 }
 
-/* Read a boolean value */
+/* Read a boolean value from config file */
 static int _cfg_read_bool(char **buf, int *val) {
   char *ptr;
 
@@ -915,7 +938,7 @@ static int _cfg_read_bool(char **buf, int *val) {
   return 0;
 }
 
-/* Read a numeric value */
+/* Read a numeric value from config file */
 static int _cfg_read_numeric(char **buf, long *val) {
   char *ptr;
 
@@ -928,7 +951,7 @@ static int _cfg_read_numeric(char **buf, long *val) {
   return 0;
 }
 
-/* Read a string value */
+/* Read a string value from config file */
 static int _cfg_read_string(char **buf, char **val) {
   char *ptr;
 
@@ -953,6 +976,34 @@ static int _cfg_read_string(char **buf, char **val) {
   *((*buf)++) = 0;
 
   *val = x_strdup(ptr);
+
+  return 0;
+}
+
+/* Read a numeric pair from config file */
+static int _cfg_read_pair(char **buf, long **val) {
+  char *ptr, *col;
+  long ret[2];
+
+  ptr = *buf;
+  *buf += strcspn(*buf, WS);
+  *((*buf)++) = 0;
+
+  col = strchr(ptr, ':');
+  if (col) {
+    *(col++) = 0;
+    ret[1] = atol(col);
+  } else {
+    ret[1] = 1;
+  }
+  ret[0] = atol(ptr);
+  
+  if (ret[0] || ret[1]) {
+    *val = (long *)malloc(sizeof(long) * 2);
+    memcpy(*val, ret, sizeof(long) * 2);
+  } else {
+    *val = 0;
+  }
 
   return 0;
 }

@@ -9,7 +9,7 @@
  *  - Signal handling
  *  - Debug functions
  * --
- * @(#) $Id: main.c,v 1.41 2000/10/13 13:36:40 keybuk Exp $
+ * @(#) $Id: main.c,v 1.42 2000/10/20 11:03:19 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,6 +48,7 @@
 #include "irc_server.h"
 #include "timers.h"
 #include "dns.h"
+#include "net.h"
 
 /* forward declarations */
 static void sig_term(int);
@@ -61,7 +62,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.41 2000/10/13 13:36:40 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.42 2000/10/20 11:03:19 keybuk Exp $";
 
 /* The name of the program */
 static char *progname;
@@ -301,7 +302,8 @@ int main(int argc, char *argv[]) {
   while (!stop_poll) {
     int ns, nt;
 
-    ns = ircnet_poll();
+    ircnet_expunge_proxies();
+    ns = net_poll();
     nt = timer_poll();
 
     if (!ns && !nt)
@@ -312,6 +314,7 @@ int main(int argc, char *argv[]) {
   ircnet_flush();
   dns_flush();
   timer_flush();
+  net_flush();
   if (!inetd_mode && !no_daemon)
     closelog();
   free(listen_port);
@@ -330,7 +333,6 @@ static void sig_term(int sig) {
   stop_poll = 1;
 }
 
-  struct globalvars newglobals;
 /* Signal to reload configuration file */
 static void sig_hup(int sig) {
   struct ircconnclass *oldclasses, *c;

@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.31 2000/10/16 10:46:48 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.32 2000/10/20 11:03:18 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -41,6 +41,7 @@ struct ircconnclass {
   long server_maxattempts;
   long server_maxinitattempts;
   long server_pingtimeout;
+  long *server_throttle;
   int server_autoconnect;
 
   long channel_rejoin;
@@ -184,7 +185,7 @@ extern struct ircconnclass *connclasses;
 
 /* functions */
 extern int ircnet_listen(const char *);
-extern int ircnet_poll(void);
+extern int ircnet_expunge_proxies(void);
 extern void ircnet_flush(void);
 extern void ircnet_flush_proxies(struct ircproxy **);
 extern void ircnet_flush_connclasses(struct ircconnclass **);

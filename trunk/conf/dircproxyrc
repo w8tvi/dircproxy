@@ -107,6 +107,22 @@
 #
 #server_pingtimeout 0
 
+# server_throttle
+#     To prevent you from being flooded off the IRC network, dircproxy can
+#     throttle the connection to the server to prevent too much being sent
+#     within a certain time period. 
+#
+#     For this you specify a number of bytes, then optionally a time period
+#     in seconds seperated by a colon.  If the time period is ommitted then
+#     per second is assmued.
+#
+#     server_throttle 10        # 10 bytes per second
+#     server_throttle 10:2      # 10 bytes per 2 seconds (5 per second)
+#
+#     0 = do not throttle the connection
+#
+#server_throttle 1024:10
+
 # server_autoconnect
 #     Should dircproxy automatically connect to the first server in the list
 #     when you connect.  If you set this to 'no', then 'allow_jump' is 
