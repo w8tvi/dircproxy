@@ -9,7 +9,7 @@
  *  - Signal handling
  *  - Debug functions
  * --
- * @(#) $Id: main.c,v 1.50 2001/12/21 20:15:55 keybuk Exp $
+ * @(#) $Id: main.c,v 1.51 2002/01/28 04:00:14 scott Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,7 +63,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.50 2001/12/21 20:15:55 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.51 2002/01/28 04:00:14 scott Exp $";
 
 /* The name of the program */
 static char *progname;
@@ -335,8 +335,6 @@ static void _sig_hup(int sig) {
     error("Reload of configuration file %s failed", config_file);
     ircnet_flush_connclasses(&connclasses);
 
-  /* Copy over new globals */
-  memcpy(&g, &newglobals, sizeof(struct globalvars));
     connclasses = oldclasses;
     free(new_listen_port);
     return;
