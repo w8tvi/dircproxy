@@ -11,7 +11,7 @@
  * of a DNS request is notified by the child death signal, so it will
  * interrupt the main loop to continue where you left off.
  * --
- * @(#) $Id: dns.c,v 1.6 2000/10/13 12:31:03 keybuk Exp $
+ * @(#) $Id: dns.c,v 1.7 2000/10/13 12:32:46 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -198,25 +198,29 @@ int dns_endrequest(pid_t pid, int status) {
   name = 0;
   addr = 0;
   
-  /* Read from pipe */
-  len = read(child->pipe, (void *)&result, sizeof(struct dnsresult));
-  if (len != sizeof(struct dnsresult)) {
-    syscall_fail("read", 0, 0);
-  } else if (result.success) {
-    debug("%d: Got result", pid);
+  /* Read from pipe if child returned normally */
+  if (!status) {
+    len = read(child->pipe, (void *)&result, sizeof(struct dnsresult));
+    if (len != sizeof(struct dnsresult)) {
+      syscall_fail("read", 0, 0);
+    } else if (result.success) {
+      debug("%d: Got result", pid);
 
-    addr = &(result.addr);
-    if (!strlen(result.name)) {
-      char *ip;
+      addr = &(result.addr);
+      if (!strlen(result.name)) {
+        char *ip;
 
-      /* No name received, so copy IP address into it */
-      ip = inet_ntoa(result.addr);
-      strncpy(result.name, ip, 255);
-      result.name[255] = 0;
+        /* No name received, so copy IP address into it */
+        ip = inet_ntoa(result.addr);
+        strncpy(result.name, ip, 255);
+        result.name[255] = 0;
 
-      debug("%d: Changed name to '%s'", pid, result.name);
+        debug("%d: Changed name to '%s'", pid, result.name);
+      }
+      name = result.name;
     }
-    name = result.name;
+  } else {
+    debug("%d: DNS lookup returned %d", pid, status);
   }
 
   /* Call the function */
