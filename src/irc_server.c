@@ -5,7 +5,7 @@
  * irc_server.c
  *  - Handling of servers connected to the proxy
  * --
- * @(#) $Id: irc_server.c,v 1.6 2000/05/24 18:05:43 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.7 2000/05/24 20:25:01 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -37,7 +37,6 @@
 
 /* forward declarations */
 static void _ircserver_reconnect(struct ircproxy *, void *);
-static void _ircserver_rejoin(struct ircproxy *, void *);
 static int _ircserver_gotmsg(struct ircproxy *, const char *);
 static int _ircserver_close(struct ircproxy *);
 static int _ircserver_forclient(struct ircproxy *, struct ircmessage *);
@@ -75,12 +74,6 @@ static void _ircserver_reconnect(struct ircproxy *p, void *data) {
     /* Attempt a new connection */
     ircserver_connect(p);
   }
-}
-
-/* hook for timer code to rejoin a channel after a kick */
-static void _ircserver_rejoin(struct ircproxy *p, void *data) {
-  ircserver_send_command(p, "JOIN", ":%s", (char *)data);
-  free(data);
 }
 
 /* Called to initiate a connection to a server */
@@ -257,6 +250,21 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
   if (ircprot_parsemsg(str, &msg) == -1)
     return -1;
 
+  /* 437 is bizarre, it either means Nickname is juped or Channel is juped */
+  if (!strcasecmp(msg.cmd, "437")) {
+    if (msg.numparams >= 2) {
+      if (!irc_strcasecmp(p->nickname, msg.params[0])) {
+        /* Our nickname is Juped - make it a 433 */
+        free(msg.cmd);
+        msg.cmd = x_strdup("433");
+      } else {
+        /* Channel is juped - make it a 471 */
+        free(msg.cmd);
+        msg.cmd = x_strdup("471");
+      }
+    }
+  }
+
   if (!strcasecmp(msg.cmd, "001")) {
     /* Use 001 to get the servername */
     if (msg.src.type & IRC_SERVER) {
@@ -323,7 +331,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
   } else if (!strcasecmp(msg.cmd, "431") || !strcasecmp(msg.cmd, "432")
              || !strcasecmp(msg.cmd, "433") || !strcasecmp(msg.cmd, "436")
-             || !strcasecmp(msg.cmd, "437") || !strcasecmp(msg.cmd, "438")) {
+             || !strcasecmp(msg.cmd, "438")) {
     /* Our nickname got rejected */
     if (msg.numparams >= 2) {
       free(p->nickname);
@@ -357,6 +365,28 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       squelch = 0;
     }
 
+  } else if (!strcasecmp(msg.cmd, "471") || !strcasecmp(msg.cmd, "473")
+             || !strcasecmp(msg.cmd, "474")) {
+    if (msg.numparams >= 2) {
+      /* Can't join a channel */
+
+      /* No client connected?  Lets rejoin it for it */
+      if (p->client_status != IRC_CLIENT_ACTIVE) {
+        struct ircchannel *chan;
+
+        chan = ircnet_fetchchannel(p, msg.params[1]);
+        if (chan) {
+          chan->inactive = 1;
+          ircnet_rejoin(p, chan->name);
+        }
+      } else {
+        /* Let it handle it */
+        ircnet_delchannel(p, msg.params[1]);
+      }
+
+      squelch = 0;
+    }
+
   } else if (!strcasecmp(msg.cmd, "PING")) {
     /* Reply to pings for the client */
     if (msg.numparams == 1) {
@@ -383,8 +413,6 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       }
     } else {
       /* Someone changing their nickname */
-      irclog_notice_toall(p, "%s is now known as %s", msg.src.fullname,
-                          msg.params[0]);
       squelch = 0;
     }
 
@@ -405,8 +433,27 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     if (_ircserver_forclient(p, &msg)) {
       /* Server telling us we joined a channel */
       if (msg.numparams >= 1) {
-        ircnet_addchannel(p, msg.params[0]);
-        squelch = 0;
+        struct ircchannel *c;
+
+        c = ircnet_fetchchannel(p, msg.params[0]);
+        if (c && c->inactive) {
+          /* Must have got KICK'd or something ... */
+          c->inactive = 0;
+
+          /* If a client is connected, tell it we just joined and give it
+             what they missed */
+          if (p->client_status == IRC_CLIENT_ACTIVE) {
+            sock_send(p->client_sock, "%s\r\n", msg.orig);
+            irclog_recall(p, &(c->log), log_autorecall);
+          }
+        } else if (!c) {
+          /* Orginary join */
+          ircnet_addchannel(p, msg.params[0]);
+          squelch = 0;
+        } else {
+          /* Bizarre, joined a channel we thought we were already on */
+          squelch = 0;
+        }
       }
     } else {
       if (msg.numparams >= 1)
@@ -433,22 +480,24 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     if (msg.numparams >= 2) {
       if (!irc_strcasecmp(p->nickname, msg.params[1])) {
         /* We got kicked off a channel */
-        irclog_notice_to(p, p->nickname, "Kicked off %s by %s",
-                         msg.params[0], msg.src.fullname);
-        ircnet_delchannel(p, msg.params[0]);
-        squelch = 0;
 
         /* No client connected?  Lets rejoin it for it */
         if (p->client_status != IRC_CLIENT_ACTIVE) {
-          char *str;
+          struct ircchannel *chan;
 
-          str = x_strdup(msg.params[0]);
-          if (channel_rejoin == 0) {
-            _ircserver_rejoin(p, (void *)str);
-          } else if (channel_rejoin > 0) {
-            timer_new(p, 0, channel_rejoin, _ircserver_rejoin, (void *)str);
+          chan = ircnet_fetchchannel(p, msg.params[0]);
+          if (chan) {
+            irclog_notice_to(p, chan->name, "Kicked off by %s",
+                             msg.src.fullname);
+            chan->inactive = 1;
+            ircnet_rejoin(p, chan->name);
           }
+        } else {
+          /* Let it handle it */
+          ircnet_delchannel(p, msg.params[1]);
         }
+
+        squelch = 0;
       } else {
         squelch = 0;
       }
