@@ -29,7 +29,7 @@ Release checklist
 19.  make dist
 20.  `gpg --armor --comment 'See http://www.dircproxy.net/\
       download.html for more information' --detach-sign DISTFILE`
-21.  scp dist file and asc file to tetris:~ftp/pub/dircproxy/stable
+21.  scp dist file and asc file to tetris:~ftp/pub/dircproxy/unstable
 22.  Remove 'src' directory from website and replace with new version
 23.  Add new news item title "dircproxy x.x.x released" containing release.txt
 24.  Add new version to bugzilla's dircproxy product
