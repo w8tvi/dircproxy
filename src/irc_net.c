@@ -5,7 +5,7 @@
  * irc_net.c
  *  - Polling of sockets and acting on any data
  * --
- * @(#) $Id: irc_net.c,v 1.10 2000/08/23 11:47:18 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.11 2000/08/24 11:08:27 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -65,7 +65,7 @@ int ircnet_listen(const char *port) {
     return -1;
 
   if (listen_sock != -1)
-    close(listen_sock);
+    sock_close(listen_sock);
 
   listen_sock = sock_make();
   if (listen_sock == -1)
@@ -74,14 +74,14 @@ int ircnet_listen(const char *port) {
   if (bind(listen_sock, (struct sockaddr *)&local_addr,
            sizeof(struct sockaddr_in))) {
     DEBUG_SYSCALL_FAIL("bind");
-    close(listen_sock);
+    sock_close(listen_sock);
     listen_sock = -1;
     return -1;
   }
 
   if (listen(listen_sock, SOMAXCONN)) {
     DEBUG_SYSCALL_FAIL("listen");
-    close(listen_sock);
+    sock_close(listen_sock);
     listen_sock = -1;
     return -1;
   }
@@ -345,6 +345,12 @@ struct ircchannel *ircnet_freechannel(struct ircchannel *chan) {
 
 /* Free an ircproxy structure */
 static void _ircnet_freeproxy(struct ircproxy *p) {
+  if (p->client_status & IRC_CLIENT_CONNECTED)
+    ircclient_close(p);
+
+  if (p->server_status & IRC_SERVER_CONNECTED)
+    ircserver_close_sock(p);
+
   timer_delall(p);
   free(p->client_host);
 
@@ -433,9 +439,8 @@ void ircnet_freeconnclass(struct ircconnclass *class) {
 
   free(class->password);
   free(class->bind);
-  /* Cope with being called from cfgfile.c which does this */
-  if (class->awaymessage != (char *)-1)
-    free(class->awaymessage);
+  free(class->awaymessage);
+  free(class->server_port);
 
   s = class->servers;
   while (s) {
@@ -473,10 +478,10 @@ int ircnet_rejoin(struct ircproxy *p, const char *name) {
   char *str;
 
   str = x_strdup(name);
-  if (channel_rejoin == 0) {
+  if (p->conn_class->channel_rejoin == 0) {
     _ircnet_rejoin(p, (void *)str);
-  } else if (channel_rejoin > 0) {
-    timer_new(p, 0, channel_rejoin, _ircnet_rejoin, (void *)str);
+  } else if (p->conn_class->channel_rejoin > 0) {
+    timer_new(p, 0, p->conn_class->channel_rejoin, _ircnet_rejoin, (void *)str);
   } 
 
   return 0;
@@ -490,7 +495,7 @@ int ircnet_dedicate(struct ircproxy *p) {
     return 1;
 
   if (listen_sock != -1)
-    close(listen_sock);
+    sock_close(listen_sock);
 
   listen_sock = sock_make();
   if (listen_sock == -1)
@@ -498,7 +503,7 @@ int ircnet_dedicate(struct ircproxy *p) {
 
   if (listen(listen_sock, SOMAXCONN)) {
     DEBUG_SYSCALL_FAIL("listen");
-    close(listen_sock);
+    sock_close(listen_sock);
     listen_sock = -1;
     return -1;
   }
