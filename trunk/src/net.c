@@ -10,7 +10,7 @@
  *  - functions to retrieve data from buffers up to delimiters (newlines?)
  *  - main poll()/select() function
  * --
- * @(#) $Id: net.c,v 1.5 2000/11/01 15:02:24 keybuk Exp $
+ * @(#) $Id: net.c,v 1.6 2000/11/10 15:13:29 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -267,10 +267,15 @@ int net_flush(void) {
     struct sockinfo *n;
 
     n = i->next;
+    if (!i->closed)
+      debug("Flushing undead %01x socket %d", i->type, i->sock);
     _net_free(i);
     i = n;
   }
   sockets = 0;
+
+  /* Free up the ufds buffer */
+  net_poll();
 
   return 0;
 }
@@ -600,7 +605,8 @@ static int _net_unbuffer(struct sockinfo *s, int buff, void *data, int len) {
 /* Poll sockets for activity, return number of sockets or -1 if error */
 int net_poll(void) {
 #ifdef HAVE_POLL
-  struct pollfd *ufds;
+  static struct pollfd *ufds = 0;
+  static int m_ns = 0;
 #else /* HAVE_POLL */
 # ifdef HAVE_SELECT
   fd_set readset, writeset;
@@ -613,9 +619,7 @@ int net_poll(void) {
   time_t now;
   char *func;
 
-#ifdef HAVE_POLL
-  ufds = 0;
-#else /* HAVE_POLL */
+#ifndef HAVE_POLL
 # ifdef HAVE_SELECT
   FD_ZERO(&readset);
   FD_ZERO(&writeset);
@@ -628,6 +632,32 @@ int net_poll(void) {
   /* Really close closed sockets */
   _net_expunge();
 
+  /* Count the number of sockets */
+  s = sockets;
+  while (s) {
+    ns++;
+    s = s->next;
+  }
+
+#ifdef HAVE_POLL
+  /* See if its changed */
+  if (ns != m_ns) {
+    if (ns) {
+      ufds = (struct pollfd *)realloc(ufds, sizeof(struct pollfd) * (ns + 1));
+    } else {
+      free(ufds);
+      ufds = 0;
+    }
+    m_ns = ns;
+  }
+#endif
+
+  /* No sockets to poll */
+  if (!ns)
+    return 0;
+
+  /* Fill the structures */
+  sn = 0;
   s = sockets;
   while (s) {
     /* If its been throtperiod since we last reset the counter, then reset
@@ -638,10 +668,9 @@ int net_poll(void) {
     }
 
 #ifdef HAVE_POLL
-    ufds = (struct pollfd *)realloc(ufds, sizeof(struct pollfd) * (ns + 1));
-    ufds[ns].fd = s->sock;
-    ufds[ns].events = POLLIN;
-    ufds[ns].revents = 0;
+    ufds[sn].fd = s->sock;
+    ufds[sn].events = POLLIN;
+    ufds[sn].revents = 0;
 #else /* HAVE_POLL */
 # ifdef HAVE_SELECT
     hs = (hs < s->sock ? s->sock : hs);
@@ -654,10 +683,10 @@ int net_poll(void) {
        we've sent less then the throttle (period stuff is done above) */
 #ifdef HAVE_POLL
     if (s->type == SOCK_CONNECTING) {
-      ufds[ns].events |= POLLOUT;
+      ufds[sn].events |= POLLOUT;
     } else if ((s->type != SOCK_LISTENING) && s->out_buff
                && (!s->throtbytes || (s->throtamt < s->throtbytes))) {
-      ufds[ns].events |= POLLOUT;
+      ufds[sn].events |= POLLOUT;
     }
 #else /* HAVE_POLL */
 # ifdef HAVE_SELECT
@@ -670,13 +699,9 @@ int net_poll(void) {
 # endif /* HAVE_SELECT */
 #endif /* HAVE_POLL */
 
-    ns++;
+    sn++;
     s = s->next;
   }
-
-  /* No sockets to poll */
-  if (!ns)
-    return 0;
 
 #ifdef HAVE_POLL
   /* Do the poll itself */
@@ -694,23 +719,22 @@ int net_poll(void) {
 
   /* Check for errors or non-activity */
   if (nr == -1) {
-#ifdef HAVE_POLL
-    free(ufds);
-#endif /* HAVE_POLL */
-
     if ((errno != EINTR) && (errno != EAGAIN)) {
+#ifdef HAVE_POLL
+      free(ufds);
+      ufds = 0;
+      m_ns = 0;
+#endif /* HAVE_POLL */
       syscall_fail(func, 0, 0);
       return -1;
     } else {
       return ns;
     }
   } else if (!nr) {
-#ifdef HAVE_POLL
-    free(ufds);
-#endif /* HAVE_POLL */
     return ns;
   }
 
+  /* Check for activity */
   sn = 0;
   s = sockets;
   while (s) {
@@ -867,10 +891,6 @@ int net_poll(void) {
     sn++;
     s = s->next;
   }
-
-#ifdef HAVE_POLL
-  free(ufds);
-#endif /* HAVE_POLL */
 
   return ns;
 }
