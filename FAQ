@@ -44,6 +44,12 @@ Questions
      4.3  Why does the permanent copy contain text from all the clients
           dircproxy is proxying?
 
+5.  DCC Proxying
+     5.1  Why would I want dircproxy to proxy DCC requests as well?
+     5.2  What's "DCC over ssh" and how do I use it?
+     5.3  Does text I type before dircproxy tells me the remote peer
+          has connected ever reach them?
+
 
 Answers
 =======
@@ -397,6 +403,29 @@ Answers
 	     :
 	 }
 
+
+ 5.1  Why would I want dircproxy to proxy DCC requests as well?
+
+     DCC proxying means that all DCC requests get proxied through
+     dircproxy just like your normal IRC requests.  This means your
+     real IP address is just as hidden as it is on IRC.  Also if
+     you're running dircproxy on your NAT firewall so you can
+     actually get on IRC, you'll be able to do DCC's to as it will
+     be proxying them between the two networks for you.
+
+ 5.2  What's "DCC over ssh" and how do I use it?
+
+     For a complete description, including how to do it, see the
+     README.dcc-via-ssh file in the dircproxy distribution.  Simply
+     its a way of doing DCC's over ssh tunnels to get around any
+     firewalls that might be in the way that would normally prevent
+     even the most determined proxy from allowing DCCs.
+
+ 5.3  Does text I type before dircproxy tells me the remote peer
+      has connected ever reach them?
+
+     Yes, its simply queued until the remote side connects, then is
+     sent to them.
 
 
 Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.

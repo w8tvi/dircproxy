@@ -2,30 +2,6 @@ New features for 0.8.0:
 
     DCC
 
-	* DCC proxying.  Essential feature really.  Intercept DCC requests,
-	  making listen sockets and connect sockets, forwarding data
-	  between them, changing the addresses that gets sent.
-
-	    dcc_proxy_incoming YES/no
-	    dcc_proxy_outgoing YES/no
-
-          Silently reject, or physically reject?
-
-            dcc_proxy_sendreject YES/no
-
-	  Ports we should allocate to listen on, this should be a range
-	  that the client can connect to.
-
-	    dcc_proxy_ports port,port-port
-
-	* DCC-via-ssh.  This will be a really spiffy selling-port like
-	  feature.  Its just one config option to do it too.
-
-	    dcc_proxy_tunnelport port
-
-	  All outgoing DCC connections will go through this, instead of
-	  whatever address the tunnel pointed to
-
         * DCC send capturing, instead of proxying them, it stores the files
 	  locally.
 
