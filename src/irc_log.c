@@ -5,7 +5,7 @@
  * irc_log.c
  *  - Handling of log files
  * --
- * @(#) $Id: irc_log.c,v 1.9 2000/05/24 21:03:19 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.10 2000/06/28 12:41:45 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -108,7 +108,7 @@ int irclog_open(struct ircproxy *p, const char *filename, struct logfile *log) {
       case '.':
         *ptr = ',';
         break;
-      case ':':
+      case '/':
         *ptr = ':';
         break;
     }
