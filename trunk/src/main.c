@@ -9,7 +9,7 @@
  *  - Signal handling
  *  - Debug functions
  * --
- * @(#) $Id: main.c,v 1.52 2002/02/06 10:08:22 scott Exp $
+ * @(#) $Id: main.c,v 1.53 2002/07/14 09:53:32 scott Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,7 +63,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.52 2002/02/06 10:08:22 scott Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.53 2002/07/14 09:53:32 scott Exp $";
 
 /* The name of the program */
 static char *progname;
@@ -452,11 +452,13 @@ static void _sig_child(int sig) {
   pid_t pid;
 
   debug("Received signal %d to reap", sig);
-  pid = wait(&status);
-  debug("Reaped process %d, exit status %d", pid, status);
 
-  /* Handle any DNS children */
-  dns_endrequest(pid, status);
+  while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
+    debug("Reaped process %d, exit status %d", pid, status);
+    
+    /* Handle any DNS children */
+    dns_endrequest(pid, status);
+  }
 
   /* Restore the signal */
   signal(sig, _sig_child);
