@@ -8,7 +8,7 @@
  *  - The list of currently active DCC proxies
  *  - Miscellaneous DCC functions
  * --
- * @(#) $Id: dcc_net.c,v 1.9 2000/12/21 13:24:59 keybuk Exp $
+ * @(#) $Id: dcc_net.c,v 1.10 2000/12/22 13:24:01 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -89,19 +89,21 @@ int dccnet_new(int type, long timeout, int *range, size_t range_sz,
     }
 
   } else {
-    /* Not capturing, so need to listen for client connection */
-    if (_dccnet_listen(p, range, range_sz, lport)) {
+    /* Do the connect first, because then that'll hopefully get a port,
+       which the listen socket can also use later anyway */
+    if (_dccnet_connect(p, addr, port, range, range_sz, lport)) {
       free(p);
       return -1;
     }
 
-    /* Connect to the sender, this won't fail if it can't bind another
-       spare port, because its not that important */
-    if (_dccnet_connect(p, addr, port, range, range_sz, lport)) {
-      net_close(&(p->sendee_sock));
+    /* Now listen, if this fails a bind() then thats fatal */
+    if (_dccnet_listen(p, range, range_sz, lport)) {
+      net_close(&(p->sender_sock));
       free(p);
       return -1;
     }
+
+
   }
 
   p->notify_func = n_f;
