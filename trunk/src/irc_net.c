@@ -3,9 +3,13 @@
  * All Rights Reserved.
  *
  * irc_net.c
- *  - Polling of sockets and acting on any data
+ *  - Socket to listen for new connections on
+ *  - The list of connection classes
+ *  - The list of currently active proxies
+ *  - Miscellaneous IRC functions
+ *  - The main poll() loop
  * --
- * @(#) $Id: irc_net.c,v 1.26 2000/10/12 16:24:14 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.27 2000/10/13 12:46:04 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
