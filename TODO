@@ -1,36 +1,6 @@
 For the next release (0.7.0)
 
-	* Rewrite irc_log.c to make it a little less primitive.
-
-	  irclog_msg(p, to, from, msg, ...)
-	  irclog_notice(p, to, from, msg, ...)
-
-	  to = "#channel"  (to channel)
-	  to = ""          (to user)
-	  to = 0           (to all)
-
-	* New log file format:
-
-	  <Keybuk> [12:47] xx yy zz             (msg)
-	  -Keybuk- [12:48] edfklj dgdg          (notice)
-	  -ircnet.demon.co.uk- [13:00] x quit   (server)
-	  -dircproxy- [13:05] bar               (dircproxy)
-
-	* Log configuration options to make it very cool (these will be able
-	  to go in connection classes of course)
-
-	  log_chan_while_online		1/0
-	  keep_chan_logs		1/0  (where?)
-	  timestamp_chan_logs		1/0
-
-	  log_other_while_online	1/0
-	  keep_other_logs		1/0  (where?)
-	  timestamp_other_logs		1/0
-	  
-	  chan_log_max_size		lines
-	  chan_log_default_recall	lines
-	  other_log_max_size		lines
-	  other_log_default_recall	lines
+	* Write log recall code
 
 	* the /DIRCPROXY command.
 	  HELP
