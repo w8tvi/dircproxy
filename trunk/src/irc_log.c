@@ -5,7 +5,7 @@
  * irc_log.c
  *  - Handling of log files
  * --
- * @(#) $Id: irc_log.c,v 1.5 2000/05/13 05:25:04 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.6 2000/05/24 18:05:43 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -293,9 +293,6 @@ int irclog_recall(struct ircproxy *p, struct logfile *log,
                   unsigned long numlines) {
   if (!log->open)
     return 0;
-
-  printf("Doing recall of %lu lines from file with %lu lines\n", numlines,
-         log->nlines);
 
   irclog_startread(log, (log->nlines > numlines ? log->nlines - numlines : 0));
 

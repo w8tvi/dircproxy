@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.7 2000/05/24 17:57:35 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.8 2000/05/24 18:05:43 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -45,7 +45,9 @@ int ircclient_connected(struct ircproxy *p) {
   p->client_host = dns_hostfromaddr(p->client_addr.sin_addr);
   ircclient_send_notice(p, "Got your hostname.");
 
+#ifdef DEBUG
   printf("Client connected from %s\n", p->client_host);
+#endif /* DEBUG */
 
   return 0;
 }
@@ -60,10 +62,14 @@ int ircclient_data(struct ircproxy *p) {
 
   switch (ret) {
     case SOCK_ERROR:
+#ifdef DEBUG
       printf("Socket error\n");
+#endif /* DEBUG */
 
     case SOCK_CLOSED:
+#ifdef DEBUG
       printf("Client disconnected\n");
+#endif /* DEBUG */
       irclog_notice_toall(p, "You disconnected");
       if ((p->server_status == IRC_SERVER_ACTIVE)
           && (p->client_status == IRC_CLIENT_ACTIVE)
@@ -78,7 +84,9 @@ int ircclient_data(struct ircproxy *p) {
       return 0;
   }
 
+#ifdef DEBUG
   printf(">> '%s'\n", str);
+#endif /* DEBUG */
   _ircclient_gotmsg(p, str);
   free(str);
 
@@ -89,12 +97,12 @@ int ircclient_data(struct ircproxy *p) {
 static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
   struct ircmessage msg;
 
-  printf("Got message...\n");
-
   if (ircprot_parsemsg(str, &msg) == -1)
     return -1;
 
+#ifdef DEBUG
   printf("c=%02x, s=%02x\n", p->client_status, p->server_status);
+#endif /* DEBUG */
 
   if (!(p->client_status & IRC_CLIENT_AUTHED)) {
     if (!strcasecmp(msg.cmd, "PASS")) {
@@ -251,10 +259,8 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
     }
 
     /* Send command up to server? (We know there is one at this point) */
-    if (!squelch) {
-      printf(")) '%s'\n", msg.orig);
+    if (!squelch)
       sock_send(p->server_sock, "%s\r\n", msg.orig);
-    }
   }
 
   /* If as a result of this command, we have sufficient information for
@@ -274,7 +280,6 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
     }
   }
 
-  printf("Leaving...\n");
   ircprot_freemsg(&msg);
   return 0;
 }
@@ -315,7 +320,6 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
         return -1;
       }
 
-      printf("existing class\n");
       tmp_p->client_sock = p->client_sock;
       tmp_p->client_status |= IRC_CLIENT_CONNECTED | IRC_CLIENT_AUTHED;
       tmp_p->client_addr = p->client_addr;
@@ -337,7 +341,6 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
       p->dead = 1;
 
     } else {
-      printf("new user for class\n");
       p->conn_class = cc;
       p->client_status |= IRC_CLIENT_AUTHED;
     }
@@ -491,7 +494,6 @@ int ircclient_change_mode(struct ircproxy *p, const char *change) {
 
 /* Close the client socket */
 int ircclient_close(struct ircproxy *p) {
-  printf("Disconnecting client..\n");
   sock_close(p->client_sock);
   p->client_status &= ~(IRC_CLIENT_CONNECTED | IRC_CLIENT_AUTHED
                         | IRC_CLIENT_SENTWELCOME);

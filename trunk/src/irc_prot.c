@@ -6,7 +6,7 @@
  *  - IRC protocol message parsing
  *  - IRC x!y@z parsing
  * --
- * @(#) $Id: irc_prot.c,v 1.4 2000/05/13 05:25:04 keybuk Exp $
+ * @(#) $Id: irc_prot.c,v 1.5 2000/05/24 18:05:43 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -210,11 +210,6 @@ void ircprot_stripctcp(char *msg) {
   out = in = msg;
   inctcp = 0;
 
-  printf("----------\n");
-  printf("strip ctcp\n");
-
-  printf("got '%s'\n", msg);
-
   while (*in) {
     if (*in == 1) {
       inctcp = (inctcp ? 0 : 1);
@@ -224,9 +219,6 @@ void ircprot_stripctcp(char *msg) {
     in++;
   }
   *out = 0;
-
-  printf("made '%s'\n", msg);
-  printf("----------\n");
 }
 
 /* Strip silly characters from a username */

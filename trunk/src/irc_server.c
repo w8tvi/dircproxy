@@ -5,7 +5,7 @@
  * irc_server.c
  *  - Handling of servers connected to the proxy
  * --
- * @(#) $Id: irc_server.c,v 1.5 2000/05/24 17:57:35 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.6 2000/05/24 18:05:43 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -89,8 +89,6 @@ int ircserver_connect(struct ircproxy *p) {
   char *host;
   int ret;
 
-  printf("Beginning connection...\n");
-
   if (timer_exists(p, "server_recon")) {
     if (IS_CLIENT_READY(p))
       ircclient_send_notice(p, "Connection already in progress...");
@@ -167,7 +165,9 @@ int ircserver_connect(struct ircproxy *p) {
 int ircserver_connected(struct ircproxy *p) {
   char *username;
 
+#ifdef DEBUG
   printf("Connection succeeded\n");
+#endif /* DEBUG */
   p->server_status |= IRC_SERVER_CONNECTED | IRC_SERVER_SEEN;
   p->server_attempts = 0;
 
@@ -198,7 +198,9 @@ int ircserver_connected(struct ircproxy *p) {
 
 /* Called when a connection fails */
 int ircserver_connectfailed(struct ircproxy *p, int error) {
+#ifdef DEBUG
   printf("Connection failed\n");
+#endif /* DEBUG */
 
   if (IS_CLIENT_READY(p))
     ircclient_send_notice(p, "Connection failed: %s", strerror(error));
@@ -221,10 +223,14 @@ int ircserver_data(struct ircproxy *p) {
 
   switch (ret) {
     case SOCK_ERROR:
+#ifdef DEBUG
       printf("Socket error\n");
+#endif /* DEBUG */
 
     case SOCK_CLOSED:
+#ifdef DEBUG
       printf("Server disconnected\n");
+#endif /* DEBUG */
       _ircserver_close(p);
 
       return -1;
@@ -234,7 +240,9 @@ int ircserver_data(struct ircproxy *p) {
       return 0;
   }
 
+#ifdef DEBUG
   printf("<< '%s'\n", str);
+#endif /* DEBUG */
   _ircserver_gotmsg(p, str);
   free(str);
 
@@ -397,7 +405,6 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     if (_ircserver_forclient(p, &msg)) {
       /* Server telling us we joined a channel */
       if (msg.numparams >= 1) {
-        printf("Joined channel '%s'\n", msg.params[0]);
         ircnet_addchannel(p, msg.params[0]);
         squelch = 0;
       }
@@ -412,7 +419,6 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     if (_ircserver_forclient(p, &msg)) {
       /* Server telling us we left a channel */
       if (msg.numparams >= 1) {
-        printf("Left channel '%s'\n", msg.params[0]);
         ircnet_delchannel(p, msg.params[0]);
         squelch = 0;
       }
@@ -427,7 +433,6 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     if (msg.numparams >= 2) {
       if (!irc_strcasecmp(p->nickname, msg.params[1])) {
         /* We got kicked off a channel */
-        printf("Got kicked off '%s'\n", msg.params[0]);
         irclog_notice_to(p, p->nickname, "Kicked off %s by %s",
                          msg.params[0], msg.src.fullname);
         ircnet_delchannel(p, msg.params[0]);
@@ -497,10 +502,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     squelch = 0;
   }
 
-  if (!squelch && (p->client_status == IRC_CLIENT_ACTIVE)) {
-    printf("(( '%s'\n", msg.orig);
+  if (!squelch && (p->client_status == IRC_CLIENT_ACTIVE))
     sock_send(p->client_sock, "%s\r\n", msg.orig);
-  }
 
   ircprot_freemsg(&msg);
   return 0;
@@ -508,7 +511,6 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
 /* Close the server socket itself */
 int ircserver_close_sock(struct ircproxy *p) {
-  printf("Disconnecting server...\n");
   sock_close(p->server_sock);
   p->server_status &= ~(IRC_SERVER_CREATED | IRC_SERVER_CONNECTED
                         | IRC_SERVER_GOTWELCOME);
