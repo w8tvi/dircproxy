@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.15 2000/08/22 12:46:44 keybuk Exp $
+ * @(#) $Id: main.c,v 1.16 2000/08/22 12:55:33 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.15 2000/08/22 12:46:44 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.16 2000/08/22 12:55:33 keybuk Exp $";
 
 /* The name of the program */
 char *progname;
@@ -253,6 +253,9 @@ int main(int argc, char *argv[]) {
     }
   } else {
     ircnet_hooksocket(STDIN_FILENO);
+
+    /* running under inetd means we are backgrounded */
+    in_background = 1;
   }
   
   /* Main loop! */
