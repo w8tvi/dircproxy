@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.5 2000/05/24 17:31:34 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.6 2000/05/24 17:39:35 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -137,12 +137,15 @@
 #define DEBUG_SYSCALL_FAIL(_func) DEBUG_SYSCALL_DOH((_func), strerror(errno), \
                                                     errno)
 
-/* ack, make me a config file! */
-#define TODO_CFG_PASS "foo"
-#define TODO_CFG_SERVER "irc.linux.com:6667"
-#define TODO_CFG_BINDHOST 0
-
 /* global variables */
 extern char *progname;
+extern char *listen_port;
+extern char *server_port;
+extern long server_retry;
+extern long server_dnsretry;
+extern long server_maxattempts;
+extern long server_maxinitattempts;
+extern long channel_rejoin;
+extern unsigned long log_autorecall;
 
 #endif /* __DIRCPROXY_DIRCPROXY_H */
