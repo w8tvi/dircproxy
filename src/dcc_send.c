@@ -5,7 +5,7 @@
  * dcc_send.c
  *  - DCC send protocol
  * --
- * @(#) $Id: dcc_send.c,v 1.2 2000/11/10 15:06:20 keybuk Exp $
+ * @(#) $Id: dcc_send.c,v 1.3 2000/11/15 16:10:25 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -77,15 +77,15 @@ static void _dccsend_data(struct dccproxy *p, int sock) {
       return;
 
   } else if (sock == p->sendee_sock) {
-    u_int32_t ack;
+    uint32_t ack;
     int len;
 
     if (p->sender_status != DCC_SENDER_ACTIVE)
       return;
 
     if (p->type & DCC_SEND_SIMPLE) {
-      len = net_read(p->sendee_sock, (void *)&ack, sizeof(u_int32_t));
-      if (len == sizeof(u_int32_t))
+      len = net_read(p->sendee_sock, (void *)&ack, sizeof(uint32_t));
+      if (len == sizeof(uint32_t))
         p->bytes_ackd = ntohl(ack);
     }
   } else {
@@ -106,7 +106,7 @@ static void _dccsend_data(struct dccproxy *p, int sock) {
       buf = (char *)malloc(buflen);
       nr = net_read(p->sender_sock, (void *)buf, buflen);
       if (nr > 0) {
-        u_int32_t na;
+        uint32_t na;
 
         p->bytes_sent += nr;
 
@@ -127,7 +127,7 @@ static void _dccsend_data(struct dccproxy *p, int sock) {
 
         /* Report how many bytes we've ackd so far */
         na = htonl(p->bytes_sent);
-        net_queue(p->sender_sock, (void *)&na, sizeof(u_int32_t));
+        net_queue(p->sender_sock, (void *)&na, sizeof(uint32_t));
       }
       free(buf);
     }
