@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.46 2000/11/24 13:44:40 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.47 2000/12/04 12:47:57 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -1272,14 +1272,9 @@ int ircserver_close_sock(struct ircproxy *p) {
                         | IRC_SERVER_INTRODUCED | IRC_SERVER_GOTWELCOME);
 
   /* Make sure these don't get triggered */
-  if (p->conn_class->server_pingtimeout) {
-    timer_del((void *)p, "server_ping");
-    timer_del((void *)p, "server_stoned");
-  }
-
-  if (p->conn_class->idle_maxtime)
-    timer_del((void *)p, "server_antiidle");
-
+  timer_del((void *)p, "server_ping");
+  timer_del((void *)p, "server_stoned");
+  timer_del((void *)p, "server_antiidle");
   timer_del((void *)p, "server_recon");
 
   return 0;
