@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.63 2000/10/31 13:11:19 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.64 2000/11/01 15:01:59 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -83,8 +83,8 @@ static void _ircclient_connected2(struct ircproxy *p, void *data,
 
   p->client_status |= IRC_CLIENT_CONNECTED;
   net_hook(p->client_sock, SOCK_NORMAL, (void *)p,
-           (void (*)(void *, int))_ircclient_data,
-           (void (*)(void *, int, int))_ircclient_error);
+           ACTIVITY_FUNCTION(_ircclient_data),
+           ERROR_FUNCTION(_ircclient_error));
 
   debug("Client connected from %s", p->client_host);
 
@@ -197,8 +197,8 @@ static int _ircclient_detach(struct ircproxy *p, const char *message) {
         while (c) {
           if (!c->inactive && !c->unjoined) {
             if (slashme) {
-              ircserver_send_command(p, "PRIVMSG", "%s :%cACTION %s%c",
-                                     c->name, 0x01, msg, 0x01);
+              ircserver_send_command(p, "PRIVMSG", "%s :\001ACTION %s\001",
+                                     c->name, msg);
             } else {
               ircserver_send_command(p, "PRIVMSG", "%s :%s", c->name, msg);
             }
@@ -462,8 +462,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
 
                     tmp = x_sprintf("%s!%s@%s", p->nickname, p->username,
                                     p->hostname);
-                    irclog_msg(p, msg.params[0], tmp, "%c%s%c",
-                               0x01, cmsg.orig, 0x01);
+                    irclog_ctcp(p, msg.params[0], tmp, "%s", cmsg.orig);
                     free(tmp);
                   }
                 }
@@ -942,8 +941,8 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
       tmp_p->client_status |= IRC_CLIENT_CONNECTED | IRC_CLIENT_AUTHED;
       tmp_p->client_addr = p->client_addr;
       net_hook(tmp_p->client_sock, SOCK_NORMAL, (void *)tmp_p,
-               (void (*)(void *, int))_ircclient_data,
-               (void (*)(void *, int, int))_ircclient_error);
+               ACTIVITY_FUNCTION(_ircclient_data),
+               ERROR_FUNCTION(_ircclient_error));
 
       /* Cope with NICK before PASS */
       if ((p->client_status & IRC_CLIENT_GOTNICK)
@@ -995,8 +994,8 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
           while (c) {
             if (!c->inactive) {
               if (slashme) {
-                ircserver_send_command(tmp_p, "PRIVMSG", "%s :%cACTION %s%c",
-                                       c->name, 0x01, msg, 0x01);
+                ircserver_send_command(tmp_p, "PRIVMSG",
+                                       "%s :\001ACTION %s\001", c->name, msg);
               } else {
                 ircserver_send_command(tmp_p, "PRIVMSG", "%s :%s",
                                        c->name, msg);

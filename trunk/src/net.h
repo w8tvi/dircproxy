@@ -4,7 +4,7 @@
  *
  * net.h.h
  * --
- * @(#) $Id: net.h,v 1.3 2000/10/23 12:39:08 keybuk Exp $
+ * @(#) $Id: net.h,v 1.4 2000/11/01 15:02:00 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -18,6 +18,10 @@
 #define SOCK_NORMAL     0x00
 #define SOCK_CONNECTING 0x01
 #define SOCK_LISTENING  0x02
+
+/* handy defines */
+#define ACTIVITY_FUNCTION(_FUNC) ((void (*)(void *, int)) (_FUNC))
+#define ERROR_FUNCTION(_FUNC) ((void (*)(void *, int, int)) (_FUNC))
 
 /* functions */
 extern int net_socket(void);

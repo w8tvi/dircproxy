@@ -7,9 +7,8 @@
  *  - The list of connection classes
  *  - The list of currently active proxies
  *  - Miscellaneous IRC functions
- *  - The main poll() loop
  * --
- * @(#) $Id: irc_net.c,v 1.34 2000/10/30 13:44:56 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.35 2000/11/01 15:02:00 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -27,7 +26,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-
 #include <fcntl.h>
 
 #include <dircproxy.h>
@@ -104,7 +102,8 @@ int _ircnet_listen(struct sockaddr_in *local_addr) {
   }
   debug("Listening on socket %d", this_sock);
   listen_sock = this_sock;
-  net_hook(listen_sock, SOCK_LISTENING, 0, _ircnet_acceptclient, 0);
+  net_hook(listen_sock, SOCK_LISTENING, 0,
+           ACTIVITY_FUNCTION(_ircnet_acceptclient), 0);
 
   return 0;
 }
