@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.31 2000/11/06 16:54:21 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.32 2000/11/10 15:07:10 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <dircproxy.h>
 #include "sprintf.h"
@@ -120,10 +121,16 @@ int cfg_read(const char *filename, char **listen_port,
   def->dcc_proxy_timeout = DEFAULT_DCC_PROXY_TIMEOUT;
   def->dcc_proxy_sendreject = DEFAULT_DCC_PROXY_SENDREJECT;
   def->dcc_send_fast = DEFAULT_DCC_SEND_FAST;
+  def->dcc_capture_directory = (DEFAULT_DCC_CAPTURE_DIRECTORY
+                                ? x_strdup(DEFAULT_DCC_CAPTURE_DIRECTORY) : 0);
+  def->dcc_capture_always = DEFAULT_DCC_CAPTURE_ALWAYS;
+  def->dcc_capture_withnick = DEFAULT_DCC_CAPTURE_WITHNICK;
+  def->dcc_capture_maxsize = DEFAULT_DCC_CAPTURE_MAXSIZE;
   def->dcc_tunnel_incoming = (DEFAULT_DCC_TUNNEL_INCOMING
                               ? x_strdup(DEFAULT_DCC_TUNNEL_INCOMING) : 0);
   def->dcc_tunnel_outgoing = (DEFAULT_DCC_TUNNEL_OUTGOING
                               ? x_strdup(DEFAULT_DCC_TUNNEL_OUTGOING) : 0);
+  def->switch_user = (DEFAULT_SWITCH_USER ? x_strdup(DEFAULT_SWITCH_USER) : 0);
   def->motd_logo = DEFAULT_MOTD_LOGO;
   def->motd_file = (DEFAULT_MOTD_FILE ? x_strdup(DEFAULT_MOTD_FILE) : 0);
   def->motd_stats = DEFAULT_MOTD_STATS;
@@ -736,14 +743,14 @@ int cfg_read(const char *filename, char **listen_port,
         _cfg_read_bool(&buf, &(class ? class : def)->dcc_proxy_outgoing);
 
       } else if (!strcasecmp(key, "dcc_proxy_ports")) {
-        /* dcc_proxy_ports none
+        /* dcc_proxy_ports any
            dcc_proxy_ports 6667,1042-2048 */
         char *str, *orig;
 
         if (_cfg_read_string(&buf, &str))
           UNMATCHED_QUOTE;
 
-        if (!strcasecmp(str, "none") || !strlen(str)) {
+        if (!strcasecmp(str, "any") || !strlen(str)) {
           free(str);
           str = 0;
 
@@ -819,6 +826,54 @@ int cfg_read(const char *filename, char **listen_port,
            dcc_send_fast no  */
         _cfg_read_bool(&buf, &(class ? class : def)->dcc_send_fast);
 
+      } else if (!strcasecmp(key, "dcc_capture_directory")) {
+        /* dcc_capture_directory none
+           dcc_capture_directory ""    # same as none
+           dcc_capture_directory "/tmp"
+           dcc_capture_directory "~/caught" */
+        char *str;
+
+        if (_cfg_read_string(&buf, &str))
+          UNMATCHED_QUOTE;
+
+        if (!strcasecmp(str, "none") || !strlen(str)) {
+          free(str);
+          str = 0;
+
+        } else if (!strncmp(str, "~/", 2)) {
+          char *home;
+
+          home = getenv("HOME");
+          if (home) {
+            char *tmp;
+
+            tmp = x_sprintf("%s%s", home, str + 1);
+            free(str);
+            str = tmp;
+          } else {
+            /* Best we can do */
+            *str = '.';
+          }
+        }
+
+        free((class ? class : def)->dcc_capture_directory);
+        (class ? class : def)->dcc_capture_directory = str;
+
+      } else if (!strcasecmp(key, "dcc_capture_always")) {
+        /* dcc_capture_always yes
+           dcc_capture_always no  */
+        _cfg_read_bool(&buf, &(class ? class : def)->dcc_capture_always);
+
+      } else if (!strcasecmp(key, "dcc_capture_withnick")) {
+        /* dcc_capture_withnick yes
+           dcc_capture_withnick no  */
+        _cfg_read_bool(&buf, &(class ? class : def)->dcc_capture_withnick);
+
+      } else if (!class && !strcasecmp(key, "dcc_capture_maxsize")) {
+        /* dcc_capture_maxsize 0
+           dcc_capture_maxsize 1024 */
+        _cfg_read_numeric(&buf, &(class ? class : def)->dcc_capture_maxsize);
+
       } else if (!strcasecmp(key, "dcc_tunnel_incoming")) {
         /* dcc_tunnel_incoming none
            dcc_tunnel_incoming ""           # same as none
@@ -854,6 +909,36 @@ int cfg_read(const char *filename, char **listen_port,
 
         free((class ? class : def)->dcc_tunnel_outgoing);
         (class ? class : def)->dcc_tunnel_outgoing = str;
+
+      } else if (!strcasecmp(key, "switch_user")) {
+        /* switch_user none
+           switch_user ""   # same as none
+           switch_user 1001
+           switch_user "bob" */
+        char *str;
+
+        if (_cfg_read_string(&buf, &str))
+          UNMATCHED_QUOTE;
+
+#ifdef HAVE_SETEUID
+        if (getuid() == 0) {
+          if (!strcasecmp(str, "none") || !strlen(str)) {
+            free(str);
+            str = 0;
+          }
+
+          free((class ? class : def)->switch_user);
+          (class ? class : def)->switch_user = str;
+        } else {
+          error("must be run as root to use 'switch_user' at line %ld of %s",
+                line, filename);
+          free(str);
+        }
+#else /* HAVE_SETEUID */
+        error("Your system does not support 'switch_user' at line %ld of %s",
+              line, filename);
+        free(str);
+#endif /* HAVE_SETEUID */
 
       } else if (!strcasecmp(key, "motd_logo")) {
         /* motd_logo yes
@@ -979,10 +1064,15 @@ int cfg_read(const char *filename, char **listen_port,
           memcpy(class->dcc_proxy_ports, def->dcc_proxy_ports,
                  sizeof(int) * def->dcc_proxy_ports_sz);
         }
+        class->dcc_capture_directory = (def->dcc_capture_directory
+                                        ? x_strdup(def->dcc_capture_directory)
+                                        : 0);
         class->dcc_tunnel_incoming = (def->dcc_tunnel_incoming
                                       ? x_strdup(def->dcc_tunnel_incoming) : 0);
         class->dcc_tunnel_outgoing = (def->dcc_tunnel_outgoing
                                       ? x_strdup(def->dcc_tunnel_outgoing) : 0);
+        class->switch_user = (def->switch_user
+                              ? x_strdup(def->switch_user) : 0);
         class->motd_file = (def->motd_file ? x_strdup(def->motd_file) : 0);
 
       } else if (class && !strcasecmp(key, "password")) {
@@ -1143,7 +1233,7 @@ int cfg_read(const char *filename, char **listen_port,
          and close braces, and we re-pass to do those */
       buf += strspn(buf, WS);
       if (*buf && (*buf != '#') && (*buf != '}')) {
-        error("Unexpected data at and of line %ld of %s", line, filename);
+        error("Unexpected data at end of line %ld of %s", line, filename);
         valid = 0;
         break;
       }
@@ -1176,8 +1266,10 @@ int cfg_read(const char *filename, char **listen_port,
   free(def->other_log_copydir);
   free(def->other_log_program);
   free(def->dcc_proxy_ports);
+  free(def->dcc_capture_directory);
   free(def->dcc_tunnel_incoming);
   free(def->dcc_tunnel_outgoing);
+  free(def->switch_user);
   free(def->motd_file);
   return (valid ? 0 : -1);
 }

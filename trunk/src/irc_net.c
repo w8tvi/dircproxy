@@ -8,7 +8,7 @@
  *  - The list of currently active proxies
  *  - Miscellaneous IRC functions
  * --
- * @(#) $Id: irc_net.c,v 1.36 2000/11/06 17:02:01 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.37 2000/11/10 15:07:10 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -471,8 +471,10 @@ void ircnet_freeconnclass(struct ircconnclass *class) {
   free(class->other_log_copydir);
   free(class->other_log_program);
   free(class->dcc_proxy_ports);
+  free(class->dcc_capture_directory);
   free(class->dcc_tunnel_incoming);
   free(class->dcc_tunnel_outgoing);
+  free(class->switch_user);
   free(class->motd_file);
 
   free(class->orig_local_address);
@@ -557,10 +559,12 @@ int ircnet_dedicate(struct ircproxy *p) {
     return -1;
 
   /* Can't dedicate if there are multiple proxies */
-  if ((p != proxies) || p->next)
+  if ((p != proxies) || p->next) {
+    debug("Multiple active proxies, won't dedicate");
     return -1;
+  }
 
-  debug("Dedicating proxy to %p", p);
+  debug("Dedicating proxy");
 
   if (_ircnet_listen(0))
     return -1;

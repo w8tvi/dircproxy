@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.36 2000/11/06 17:02:01 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.37 2000/11/10 15:07:10 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -100,8 +100,15 @@ struct ircconnclass {
 
   int dcc_send_fast;
 
+  char *dcc_capture_directory;
+  int dcc_capture_always;
+  int dcc_capture_withnick;
+  long dcc_capture_maxsize;
+
   char *dcc_tunnel_incoming;
   char *dcc_tunnel_outgoing;
+
+  char *switch_user;
 
   int motd_logo;
   char *motd_file;
