@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.65 2000/11/02 16:13:44 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.66 2000/11/02 16:36:15 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -32,13 +32,13 @@
 #include "net.h"
 #include "dns.h"
 #include "timers.h"
+#include "dcc_net.h"
 #include "irc_log.h"
 #include "irc_net.h"
 #include "irc_prot.h"
 #include "irc_string.h"
 #include "irc_server.h"
 #include "irc_client.h"
-#include "dcc_net.h"
 #include "logo.h"
 #include "help.h"
 
@@ -413,15 +413,16 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
         squelch = 0;
 
       } else if (!irc_strcasecmp(msg.cmd, "PRIVMSG")) {
+        /* All PRIVMSGs go to the server unless we fiddle */
         squelch = 0;
 
-        /* Privmsgs from us get logged */
         if (msg.numparams >= 2) {
           struct strlist *list, *s;
           char *str;
 
           ircprot_stripctcp(msg.params[1], &str, &list);
 
+          /* Privmsgs from us get logged */
           if (str && strlen(str)) {
             if (p->conn_class->log_events & IRC_LOG_TEXT) {
               struct ircchannel *c;
@@ -439,6 +440,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
           }
           free(str);
 
+          /* Handle CTCP */
           s = list;
           while (s) {
             struct ctcpmessage cmsg;
