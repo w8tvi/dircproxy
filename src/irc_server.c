@@ -5,7 +5,7 @@
  * irc_server.c
  *  - Handling of servers connected to the proxy
  * --
- * @(#) $Id: irc_server.c,v 1.24 2000/10/10 13:08:35 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.22 2000/09/27 16:45:32 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -39,10 +39,8 @@
 static void _ircserver_reconnect(struct ircproxy *, void *);
 static int _ircserver_gotmsg(struct ircproxy *, const char *);
 static int _ircserver_close(struct ircproxy *);
-static int _ircserver_lost(struct ircproxy *);
 static void _ircserver_ping(struct ircproxy *, void *);
 static void _ircserver_stoned(struct ircproxy *, void *);
-static void _ircserver_antiidle(struct ircproxy *, void *);
 static int _ircserver_forclient(struct ircproxy *, struct ircmessage *);
 
 /* hook for timer code to reconnect to a server */
@@ -57,9 +55,6 @@ static void _ircserver_reconnect(struct ircproxy *p, void *data) {
     p->server_attempts++;
   }
 
-  debug("%sAttempt %d", (p->server_status & IRC_SERVER_SEEN ? "" : "Initial "),
-        p->server_attempts + 1);
-
   if (p->conn_class->server_maxattempts
       && (p->server_attempts >= p->conn_class->server_maxattempts)) {
     /* If we go over maximum reattempts, then give up */
@@ -67,10 +62,8 @@ static void _ircserver_reconnect(struct ircproxy *p, void *data) {
       ircclient_send_notice(p, "Giving up on servers.  Time to quit");
 
     p->conn_class = 0;
-    if (p->client_status & IRC_CLIENT_CONNECTED) {
-      ircclient_send_error(p, "Maximum connection attempts exceeded");
+    if (p->client_status & IRC_CLIENT_CONNECTED)
       ircclient_close(p);
-    }
     debug("Giving up on servers, reattempted too much");
     p->dead = 1;
   } else if (!(p->server_status & IRC_SERVER_SEEN)
@@ -81,10 +74,8 @@ static void _ircserver_reconnect(struct ircproxy *p, void *data) {
       ircclient_send_notice(p, "Giving up on servers.  Time to quit");
     
     p->conn_class = 0;
-    if (p->client_status & IRC_CLIENT_CONNECTED) {
-      ircclient_send_error(p, "Maximum initial connection attempts exceeded");
+    if (p->client_status & IRC_CLIENT_CONNECTED)
       ircclient_close(p);
-    }
     debug("Giving up on servers, can't get initial connection");
     p->dead = 1;
   } else {
@@ -199,7 +190,8 @@ int ircserver_connected(struct ircproxy *p) {
   char *username;
 
   debug("Connection succeeded");
-  p->server_status |= IRC_SERVER_CONNECTED;
+  p->server_status |= IRC_SERVER_CONNECTED | IRC_SERVER_SEEN;
+  p->server_attempts = 0;
 
   if (IS_CLIENT_READY(p))
     ircclient_send_notice(p, "Connected to server");
@@ -232,11 +224,6 @@ int ircserver_connected(struct ircproxy *p) {
     timer_new(p, "server_stoned", p->conn_class->server_pingtimeout,
               _ircserver_stoned, (void *)0);
   }
-
-  /* Begin anti-idle */
-  if (p->conn_class->idle_maxtime)
-    timer_new(p, "server_antiidle", p->conn_class->idle_maxtime,
-              _ircserver_antiidle, (void *)0);
 
   return 0;
 }
@@ -334,8 +321,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       p->serverumodes = x_strdup(msg.params[3]);
       p->servercmodes = x_strdup(msg.params[4]);
 
-      p->server_status |= IRC_SERVER_GOTWELCOME | IRC_SERVER_SEEN;
-      p->server_attempts = 0;
+      p->server_status |= IRC_SERVER_GOTWELCOME;
 
       if (IS_CLIENT_READY(p) && !(p->client_status & IRC_CLIENT_SENTWELCOME))
         ircclient_welcome(p);
@@ -346,7 +332,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
     /* Restore the user mode */
     if (p->modes)
-      ircserver_send_command(p, "MODE", "%s +%s", p->nickname, p->modes);
+      ircserver_send_command(p, "MODE", "+%s", p->modes);
 
     /* Restore the away message */
     if (p->awaymessage) {
@@ -362,8 +348,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
       c = p->channels;
       while (c) {
-        if (!c->unjoined)
-          ircserver_send_command(p, "JOIN", ":%s", c->name);
+        ircserver_send_command(p, "JOIN", ":%s", c->name);
         c = c->next;
       }
     }
@@ -455,11 +440,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
   } else if (!strcasecmp(msg.cmd, "403") || !strcasecmp(msg.cmd, "475")
              || !strcasecmp(msg.cmd, "476") || !strcasecmp(msg.cmd, "405")) {
     if (msg.numparams >= 2) {
-      struct ircchannel *c;
-
       /* Can't join a channel, permanent error */
-      c = ircnet_fetchchannel(p, msg.params[1]);
-      if (c) {
+      if (ircnet_fetchchannel(p, msg.params[1])) {
         /* No client connected?  Better notify it */
         if (p->client_status != IRC_CLIENT_ACTIVE) {
           if (msg.numparams >= 3) {
@@ -470,26 +452,14 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
             irclog_notice(p, p->nickname, PACKAGE,
                           "Couldn't rejoin %s (%s)", msg.params[1], msg.cmd);
           }
-
-          /* Set it to an unjoined channel until the client comes back */
-          c->unjoined = 1;
-        } else {
-          /* Client connected, so we really can't join it - delete it */
-          ircnet_delchannel(p, msg.params[1]);
         }
+
+        ircnet_delchannel(p, msg.params[1]);
       }
 
       squelch = 0;
     }
 
-  } else if (!strcasecmp(msg.cmd, "411")) {
-    /* Ignore 411 if squelch_411 */
-    if (p->squelch_411) {
-      p->squelch_411 = 0;
-    } else {
-      squelch = 0;
-    }
- 
   } else if (!strcasecmp(msg.cmd, "PING")) {
     /* Reply to pings for the client */
     if (msg.numparams == 1) {
@@ -539,23 +509,6 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
         for (param = 1; param < msg.numparams; param++)
           ircclient_change_mode(p, msg.params[param]);
-
-        /* Check for refuse modes */
-        if (strcspn(p->modes, p->conn_class->refuse_modes)
-            != strlen(p->modes)) {
-          char *mode;
-
-          debug("Got refusal mode from server");
-          ircserver_send_peercmd(p, "QUIT", ":Don't like this server - %s %s",
-                                 PACKAGE, VERSION);
-
-          mode = x_sprintf("-%s", p->conn_class->refuse_modes);
-          debug("Auto-mode-change '%s'", mode);
-          ircclient_change_mode(p, mode);
-          free(mode);
-
-          _ircserver_close(p);
-        }
       }
 
       squelch = 0;
@@ -576,13 +529,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
              what they missed */
           if (p->client_status == IRC_CLIENT_ACTIVE) {
             sock_send(p->client_sock, "%s\r\n", msg.orig);
-            if (p->conn_class->chan_log_enabled)
-              irclog_autorecall(p, msg.params[0]);
+            irclog_autorecall(p, msg.params[0]);
           }
-        } else if (c && c->unjoined) {
-          /* Ah, rejoined a channel we left */
-          c->unjoined = 0;
-          squelch = 0;
         } else if (!c) {
           /* Orginary join */
           ircnet_addchannel(p, msg.params[0]);
@@ -603,12 +551,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     if (_ircserver_forclient(p, &msg)) {
       /* Server telling us we left a channel */
       if (msg.numparams >= 1) {
-        struct ircchannel *c;
-
-        c = ircnet_fetchchannel(p, msg.params[0]);
-        /* Ignore server PARTs for unjoined channels */
-        if (c && !c->unjoined)
-          ircnet_delchannel(p, msg.params[0]);
+        ircnet_delchannel(p, msg.params[0]);
         squelch = 0;
       }
     } else {
@@ -717,9 +660,6 @@ int ircserver_close_sock(struct ircproxy *p) {
     timer_del(p, "server_stoned");
   }
 
-  if (p->conn_class->idle_maxtime)
-    timer_del(p, "server_antiidle");
-
   return 0;
 }
 
@@ -727,10 +667,8 @@ int ircserver_close_sock(struct ircproxy *p) {
 static int _ircserver_close(struct ircproxy *p) {
   ircserver_close_sock(p);
 
-  if (IS_CLIENT_READY(p)) {
+  if (IS_CLIENT_READY(p))
     ircclient_send_notice(p, "Lost connection to server");
-    _ircserver_lost(p);
-  }
 
   timer_new(p, "server_recon", p->conn_class->server_retry,
             _ircserver_reconnect, (void *)0);
@@ -738,54 +676,10 @@ static int _ircserver_close(struct ircproxy *p) {
   return 0;
 }
 
-/* Lost the connection to the server while client is active, so send it
-   PARTs so it doesn't get confused by later JOINs */
-static int _ircserver_lost(struct ircproxy *p) {
-  struct ircchannel *c;
-
-  if (IS_CLIENT_READY(p)) {
-    c = p->channels;
-    while (c) {
-      ircclient_send_selfcmd(p, "PART", ":%s", c->name);
-      c = c->next;
-    }
-  }
-
-  return 0;
-}
-
-/* Drop the connection to the server and reconnect */
-int ircserver_connectagain(struct ircproxy *p) {
-  if (IS_SERVER_READY(p)) {
-    if (IS_CLIENT_READY(p)) {
-      ircclient_send_notice(p, "Dropped connnection to server");
-      _ircserver_lost(p);
-    }
-
-    ircserver_send_peercmd(p, "QUIT", ":Reconnecting to server - %s %s",
-                           PACKAGE, VERSION);
-  }
-  if (p->server_status & IRC_SERVER_CREATED)
-    ircserver_close_sock(p);
-
-  /* Reset seen so that we start with initattempts again */
-  p->server_status &= ~(IRC_SERVER_SEEN);
-  p->server_attempts = 0;
-
-  debug("Connecting again");
-  ircserver_connect(p);
-
-  return 0;
-}
-
 /* hook for timer code to ping server */
 static void _ircserver_ping(struct ircproxy *p, void *data) {
-  /* Server might not be ready yet 8*/
-  if (IS_SERVER_READY(p)) {
-    debug("Pinging the server");
-    ircserver_send_peercmd(p, "PING", ":%s", p->servername);
-  }
-
+  debug("Pinging the server");
+  ircserver_send_peercmd(p, "PING", ":%s", p->servername);
   timer_new(p, "server_ping", (int)(p->conn_class->server_pingtimeout / 2),
             _ircserver_ping, (void *)0);
 }
@@ -793,31 +687,10 @@ static void _ircserver_ping(struct ircproxy *p, void *data) {
 /* hook for timer code to close a stoned server */
 static void _ircserver_stoned(struct ircproxy *p, void *data) {
   /* Server is, like, stoned.  Yeah man! */
-  if (IS_SERVER_READY(p)) {
-    debug("Server is stoned, reconnecting");
-    ircserver_send_peercmd(p, "QUIT", ":Getting off stoned server - %s %s",
-                           PACKAGE, VERSION);
-    _ircserver_close(p);
-  }
-}
-
-/* hook for timer code to send empty privmsg to prevent idling */
-static void _ircserver_antiidle(struct ircproxy *p, void *data) {
-  if (IS_SERVER_READY(p)) {
-    debug("Sending anti-idle");
-    p->squelch_411 = 1;
-    ircserver_send_command(p, "PRIVMSG", "");
-  }
-
-  timer_new(p, "server_antiidle", p->conn_class->idle_maxtime,
-            _ircserver_antiidle, (void *)0);
-}
-
-/* Reset idle timer */
-void ircserver_resetidle(struct ircproxy *p) {
-  timer_del(p, "server_antiidle");
-  timer_new(p, "server_antiidle", p->conn_class->idle_maxtime,
-            _ircserver_antiidle, (void *)0);
+  debug("Server is stoned, reconnecting");
+  ircserver_send_peercmd(p, "QUIT", ":Getting off stoned server - %s %s",
+                         PACKAGE, VERSION);
+  _ircserver_close(p);
 }
 
 /* Check if a message is bound for us, and if so check our username and
@@ -863,7 +736,6 @@ int ircserver_send_command(struct ircproxy *p, const char *command,
   }
 
   ret = sock_send(p->server_sock, "%s%s %s\r\n", prefix, command, msg);
-  debug("-> %s%s %s", prefix, command, msg);
 
   free(prefix);
   free(msg);
@@ -882,7 +754,6 @@ int ircserver_send_peercmd(struct ircproxy *p, const char *command,
   va_end(ap);
 
   ret = sock_send(p->server_sock, "%s %s\r\n", command, msg);
-  debug("-> %s %s", command, msg);
 
   free(msg);
   return ret;
