@@ -1,12 +1,14 @@
 /* dircproxy
  * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
+ * Copyright (C) 2004 Francois Harvey <fharvey@securiweb.net> and
+ *                    Mike Taylor <bear@code-bear.com>.
  *
  * irc_log.c
  *  - Handling of log files
  *  - Handling of log programs
  *  - Recalling from log files
  * --
- * $Id: irc_log.c,v 1.48 2004/02/26 20:06:15 fharvey Exp $
+ * $Id: irc_log.c,v 1.49 2004/03/27 15:15:35 bear Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -842,6 +844,8 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
     return -1;
   }
 
+  printf("recalling log [%s]\r\n", log->filename);
+
   /* If to is 0, then we're recalling from the server_log, and need to send
    * it to the nickname */
   if (!to)
@@ -851,11 +855,11 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
   fseek(file, 0, SEEK_SET);
 
   if (start < log->nlines) {
-    char *l;
+    char *msg;
 
     /* Skip start lines */
-    while (start && (l = _log_read(file))) {
-      free(l);
+    while (start && (msg = _log_read(file))) {
+      free(msg);
       start--;
     }
 
@@ -863,76 +867,117 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
     lines = MIN(lines, log->nlines - start);
 
     /* Recall lines */
-    while (lines && (l = _log_read(file))) {
+    while (lines && (msg = _log_read(file))) {
       time_t when = 0;
       char *ll;
+      int event;
+      char *src, *frm, *eventtext;
+      char *work, *rest;
+      time_t now, diff;
+      char tbuf[40];
 
-      /* Timestamped line for relative log creation */
-      ll = l;
-      if (*l == '@') {
-        char *ts, *rest;
+      tbuf[0] = 0;
+     
+printf("log: [%s]\r\n", msg);
 
-        /* Timestamp one character in */
-        ts = l + 1;
-        if (!*ts) {
-          free(ll);
-          continue;
-        }
+        /*
+         * 1079304950 client #dircproxy dircproxy You connected
+         * 1079304951 join #dircproxy niven.freenode.net You joined the channel
+         * 1079305132 client #dircproxy dircproxy You disconnected
+         * 1079305143 message #dircproxy bear!~bear@pa.comcast.net lah
+         * 1079305150 action #dircproxy bear!~bear@pa.comcast.net moons the channel
+         */
 
-        /* Message continues after a space */
-        rest = strchr(l, ' ');
-        if (!rest) {
-          free(ll);
-          continue;
-        }
-
-        /* Delete the space */
-        *(rest++) = 0;
-        l = rest;
-
-        /* Obtain the timestamp */
-        when = strtoul(ts, (char **)NULL, 10);
+      ll   = msg;
+      work = msg;
+      if (!*work) {                             /* Timestamp is first value now */
+        free(ll);
+        continue;
+      }
+  
+      rest = strchr(msg, ' ');                  /* parse to the space */
+      if (!rest) {
+        free(ll);
+        continue;
       }
 
-      /* Message or Notice lines, these require a bit of parsing */
-      if ((*l == '<') || (*l == '-') || (*l == '[')) {
-        char *src, *msg, lastchar;
+      *(rest++) = 0;                            /* delete the space */
+      msg = rest;
+  
+      when = strtoul(work, (char **)NULL, 10);  /* Obtain the timestamp */
 
-        /* Source starts one character in */
-        src = l + 1;
-        if (!*src) {
-          free(ll);
-          continue;
-        }
+      eventtext = msg;                          /* store the event text */
+      if (!*eventtext) {
+        free(ll);
+        continue;
+      }
+      
+      rest = strchr(msg, ' ');                  /* Message continues after a space */
+      if (!rest) {
+        free(ll);
+        continue;
+      }
+      
+      *(rest++) = 0;                            /* Delete the space */
+      msg = rest;
 
-        /* Message starts after a space and the correct closing character */
-        msg = strchr(l, ' ');
-        if (*l == '<') {
-          lastchar = '>';
-        } else if (*l == '[') {
-          lastchar = ']';
+      event = irclog_strtoflag(eventtext);      /* determine the event code */
+      src   = msg;                              /* log source */
+      
+      rest = strchr(msg, ' ');                  /* Message continues after a space */
+      if (!rest) {
+        free(ll);
+        continue;
+      }
+  
+      *(rest++) = 0;                            /* Delete the space */
+      msg = rest;
+  
+      frm = msg;                                /* where the entry is from */
+      
+      rest = strchr(msg, ' ');                  /* Message continues after a space */
+      if (!rest) {
+        free(ll);
+        continue;
+      }
+      
+      *(rest++) = 0;                             /* Delete the space */
+      msg = rest;
+  
+printf("timestamp: %d event: %d src: [%s] frm: [%s] log: [%s]\r\n", when, event, src, frm, msg);
+
+        /* If the log_timestamp option is on, format the timestamp */
+      if (when && p->conn_class->log_timestamp) {
+        if (p->conn_class->log_relativetime) {
+          time(&now);
+          diff = now - when;
+
+          if (diff < 82800L) {                /* Within 23 hours [hh:mm] */
+            strftime(tbuf, sizeof(tbuf), "%H:%M", localtime(&when));
+          } else if (diff < 518400L) {        /* Within 6 days [day hh:mm] */
+            strftime(tbuf, sizeof(tbuf), "%a %H:%M", localtime(&when));
+          } else if (diff < 25920000L) {      /* Within 300 days [d mon] */
+            strftime(tbuf, sizeof(tbuf), "%d %b", localtime(&when));
+          } else {                            /* Otherwise [d mon yyyy] */
+            strftime(tbuf, sizeof(tbuf), "%d %b %Y", localtime(&when));
+          }
         } else {
-          lastchar = '-';
+          strftime(tbuf, sizeof(tbuf), LOG_TIME_FORMAT, localtime(&when));
         }
-        if (!msg || (*(msg - 1) != lastchar)) {
-          free(ll);
-          continue;
-        }
+      }
 
-        /* Delete the closing character and skip the space */
-        *(msg - 1) = 0;
-        msg++;
-
-        /* Do filtering */
+        /* Message or Notice lines, these require a bit of parsing */
+      if ((event == IRC_LOG_NOTICE) || (event == IRC_LOG_MSG) || (event == IRC_LOG_ACTION)) {
+          /* Do filtering */
         if (from) {
           char *comp, *ptr;
 
-          /* We just check the nickname, so strip off anything after the ! */
+            /* We just check the nickname, so strip off anything after the ! */
           comp = x_strdup(src);
           if ((ptr = strchr(comp, '!')))
             *ptr = 0;
 
-          /* Check the nicknames are the same */
+            /* Check the nicknames are the same */
           if (irc_strcasecmp(comp, from)) {
             free(comp);
             free(ll);
@@ -940,67 +985,19 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
           }
           free(comp);
         }
-
-        /* If there was a timestamp on it, we either fake the old-style
-           stuff or do the new fancy stuff */
-        if (when && p->conn_class->log_timestamp) {
-          char tbuf[40];
-
-          if (p->conn_class->log_relativetime) {
-            time_t now, diff;
-
-            time(&now);
-            diff = now - when;
-
-            if (diff < 82800L) {
-              /* Within 23 hours [hh:mm] */
-              strftime(tbuf, sizeof(tbuf), "%H:%M", localtime(&when));
-            } else if (diff < 518400L) {
-              /* Within 6 days [day hh:mm] */
-              strftime(tbuf, sizeof(tbuf), "%a %H:%M", localtime(&when));
-            } else if (diff < 25920000L) {
-              /* Within 300 days [d mon] */
-              strftime(tbuf, sizeof(tbuf), "%d %b", localtime(&when));
-            } else {
-              /* Otherwise [d mon yyyy] */
-              strftime(tbuf, sizeof(tbuf), "%d %b %Y", localtime(&when));
-            }
-          } else {
-            strftime(tbuf, sizeof(tbuf), LOG_TIME_FORMAT, localtime(&when));
-          }
-
-          /* Send the line */
-          if (*l == '[') {
-            char *cmd;
-
-            /* Its a CTCP, so we have to place the command before the
-               timestamp */
-            cmd = msg;
-            msg += strcspn(msg, " ");
-            if (*msg)
-              *(msg++) = 0;
-
-            net_send(p->client_sock, ":%s PRIVMSG %s :\001%s [%s]%s%s\001\r\n",
-                     src, to, cmd, tbuf, (strlen(msg) ? " " : ""), msg);
-          } else {
-            net_send(p->client_sock, ":%s %s %s :[%s] %s\r\n", src,
-                     (*l == '<' ? "PRIVMSG" : "NOTICE"), to, tbuf, msg);
-          }
-        } else {
-          /* Send the line */
-          if (*l == '[') {
-            net_send(p->client_sock, ":%s PRIVMSG %s :\001%s\001\r\n", src,
-                     to, msg);
-          } else {
-            net_send(p->client_sock, ":%s %s %s :%s\r\n", src,
-                     (*l == '<' ? "PRIVMSG" : "NOTICE"), to, msg);
-          }
-        }
-
-      } else if (strncmp(l, "* ", 2)) {
-        /* Anything thats not a comment gets sent as a notice */
-        ircclient_send_notice(p, "%s", l);
-
+      }
+      
+        /* Send the line */
+      if (event == IRC_LOG_MSG) {
+        net_send(p->client_sock, ":%s PRIVMSG %s :[%s] %s\r\n", frm, to, tbuf, msg);
+      } else if (event == IRC_LOG_ACTION) {
+        net_send(p->client_sock, ":%s PRIVMSG %s :\001ACTION [%s] %s\001\r\n", frm, to, tbuf, msg);
+      } else if (event == IRC_LOG_CTCP) {
+        net_send(p->client_sock, ":%s PRIVMSG %s :\001%s [%s]%s%s\001\r\n", src, to, eventtext, tbuf, (strlen(msg) ? " " : ""), msg);
+      } else if (event == IRC_LOG_NOTICE) {
+        ircclient_send_notice(p, "%s", msg);
+      } else {
+        net_send(p->client_sock, ":%s PRIVMSG %s :[%s] %s\r\n", src, to, tbuf, msg);
       }
 
       free(ll);
@@ -1008,7 +1005,7 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
     }
   }
 
-  /* Either close, or skip back to the end */
+    /* Either close, or skip back to the end */
   if (close) {
     fclose(file);
   } else {
