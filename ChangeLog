@@ -1,3 +1,27 @@
+2000-12-27 18:28  Scott James Remnant <scott@netsplit.com>
+
+	* FAQ, README: Included IRC channel in the documentation
+
+2000-12-27 18:04  Scott James Remnant <scott@netsplit.com>
+
+	* src/net.c: Wasn't handling read events if the socket was marked
+	as closed, this includes error events obviously.  This could cause
+	100% CPU usage if there's data waiting to be written on the socket.
+	 Instead just make sure we don't call the error_func if socket is
+	closed (it'd get confused).
+
+2000-12-27 17:50  Scott James Remnant <scott@netsplit.com>
+
+	* FAQ: Added the most FAQ to the FAQ :)
+
+2000-12-26 18:26  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in, contrib/dircproxy.spec: CVS version now 0.99.1
+
+2000-12-26 18:07  Scott James Remnant <scott@netsplit.com>
+
+	* ChangeLog, NEWS: Version 0.99.0 released.
+
 2000-12-26 17:34  Scott James Remnant <scott@netsplit.com>
 
 	* TODO, configure.in: CVS version now 0.99.0, time to freeze it.
