@@ -1,6 +1,6 @@
 Summary: irc proxy
 Name: dircproxy
-%define	version 0.8.4
+%define	version 0.99.1
 %define location /usr
 Version: %{version}
 Release: 1
