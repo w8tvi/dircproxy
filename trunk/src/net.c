@@ -10,7 +10,7 @@
  *  - functions to retrieve data from buffers up to delimiters (newlines?)
  *  - main poll()/select() function
  * --
- * @(#) $Id: net.c,v 1.8 2000/11/28 12:12:28 keybuk Exp $
+ * @(#) $Id: net.c,v 1.9 2000/12/21 13:21:48 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -181,12 +181,13 @@ static struct sockinfo *_net_fetch(int sock) {
 }
 
 /* Close a socket and free its data */
-int net_close(int sock) {
+int net_close(int *sock) {
   struct sockinfo *sockinfo;
 
-  sockinfo = _net_fetch(sock);
+  sockinfo = _net_fetch(*sock);
   if (sockinfo) {
     sockinfo->closed = 1;
+    *sock = -1;
     return 0;
   } else {
     syscall_fail("net_close", 0, "bad socket provided");
@@ -793,7 +794,7 @@ int net_poll(void) {
         /* If we can read from the socket, suck in all the data there is to
            keep the buffer size on the IRC server down.
            This can result in the call of the error function. */
-        if (can_read) {
+        if (!s->closed && can_read) {
           char buff[NET_BLOCK_SIZE];
           int br, rr;
 
