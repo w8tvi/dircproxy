@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.51 2000/12/26 17:26:29 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.52 2000/12/26 17:33:16 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -1033,28 +1033,6 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
           if (p->conn_class->log_events & IRC_LOG_ACTION)
             irclog_ctcp(p, msg.params[0], msg.src.orig, "%s", cmsg.orig);
 
-        } else if (!strcmp(cmsg.cmd, "PING") && p->conn_class->ctcp_replies) {
-          if (cmsg.numparams >= 1) {
-            ircserver_send_command(p, "NOTICE", "%s :\001PING %s\001",
-                                   msg.src.name, cmsg.paramstarts[0]);
-          } else {
-            ircserver_send_command(p, "NOTICE", "%s :\001PING\001",
-                                   msg.src.name);
-          }
-
-          if (p->conn_class->log_events & IRC_LOG_CTCP)
-            irclog_notice(p, msg.params[0], p->servername, "CTCP %s from %s",
-                          cmsg.cmd, msg.src.fullname);
-
-        } else if (!strcmp(cmsg.cmd, "ECHO") && p->conn_class->ctcp_replies) {
-          if (cmsg.numparams >= 1)
-            ircserver_send_command(p, "NOTICE", "%s :\001ECHO %s\001",
-                                   msg.src.name, cmsg.paramstarts[0]);
-
-          if (p->conn_class->log_events & IRC_LOG_CTCP)
-            irclog_notice(p, msg.params[0], p->servername, "CTCP %s from %s",
-                          cmsg.cmd, msg.src.fullname);
-
         } else if (!strcmp(cmsg.cmd, "DCC")
                    && p->conn_class->dcc_proxy_incoming) {
           struct sockaddr_in vis_addr;
@@ -1230,7 +1208,35 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
                   cmsg.params[0]);
           }
 
-        } else if (!strcmp(cmsg.cmd, "TIME") && p->conn_class->ctcp_replies) {
+        } else if (!strcmp(cmsg.cmd, "PING")
+                  && p->conn_class->ctcp_replies
+                  && (p->client_status != IRC_CLIENT_ACTIVE)) {
+          if (cmsg.numparams >= 1) {
+            ircserver_send_command(p, "NOTICE", "%s :\001PING %s\001",
+                                   msg.src.name, cmsg.paramstarts[0]);
+          } else {
+            ircserver_send_command(p, "NOTICE", "%s :\001PING\001",
+                                   msg.src.name);
+          }
+
+          if (p->conn_class->log_events & IRC_LOG_CTCP)
+            irclog_notice(p, msg.params[0], p->servername, "CTCP %s from %s",
+                          cmsg.cmd, msg.src.fullname);
+
+        } else if (!strcmp(cmsg.cmd, "ECHO")
+                  && p->conn_class->ctcp_replies
+                  && (p->client_status != IRC_CLIENT_ACTIVE)) {
+          if (cmsg.numparams >= 1)
+            ircserver_send_command(p, "NOTICE", "%s :\001ECHO %s\001",
+                                   msg.src.name, cmsg.paramstarts[0]);
+
+          if (p->conn_class->log_events & IRC_LOG_CTCP)
+            irclog_notice(p, msg.params[0], p->servername, "CTCP %s from %s",
+                          cmsg.cmd, msg.src.fullname);
+
+        } else if (!strcmp(cmsg.cmd, "TIME")
+                  && p->conn_class->ctcp_replies
+                  && (p->client_status != IRC_CLIENT_ACTIVE)) {
           char tbuf[40];
           time_t now;
 
@@ -1244,7 +1250,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
                           cmsg.cmd, msg.src.fullname);
 
         } else if (!strcmp(cmsg.cmd, "CLIENTINFO")
-                   && p->conn_class->ctcp_replies) {
+                  && p->conn_class->ctcp_replies
+                  && (p->client_status != IRC_CLIENT_ACTIVE)) {
           ircserver_send_command(p, "NOTICE", "%s :\001CLIENTINFO %s\001",
                                  msg.src.name,
                                  "ACTION DCC VERSION CLIENTINFO USERINFO "
@@ -1255,7 +1262,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
                           cmsg.cmd, msg.src.fullname);
 
         } else if (!strcmp(cmsg.cmd, "VERSION")
-                   && p->conn_class->ctcp_replies) {
+                  && p->conn_class->ctcp_replies
+                  && (p->client_status != IRC_CLIENT_ACTIVE)) {
           ircserver_send_command(p, "NOTICE", "%s :\001VERSION %s %s - %s\001",
                                  msg.src.name, PACKAGE, VERSION,
                                  "http://dircproxy.sourceforge.net/");
@@ -1265,7 +1273,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
                           cmsg.cmd, msg.src.fullname);
 
         } else if (!strcmp(cmsg.cmd, "USERINFO")
-                   && p->conn_class->ctcp_replies) {
+                  && p->conn_class->ctcp_replies
+                  && (p->client_status != IRC_CLIENT_ACTIVE)) {
           ircserver_send_command(p, "NOTICE", "%s :\001USERINFO %s -- %s\001",
                                  msg.src.name, PACKAGE, "Saving the world from "
                                  "mutant carrots since 1899!");
@@ -1274,16 +1283,12 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
             irclog_notice(p, msg.params[0], p->servername, "CTCP %s from %s",
                           cmsg.cmd, msg.src.fullname);
 
-        } else if (!strcmp(cmsg.cmd, "FINGER") && p->conn_class->ctcp_replies) {
-          if (p->client_status == IRC_CLIENT_ACTIVE) {
-            ircserver_send_command(p, "NOTICE", "%s :\001FINGER %s %s\001",
-                                   msg.src.name, PACKAGE,
-                                   "proxying for connected client");
-          } else {
-            ircserver_send_command(p, "NOTICE", "%s :\001FINGER %s %s\001",
-                                   msg.src.name, PACKAGE,
-                                   "holding fort for unconnected client");
-          }
+        } else if (!strcmp(cmsg.cmd, "FINGER")
+                  && p->conn_class->ctcp_replies
+                  && (p->client_status != IRC_CLIENT_ACTIVE)) {
+          ircserver_send_command(p, "NOTICE", "%s :\001FINGER %s %s\001",
+                                 msg.src.name, PACKAGE,
+                                 "proxying for unconnected client");
 
           if (p->conn_class->log_events & IRC_LOG_CTCP)
             irclog_notice(p, msg.params[0], p->servername, "CTCP %s from %s",
