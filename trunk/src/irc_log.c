@@ -5,7 +5,7 @@
  * irc_log.c
  *  - Handling of log files
  * --
- * @(#) $Id: irc_log.c,v 1.20 2000/09/01 12:19:47 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.21 2000/09/04 13:22:27 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -347,7 +347,7 @@ static int _irclog_write(struct logfile *log, const char *format, ...) {
   msg = x_vsprintf(format, ap);
   va_end(ap);
 
-  if (log->nlines >= log->maxlines) {
+  if (log->maxlines && (log->nlines >= log->maxlines)) {
     FILE *out;
     char *l;
 
