@@ -1,3 +1,6 @@
+2003-12-14 17:00  Francois Harvey <fharvey@securiweb.net>
+	* Adding Nickserv support (on rattach)
+	
 2003-11-26 21:12  Francois Harvey <fharvey@securiweb.net>
  	* irc_net.c:  you can now also enter the ip-address of the adapter 
 	you want dircproxy to bind to. 

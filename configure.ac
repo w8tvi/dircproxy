@@ -1,5 +1,5 @@
 # Process this file with autoconf to produce a configure script.
-# $Id: configure.ac,v 1.7 2002/12/29 21:30:07 scott Exp $
+# $Id: configure.ac,v 1.8 2003/12/31 23:11:27 fharvey Exp $
 
 AC_INIT([dircproxy], [1.1.1], [http://bugzilla.dircproxy.net/])
 AM_INIT_AUTOMAKE
@@ -64,6 +64,18 @@ AC_ARG_ENABLE([debug], AC_HELP_STRING([--enable-debug], [turn on debugging (defa
 if test -z "${use_debug}"; then
 	AC_CHECK_FUNCS([strdup vasprintf vsnprintf])
 fi
+
+# Use SSL (currently OpenSSL)
+AC_ARG_ENABLE([ssl], AC_HELP_STRING([--enable-ssl], [Add SSL support]),
+              [ if test "x${enable_ssl}" = "xyes"; then
+	                 use_ssl="y"
+			 CFLAGS="-DSSL "
+                         AC_DEFINE([SSL], [1], [Try to sniff me now])
+                fi ])
+# if test -z "${use_ssl}"; then
+#  AC_CHECK_FUNCS([str	 dup vasprintf vsnprintf])
+# fi
+			
 
 # Use of poll() can be disabled in favour of select
 AC_ARG_ENABLE([poll], AC_HELP_STRING([--disable-poll], [disable use of the poll() function (default is NO)]),
