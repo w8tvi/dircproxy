@@ -39,10 +39,10 @@ Questions
 4.  Logging
      4.1  Why does dircproxy by default log channels while I'm
           attached?
-     4.2  How do I log everything and keep it for my own reference in
-          years to come?
-     4.3  Why does the permanent copy contain text from all the clients
-          dircproxy is proxying?
+     4.2  How do I log everything and keep it for my own reference
+          in years to come?
+     4.3  Why does the permanent copy contain text from all the
+          clients dircproxy is proxying?
 
 5.  DCC Proxying
      5.1  Why would I want dircproxy to proxy DCC requests as well?
@@ -50,24 +50,27 @@ Questions
      5.3  Does text I type before dircproxy tells me the remote peer
           has connected ever reach them?
 
+6.  Advanced Use
+     6.1  How do I change what username is presented on IRC?
+
 
 Answers
 =======
 
  1.1  What is dircproxy?
-     
-     dircproxy is an IRC proxy server designed for people who use IRC
-     from lots of different workstations or clients, but wish to
+
+     dircproxy is an IRC proxy server designed for people who use
+     IRC from lots of different workstations or clients, but wish to
      remain connected and see what they missed while they were away.
      You connect to IRC through dircproxy, and it keeps you connected
-     to the server, even after you detach your client from it.  While
-     you're detached, it logs channel and private messages as well as
-     important events, and when you re-attach it'll let you know what
-     you missed.
+     to the server, even after you detach your client from it.
+     While you're detached, it logs channel and private messages
+     as well as important events, and when you re-attach it'll let
+     you know what you missed.
 
      This can be used to give you roughly the same functionality as
-     using ircII and screen together, except you can use whatever IRC
-     client you like, including X ones!
+     using ircII and screen together, except you can use whatever
+     IRC client you like, including X ones!
 
  1.2  Where can I get dircproxy?
 
@@ -75,15 +78,15 @@ Answers
 
          http://dircproxy.sourceforge.net/
 
-     New releases along with other news are announced there.  If you'd
-     prefer an FTP site, there is one at:
+     New releases along with other news are announced there.
+     If you'd prefer an FTP site, there is one at:
 
-         http://ftp.dircproxy.sourceforge.net/pub/dircproxy/
+         ftp://ftp.dircproxy.sourceforge.net/pub/dircproxy/
 
  1.3  Are there any mailing lists?
 
-     Yes, there are two mailing lists.  A low traffic one which only
-     receives posts from myself announcing new releases and the
+     Yes, there are two mailing lists.  A low traffic one which
+     only receives posts from myself announcing new releases and the
      occasional other announcement (dircproxy-announce) and a public
      mailing list for general dircproxy discussion (dircproxy-users).
 
@@ -93,22 +96,22 @@ Answers
 
  1.4  How do I report bugs?
 
-     Bug tracking is done using the SourceForge bug tracking system
-     at:
+     Bug tracking is done using the SourceForge bug tracking
+     system at:
 
          http://sourceforge.net/bugs/?group_id=5645
 
  1.5  Is there an anonymous CVS server?
 
-     Yes.  This can be used to retreive any release, including the
+     Yes.  This can be used to retrieve any release, including the
      current developmental release.  For more information see:
 
          http://dircproxy.sourceforge.net/cvs.html
 
  1.6  How do I add a question to the FAQ?
 
-     E-mail me at scott@netsplit.com and I'll see if its suitable for
-     inclusion.
+     E-mail me at scott@netsplit.com and I'll see if its suitable
+     for inclusion.
 
 
  2.1  How do I compile and install dircproxy?
@@ -119,34 +122,34 @@ Answers
 
  2.2  I get "couldn't find your xxx() function" from configure
 
-     dircproxy makes very few requirements on your system, and your
-     libc.  The only things it does require are TCP/IP support through
-     the socket() function, DNS resolver support through the
-     gethostbyname() function and encryption support through the
-     crypt() function.
+     dircproxy makes very few requirements on your system, and
+     your libc.  The only things it does require are TCP/IP support
+     through the socket() function, DNS resolver support through
+     the gethostbyname() function and encryption support through
+     the crypt() function.
 
-     The 'configure' program checks a few likely locations for these
-     functions and if it can't find them will generate the appropriate
-     warning.  For example:
+     The 'configure' program checks a few likely locations for
+     these functions and if it can't find them will generate the
+     appropriate warning.  For example:
 
          checking for crypt... no
 	 checking for crypt in -lcrypt... no
 	 configure: warning: couldn't find your crypt() function
 
-     If you know which library these functions are located in, you can
-     pass the LDFLAGS shell variable to tell it.  For example, if you
-     know your crypt() function is in the libdes.so (example only!)
-     library, you can do this:
+     If you know which library these functions are located in, you
+     can pass the LDFLAGS shell variable to tell it.  For example,
+     if you know your crypt() function is in the libdes.so (example
+     only!)  library, you can do this:
 
          $ LDFLAGS=-ldes ./configure ...
 
-     Then let me know what type of system you have and what you did,
-     so I can make future versions of dircproxy detect this case
-     automatically.
+     Then let me know what type of system you have and what you
+     did, so I can make future versions of dircproxy detect this
+     case automatically.
 
      If you can't find these functions, you'll need to chat to your
-     local sysadmin or unix guru and get them to upgrade your libc to
-     something a little more up to date.
+     local sysadmin or UNIX guru and get them to upgrade your libc
+     to something a little more up to date.
 
  2.3  Compilation fails with "xxx.h: No such file or directory"
 
@@ -154,9 +157,9 @@ Answers
      needs wasn't found on your system.  It can also mean that the
      dircproxy source isn't complete.
 
-     Find out which directory that header file is on your system, and
-     pass that to the 'configure' program using the CFLAGS shell
-     variable like this:
+     Find out which directory that header file is on your system,
+     and pass that to the 'configure' program using the CFLAGS
+     shell variable like this:
 
          $ CFLAGS=-I/path/to/directory ./configure ...
 
@@ -165,104 +168,102 @@ Answers
      future versions of dircproxy to support your system fully.
 
      If there is no equivalent you'll need to get your sysadmin or
-     unix guru to upgrade your libc to something more up to date.
+     UNIX guru to upgrade your libc to something more up to date.
 
  2.4  Compilation fails with "undefined reference to `xxx'"
 
-     This means that a system function dircproxy uses wasn't found on
-     your system.  You'll need to find out in which library on your
-     system that function is.  Then if for example its in libmisc.so
-     pass that using the LDFLAGS shall variable to 'configure' like
-     this:
+     This means that a system function dircproxy uses wasn't found
+     on your system.  You'll need to find out in which library
+     on your system that function is.  Then if for example its
+     in libmisc.so pass that using the LDFLAGS shall variable to
+     'configure' like this:
 
          $ LDFLAGS=-lmisc ./configure ...
 
-     If you're system doesn't have that function, you'll need to get
-     your sysadmin or local unix guru to upgrade your libc to
+     If you're system doesn't have that function, you'll need to
+     get your sysadmin or local UNIX guru to upgrade your libc to
      something a little more up to date.
-     
+
  2.5  What does --enable-debug do?
 
-     Its used primarily by myself to debug dircproxy, it can also be
-     used by anyone else who wants to help out debugging it.
+     Its used primarily by myself to debug dircproxy, it can also
+     be used by anyone else who wants to help out debugging it.
 
      One main difference is that dircproxy will not switch to the
      background, but will stay in the foreground and write a lot of
-     strange information (including a record of all text received from
-     the client and server) to the console.  This reverses the meaning
-     of the -D parameter.
+     strange information (including a record of all text received
+     from the client and server) to the console.  This reverses
+     the meaning of the -D parameter.
 
-     It also causes dircproxy to use its built-in versions of strdup()
-     sprintf() and vsprintf() instead of any that might exist in your
-     libc.
+     It also causes dircproxy to use its built-in versions of
+     strdup() sprintf() and vsprintf() instead of any that might
+     exist in your libc.
 
-     Finally it switches on a lot of expensive memory debugging code
-     that records every malloc(), realloc() and free(), notes what
-     C file and line it occured in and pads the memory with random
-     junk to detect most buffer overruns.  On termination you will
-     see a memory report (hopefully saying "0 bytes in use"), you can
-     also send a USR1 signal to dircproxy to see how much memory it
-     thinks its using, and a USR2 signal to see exactly what is in its
-     memory and where it was allocated.
+     Finally it switches on a lot of expensive memory debugging
+     code that records every malloc(), realloc() and free(), notes
+     what C file and line it occurred in and pads the memory with
+     random junk to detect most buffer overruns.  On termination you
+     will see a memory report (hopefully saying "0 bytes in use"),
+     you can also send a USR1 signal to dircproxy to see how much
+     memory it thinks its using, and a USR2 signal to see exactly
+     what is in its memory and where it was allocated.
 
-     This slows down dircproxy a lot and makes it inconvenient to use.
-     However, for people wanting to do dircproxy code work its
-     invaluable.
+     This slows down dircproxy a lot and makes it inconvenient
+     to use.  However, for people wanting to do dircproxy code work
+     its invaluable.
 
 
  3.1  What are configuration classes?
 
      A configuration class defines a possible client/server proxied
      connection.
-     
+
      Basically you define a connection class, setting a password and
-     server to connect to, then when you connect to dircproxy and give
-     your password for the first time, it automatically connects you
-     to a server.  This connection class is then assigned to your
-     proxy session and cannot be used by anyone else until you cause
-     dircproxy to disconnect from the server (see 3.10).
+     server to connect to, then when you connect to dircproxy and
+     give your password for the first time, it automatically connects
+     you to a server.  This connection class is then assigned to
+     your proxy session and cannot be used by anyone else until
+     you cause dircproxy to disconnect from the server (see 3.10).
 
      When you reconnect, all you need to do is supply the password
-     again.  dircproxy then sees that your connection class is already
-     in use and simply attaches you to that.
+     again.  dircproxy then sees that your connection class is
+     already in use and simply attaches you to that.
 
-     This means you don't need to specify any "one time passwords", or
-     magic connection or reconnection commands etc.  dircproxy can be
-     used by simply telling your IRC client to supply a
-     "server password" when it connects.  Everything else is
-     automatic.
-
+     This means you don't need to specify any "one time passwords",
+     or magic connection or reconnection commands etc.  dircproxy can
+     be used by simply telling your IRC client to supply a "server
+     password" when it connects.  Everything else is automatic.
 
  3.2  Can dircproxy be used as an "open proxy"?
 
      Yes, only if each user knows the password.  dircproxy does NOT
-     support password-less proxy sessions, if you do that you'll just
-     annoy the IRC operators and get yourself banned from the IRC
-     network.
+     support password-less proxy sessions, if you do that you'll
+     just annoy the IRC operators and get yourself banned from the
+     IRC network.
 
-     Open IRC proxies are a BAD THING and lead to abuse of the IRC
-     network.
+     Open IRC proxies are a BAD THING and lead to abuse of the
+     IRC network.
 
-     You may however use dircproxy as a proxy for many users who know
-     the password.  This can be accomplished by running it from inetd
-     (one of the few reasons to do this).
+     You may however use dircproxy as a proxy for many users who
+     know the password.  This can be accomplished by running it
+     from inetd (one of the few reasons to do this).
 
      Set it up as described in README.inetd, and set up a single
      connection class with the appropriate password etc.  By default,
-     dircproxy will not remain attached to the server when each client
-     quits, they'll need to explicitly do a /DIRCPROXY PERSIST to do
-     that.
+     dircproxy will not remain attached to the server when each
+     client quits, they'll need to explicitly do a /DIRCPROXY
+     PERSIST to do that.
 
  3.3  Where in the config file do I put my nickname?
 
      You don't.  dircproxy doesn't connect to the IRC server until
-     you connect to it.  This means it can pick up the nickname from
-     the one your IRC client sends.
+     you connect to it.  This means it can pick up the nickname
+     from the one your IRC client sends.
 
-     All you need to tell dircproxy is what server you want to connect
-     to.  The rest of the information such as your nickname, user name
-     and full name etc are taken from your IRC client when it first
-     connects to it.
+     All you need to tell dircproxy is what server you want to
+     connect to.  The rest of the information such as your nickname,
+     user name and full name etc are taken from your IRC client
+     when it first connects to it.
 
  3.4  Can dircproxy be run from inetd?
 
@@ -271,31 +272,33 @@ Answers
  3.5  dircproxy won't start and says I need to define connection
       classes, how do I do this?
 
-     You need to create a configuration file.  Best way is to get the
-     example one in the conf subdirectory of the dircproxy (or if its
-     just installed on a machine you are using, the
+     You need to create a configuration file.  Best way is to get
+     the example one in the conf subdirectory of the dircproxy
+     (or if its just installed on a machine you are using, the
      /usr/local/share/dircproxy directory), copy it to your home
-     directory, call it .dircproxyrc and make sure it has no more than
-     0600 permissions (-rw-------).
+     directory, call it .dircproxyrc and make sure it has no more
+     than 0600 permissions (-rw-------).
 
-     Then edit this file, its very well documented.  The configuration
-     classes are defined right at the bottom.
+     Then edit this file, its very well documented.  The
+     configuration classes are defined right at the bottom.
 
  3.6  I started dircproxy, but it hasn't connected to any servers yet,
       what have I done wrong?
 
-     Nothing, dircproxy won't connect to the server until you connect
-     an IRC client to it.
+     Nothing, dircproxy won't connect to the server until you
+     connect an IRC client to it.
 
  3.7  dircproxy will not accept my password, I know its right as it's
       exactly what I typed into the configuration file.
 
-     dircproxy requires that IRC client passwords in the configuration
-     file are encrypted so that anyone managing to read the file off
-     the disk can't get the password and use your dircproxy session.
+     dircproxy requires that IRC client passwords in the
+     configuration file are encrypted so that anyone managing to
+     read the file off the disk can't get the password and use your
+     dircproxy session.
 
-     Encrypt them using your systems crypt(3) function or by using the
-     dircproxy-crypt(1) utility included with the dircproxy source.
+     Encrypt them using your systems crypt(3) function or by using
+     the dircproxy-crypt(1) utility included with the dircproxy
+     source.
 
  3.8  How do I get a running dircproxy to reread its configuration
       file?
@@ -313,17 +316,20 @@ Answers
          % ps -ef | grep dircproxy
 	 user      7410  388...
 	 $ kill -HUP 7410
- 
+
+     Note that certain configuration options do not take effect
+     until you reconnect to a server, or detach from dircproxy.
+
  3.9  How do I detach from dircproxy?
 
-     Close your IRC client, probably by typing /QUIT.  You don't need
-     tell dircproxy you're detaching, it can guess that by your
-     connection to it closing.
+     Close your IRC client, probably by typing /QUIT.  You don't
+     need tell dircproxy you're detaching, it can guess that by
+     your connection to it closing.
 
      The exception to this is if you're running dircproxy from inetd,
-     if this is the case you'll need to do a /DIRCPROXY PERSIST before
-     you close to tell it that you want to reconnect later.  dircproxy
-     will tell you what port number to reconnect at.
+     if this is the case you'll need to do a /DIRCPROXY PERSIST
+     before you close to tell it that you want to reconnect later.
+     dircproxy will tell you what port number to reconnect at.
 
  3.10 How can I get dircproxy to disconnect from the server?
 
@@ -334,20 +340,20 @@ Answers
      
  3.11 Can I connect multiple clients to the same running session?
 
-     No.  After all, which one do you listen to?  It could all get
-     very schitzophrenic with two people typing under the same
+     No.  After all, which one do you listen to?  It could all
+     get very schizophrenic with two people typing under the same
      nickname from different computers.
 
 
  4.1  Why does dircproxy by default log channels while I'm attached?
 
      dircproxy was originally designed to give roughly the same
-     functionality as using ircII and screen, but allowing you to use
-     X clients (which can't be screen'd).
+     functionality as using ircII and screen, but allowing you to
+     use X clients (which can't be screen'd).
 
-     This means it tries to give you a "full screen" of text when you
-     reattach, so if you've only just disconnected, a full screen
-     includes that which happened before you disconnected.
+     This means it tries to give you a "full screen" of text when
+     you reattach, so if you've only just disconnected, a full
+     screen includes that which happened before you disconnected.
 
      Its actually quite useful when you think about it:
 
@@ -358,11 +364,11 @@ Answers
 	 -dircproxy- You connected
 	 <You> Hi X, sure :)
 
-     You might not have seen your dream date's name :)  Its also handy
-     for reference.
+     You might not have seen your dream date's name :)  Its also
+     handy for reference.
 
-     You can always switch it off though by setting this in the config
-     file:
+     You can always switch it off though by setting this in the
+     config file:
 
          chan_log_always no
 
@@ -370,8 +376,8 @@ Answers
       years to come?
 
      Create a directory for dircproxy to store the logs in, and then
-     tell dircproxy to store a "permanent copy" in that directory like
-     this:
+     tell dircproxy to store a "permanent copy" in that directory
+     like this:
 
 	 chan_log_copydir /path/to/directory
 	 other_log_copydir /path/to/directory
@@ -379,15 +385,15 @@ Answers
  4.3  Why does the permanent copy contain text from all the clients
       dircproxy is proxying?
 
-     Because you've set the directory name globally for all connection
-     classes in the configuration file.  Because dircproxy doesn't use
-     the logs itself, its not a security risk or anything to be able to
-     do this, and if each person is on a different channel, its quite
-     a handy thing to do.
+     Because you've set the directory name globally for all
+     connection classes in the configuration file.  Because dircproxy
+     doesn't use the logs itself, its not a security risk or anything
+     to be able to do this, and if each person is on a different
+     channel, its quite a handy thing to do.
 
-     If you don't want it to do this, define the 'chan_log_copydir' and
-     'other_log_copydir' inside each connection class instead of the
-     global level, like this:
+     If you don't want it to do this, define the 'chan_log_copydir'
+     and 'other_log_copydir' inside each connection class instead
+     of the global level, like this:
 
          connection {
 	     :
@@ -407,25 +413,40 @@ Answers
  5.1  Why would I want dircproxy to proxy DCC requests as well?
 
      DCC proxying means that all DCC requests get proxied through
-     dircproxy just like your normal IRC requests.  This means your
-     real IP address is just as hidden as it is on IRC.  Also if
-     you're running dircproxy on your NAT firewall so you can
-     actually get on IRC, you'll be able to do DCC's to as it will
-     be proxying them between the two networks for you.
+     dircproxy just like your normal IRC requests.  This means
+     your real IP address is just as hidden as it is on IRC.
+     Also if you're running dircproxy on your NAT firewall so you
+     can actually get on IRC, you'll be able to do DCCs to as it
+     will be proxying them between the two networks for you.
 
  5.2  What's "DCC over ssh" and how do I use it?
 
-     For a complete description, including how to do it, see the
-     README.dcc-via-ssh file in the dircproxy distribution.  Simply
-     its a way of doing DCC's over ssh tunnels to get around any
-     firewalls that might be in the way that would normally prevent
-     even the most determined proxy from allowing DCCs.
+     For a complete description, including how to do it, see
+     the README.dcc-via-ssh file in the dircproxy distribution.
+     Simply its a way of doing DCCs over ssh tunnels to get around
+     any firewalls that might be in the way that would normally
+     prevent even the most determined proxy from allowing DCCs.
 
  5.3  Does text I type before dircproxy tells me the remote peer
       has connected ever reach them?
 
-     Yes, its simply queued until the remote side connects, then is
-     sent to them.
+     Yes, its simply queued until the remote side connects, then
+     is sent to them.
+
+     
+ 6.1  How do I change what username is presented on IRC?
+
+     The obvious answer is to run dircproxy under that username,
+     but that doesn't help if you're proxying for multiple people.
+     Another option is to use one of the many fake ident daemons
+     to return a false answer for you.
+
+     There's also a third option, which is available to those
+     running dircproxy as root (either as a daemon or from inetd).
+     You can use the 'switch_user' configuration file directive.
+     This ensures that the connection to the server appears as from
+     whatever local username you give it (by seteuid()ing to that
+     briefly) while the dircproxy process remains as root.
 
 
 Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.

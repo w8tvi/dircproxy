@@ -7,12 +7,6 @@ tcpd etc and add all your own perverse security restrictions on top.
 However you loose the automatic ability to detach and reattach to
 your session, which makes it slightly more inconvenient to use.
 
-This method of running dircproxy is only suggested for those people
-who really want to run it this way.  dircproxy runs perfectly well
-as its own daemon, and has its own host-based security in it.  That
-should be good enough for most people, if you need things inetd can
-provide, only then should you do this.
-
 
 To run from inetd add a line to /etc/services for the port you
 want to listen on, and give it a service name of "dircproxy".
@@ -22,14 +16,13 @@ dircproxy	57000/tcp		# Detchable IRC Proxy
 
 
 Now add a line to /etc/inetd.conf for dircproxy.  You'll need to
-decide a username to run dircproxy as, "nobody" will probably do.
-Don't run dircproxy as "root", although I'm sure its secure, you
-should never run things as root from inetd anyway!  Also change
-the PATH/TO to point to where you installed dircproxy.  The -I
-parameter tells it its running from inetd.  You can specify any
-other options here, such as to specify the configuration file
-(dircproxy will only check the system-wide configuration file when
-running under inetd).
+decide a username to run dircproxy as, "nobody" will probably do,
+don't run dircproxy as "root" unless you plan to use the
+"switch_user" configuration directive!  Also change the PATH/TO
+to point to where you installed dircproxy.  The -I parameter tells
+it its running from inetd.  You can specify any other options here,
+such as to specify the configuration file (dircproxy will only
+check the system-wide configuration file when running under inetd).
 
 dircproxy  stream  tcp  nowait  USERNAME  /PATH/TO/dircproxy  dircproxy -I
 
