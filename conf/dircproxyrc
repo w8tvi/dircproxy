@@ -100,7 +100,7 @@
 # drop_modes
 #     Which user modes to drop automatically when you detach, handy to
 #     limit the impact that your client has while connected, or for extra
-#     security if you're an IRCop.
+#     security if you're an IRCop.  Set to "" to not drop any modes.
 #
 #drop_modes "oOws"
 
