@@ -9,7 +9,7 @@
  *  - Signal handling
  *  - Debug functions
  * --
- * @(#) $Id: main.c,v 1.40 2000/10/13 13:35:42 keybuk Exp $
+ * @(#) $Id: main.c,v 1.41 2000/10/13 13:36:40 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,7 +61,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.40 2000/10/13 13:35:42 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.41 2000/10/13 13:36:40 keybuk Exp $";
 
 /* The name of the program */
 static char *progname;
@@ -77,9 +77,6 @@ static char *listen_port;
 
 /* The configuration file we used */
 static char *config_file;
-
-/* Global variables */
-struct globalvars g;
 
 /* Global variables */
 struct globalvars g;
