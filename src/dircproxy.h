@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.19 2000/08/29 11:10:24 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.20 2000/08/30 10:48:39 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -227,9 +227,21 @@
  */
 #define DEFAULT_OTHER_LOG_RECALL -1
 
-/* global variables */
-extern char *progname;
-extern int in_background;
+/* DEFAULT_MOTD_LOGO
+ * Display a nice dircproxy logo in the message of the day.  This logo is
+ * just fancy really, but its kinda nice to have it there imho.
+ *  1 = Yes, display it
+ *  0 = Don't display it
+ */
+#define DEFAULT_MOTD_LOGO 1
+
+/* DEFAULT_MOTD_STATS
+ * Display what channels you were on, and the log file sizes etc in the
+ * message of the day when you reconnect.
+ *  1 = Yes, display it
+ *  0 = Don't display it
+ */
+#define DEFAULT_MOTD_STATS 1
 
 /* functions in main.c */
 extern int syscall_fail(const char *, const char *, const char *);

@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.14 2000/08/30 10:41:21 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.15 2000/08/30 10:48:40 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -133,7 +133,6 @@ struct ircproxy {
 
 /* global variables */
 extern struct ircconnclass *connclasses;
-extern int dedicated_proxy;
 
 /* functions */
 extern int ircnet_listen(const char *);
