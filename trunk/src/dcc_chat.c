@@ -5,7 +5,7 @@
  * dcc_chat.c
  *  - DCC chat protocol
  * --
- * @(#) $Id: dcc_chat.c,v 1.1 2000/11/01 15:03:30 keybuk Exp $
+ * @(#) $Id: dcc_chat.c,v 1.2 2000/11/01 17:58:01 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -64,10 +64,10 @@ void dccchat_data(struct dccproxy *p, int sock) {
   int to;
  
   if (sock == p->sender_sock) {
-    dir = ">>";
+    dir = "}}";
     to = p->sendee_sock;
   } else if (sock == p->sendee_sock) {
-    dir = "<<";
+    dir = "{{";
     to = p->sender_sock;
   } else {
     error("Unexpected socket %d in dccchat_data, expected %d or %d", sock,
