@@ -28,11 +28,13 @@ Questions
           classes, how do I do this?
      3.6  I started dircproxy, but it hasn't connected to any servers
           yet, what have I done wrong?
-     3.7  How do I get a running dircproxy to reread its configuration
+     3.7  dircproxy will not accept my password, I know its right as
+          its exactly what I typed into the configuration file.
+     3.8  How do I get a running dircproxy to reread its configuration
           file?
-     3.8  How do I detach from dircproxy?
-     3.9  How can I get dircproxy to disconnect from the server?
-     3.10 Can I connect multiple clients to the same running session?
+     3.9  How do I detach from dircproxy?
+     3.10 How can I get dircproxy to disconnect from the server?
+     3.11 Can I connect multiple clients to the same running session?
 
 4.  Logging
      4.1  Why does dircproxy by default log channels while I'm
@@ -211,7 +213,7 @@ Answers
      your password for the first time, it automatically connects you
      to a server.  This connection class is then assigned to your
      proxy session and cannot be used by anyone else until you cause
-     dircproxy to disconnect from the server (see 3.9).
+     dircproxy to disconnect from the server (see 3.10).
 
      When you reconnect, all you need to do is supply the password
      again.  dircproxy then sees that your connection class is already
@@ -278,7 +280,17 @@ Answers
      Nothing, dircproxy won't connect to the server until you connect
      an IRC client to it.
 
- 3.7  How do I get a running dircproxy to reread its configuration
+ 3.7  dircproxy will not accept my password, I know its right as it's
+      exactly what I typed into the configuration file.
+
+     dircproxy requires that IRC client passwords in the configuration
+     file are encrypted so that anyone managing to read the file off
+     the disk can't get the password and use your dircproxy session.
+
+     Encrypt them using your systems crypt(3) function or by using the
+     dircproxy-crypt(1) utility included with the dircproxy source.
+
+ 3.8  How do I get a running dircproxy to reread its configuration
       file?
 
      Send it a hang-up (HUP) signal.  The process ID can be obtained
@@ -295,7 +307,7 @@ Answers
 	 user      7410  388...
 	 $ kill -HUP 7410
  
- 3.8  How do I detach from dircproxy?
+ 3.9  How do I detach from dircproxy?
 
      Close your IRC client, probably by typing /QUIT.  You don't need
      tell dircproxy you're detaching, it can guess that by your
@@ -306,14 +318,14 @@ Answers
      you close to tell it that you want to reconnect later.  dircproxy
      will tell you what port number to reconnect at.
 
- 3.9  How can I get dircproxy to disconnect from the server?
+ 3.10 How can I get dircproxy to disconnect from the server?
 
      Using the /DIRCPROXY QUIT command.  You can specify an optional
      quit message if you like, for example.
 
          > /DIRCPROXY QUIT Right, four weeks in the sun, here I come!
      
- 3.10 Can I connect multiple clients to the same running session?
+ 3.11 Can I connect multiple clients to the same running session?
 
      No.  After all, which one do you listen to?  It could all get
      very schitzophrenic with two people typing under the same

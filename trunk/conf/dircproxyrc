@@ -40,7 +40,7 @@
 # connect_timeout
 #     Maximum amount of time (in seconds) a client has to provide a server
 #     to connect to after they've logged in.  This only applies if
-#     server_autoconnect is no for that class.
+#     'server_autoconnect' is 'no' for that class.
 #
 #connect_timeout 60
 
@@ -99,11 +99,11 @@
 #     For some people, dircproxy doesn't notice that the connection to the
 #     server has been dropped because the socket remains open.  For example,
 #     those behind a NAT'd firewall.  dircproxy can ping the server and make
-#     sure it gets replies back.  It the time since the last reply was
+#     sure it gets replies back.  If the time since the last reply was
 #     received exceeds the number of seconds below the server is assumed to be
 #     "stoned" and dircproxy leaves it.
 #
-#     0 = don't monitor PINGs
+#     0 = don't send PINGs
 #
 #server_pingtimeout 0
 
@@ -140,7 +140,7 @@
 
 # channel_rejoin
 #     If we are kicked off a channel, how many seconds do we wait before
-#     attempting * to rejoin.
+#     attempting to rejoin.
 #
 #     -1 = Don't rejoin
 #      0 = Immediately
@@ -355,15 +355,20 @@
 #chan_log_timestamp no
 
 # chan_log_relativetime
-#     If 'chan_log_timestamp' is 'yes' then you have a choice of recording
-#     a boring textual timestamp of the [HH:MM] style in the log file (easy
-#     to read) or a un-readable number that indicates the precise time of the
-#     log entry.  If you do the latter then when you recall text from the
-#     log file, it'll adjust the displayed timestamp to make it very clear
-#     exactly how long ago that message was sent.
+#     If 'chan_log_timestamp' is 'yes' then you also have the option of
+#     using intelligent relative timestamps.  If you do, the timestamp shown
+#     when log file information is recalled depends on how old that line is,
+#     making sure it displays enough information (including date if necessary).
+#     Otherwise dircproxy will just tell you the time in HH:MM format which
+#     may not be as useful.
+#   
+#     This does mean that the time itself won't be displayed in the log files
+#     themselves, a timestamp is in place instead.  This may cause problems
+#     if you're doing things with the log files yourself.
 #
 #     yes = Do fancy relative timestamping
 #      no = Do normal timestamping
+#
 #chan_log_relativetime yes
 
 # chan_log_maxsize
@@ -455,12 +460,16 @@
 #other_log_timestamp no
 
 # other_log_relativetime
-#     If 'other_log_timestamp' is 'yes' then you have a choice of recording
-#     a boring textual timestamp of the [HH:MM] style in the log file (easy
-#     to read) or a un-readable number that indicates the precise time of the
-#     log entry.  If you do the latter then when you recall text from the
-#     log file, it'll adjust the displayed timestamp to make it very clear
-#     exactly how long ago that message was sent.
+#     If 'other_log_timestamp' is 'yes' then you also have the option of
+#     using intelligent relative timestamps.  If you do, the timestamp shown
+#     when log file information is recalled depends on how old that line is,
+#     making sure it displays enough information (including date if necessary).
+#     Otherwise dircproxy will just tell you the time in HH:MM format which
+#     may not be as useful.
+#
+#     This does mean that the time itself won't be displayed in the log files
+#     themselves, a timestamp is in place instead.  This may cause problems
+#     if you're doing things with the log files yourself.
 #
 #     yes = Do fancy relative timestamping
 #      no = Do normal timestamping
@@ -493,9 +502,10 @@
 #     Options affecting both channel and server/private message logs
 
 # time_offset
-#     Different in minutes from your IRC client to the dircproxy machine.
-#     So if you're in GMT, but your dircproxy machine is in PST, then this
-#     would be -(8 * 60) = -480.  Used for log file timestamps.
+#     Differenice in minutes from your IRC client to the dircproxy machine.
+#     So if you're in GMT, but your dircproxy machine is in PST (which is
+#     8 hours behind), then this would be -(8 * 60) = -480.  Used for log
+#     file timestamps.
 #
 #      0 = Don't adjust log timestamps.
 #
@@ -609,11 +619,13 @@
 # Please note that although the passwords are shown here in plain text,
 # they MUST be encrypted (unless you manually edit src/dircproxy.h and
 # remove the ENCRYPTED_PASSWORDS #define).  Encrypt the passwords using
-# your system's standard crypt() function, there's a handy 'crypt'
-# utility in the contrib directory of the dircproxy source.
+# your system's standard crypt(3) function, there's a handy utility
+# installed with dircproxy called dircproxy-crypt(1) that can do this
+# for you.  Its in the contrib directory of the source, or installed
+# in the same place as dircproxy.
 #
 #connection {
-#    # this password must by encrypted
+#    # this password must by encrypted using dircproxy-crypt(1)
 #    password "foobar"
 #    server "irc.linux.com"
 #}
@@ -644,7 +656,7 @@
 # to further configure the class. (but not the global options)
 #
 #connection {
-#    # this password must by encrypted
+#    # this password must by encrypted using dircproxy-crypt(1)
 #    password "applejack"
 #
 #    server "irc.linux.com"
