@@ -1,47 +1,6 @@
-Ideas for version 0.9.0:
+0.99.x are the final testing releases before 1.0.0.  No new features
+will be added unless they are considered "essential", in effect, 0.99.x
+is a "frozen" branch with a 1.0.0 release being made once everyone seems
+happy with it and there are no bugs.
 
-        * /DIRCPROXY STATUS (see who's online etc),
-	  /DIRCPROXY DISCONNECT (disconnect someone) and
-	  /DIRCPROXY KILL (politely ask someone to leave :) for admins.
-
-	* Change the away message every hour to indicate how long they've
-	  been away
-
-	* dircproxy to send a number of ctcp's to the client on first
-	  connection, then use those as replies when the client is detached.
-
-	  ctcp_replies no      - don't reply to any ctcp's (current)
-	  ctcp_replies yes     - reply to ctcp's using dircproxy info (default)
-	  ctcp_replies client  - ask first client for its replies and use them
-
-	* Ping the client every now and then in case the server doesn't.  To
-	  make sure the line hasn't dropped between the two.
-
-	* A very simple method of automatically opping people and voicing
-	  people on channels you are on.
-
-	    auto_op "#lush,#gayteensex T-Shirt*!*scott@project.linux.com"
-	    auto_op "*!aaron@*.ntl.com"
-
-	    # first matching voice/op takes priority
-	    auto_voice "#demon pbook!*"
-	    auto_op "#demon *"
-
-Ideas for the future:
-
-	* Fake ident daemon.  Someone else will probably need to write
-	  this if they want it.
-
-	* mIRC DCC RESUME support.  This will probably happen once I'm sure
-	  dircproxy supports the major UNIX IRC client DCC weirdisms.  Then
-	  I'll move on to checking any mIRC DCC weirdisms like RESUME (unless
-	  its already in another client I have the source for :)
-
-	* XDCC proxy support, once I learn how it works (see above).
-
-	* mIRC like File server.  This could tie in with XDCC support to
-	  provide a dircproxy fserver/xdcc server.
-
-	* dircproxy party line(s), to talk to whoever is online at the
-	  time.
-
+New features will be considered once dircproxy acheives 1.0 and stability.
