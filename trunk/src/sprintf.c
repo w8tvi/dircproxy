@@ -6,7 +6,7 @@
  *  - various ways of doing allocating sprintf() functions to void b/o
  *  - wrapper around strdup()
  * --
- * @(#) $Id: sprintf.c,v 1.8 2000/10/13 12:53:10 keybuk Exp $
+ * @(#) $Id: sprintf.c,v 1.9 2000/10/13 17:02:26 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -23,16 +23,10 @@
 #include "stringex.h"
 #include "sprintf.h"
 
-#ifdef DEBUG_MEMORY
-/* What to use next */
-static char *nextfile = 0;
-static int nextline = 0;
-#endif /* DEBUG_MEMORY */
-
 /* The sprintf() version is just a wrapper around whatever vsprintf() we
    decide to implement. */
 #ifdef DEBUG_MEMORY
-char *xx_sprintf(const char *format, ...) {
+char *xx_sprintf(char *file, int line, const char *format, ...) {
 #else /* DEBUG_MEMORY */
 char *x_sprintf(const char *format, ...) {
 #endif /* DEBUG_MEMORY */
@@ -41,9 +35,7 @@ char *x_sprintf(const char *format, ...) {
 
   va_start(ap, format);
 #ifdef DEBUG_MEMORY
-  ret = xx_vsprintf(nextfile, nextline, format, ap);
-  nextfile = 0;
-  nextline = 0;
+  ret = xx_vsprintf(file, line, format, ap);
 #else /* DEBUG_MEMORY */
   ret = x_vsprintf(format, ap);
 #endif /* DEBUG_MEMORY */
@@ -577,15 +569,3 @@ char *x_strdup(const char *s) {
 }
 
 #endif /* HAVE_STRDUP */
-
-#ifdef DEBUG_MEMORY
-
-/* Set the nextfile and nextline */
-void *xx_set(char *file, int line) {
-  nextfile = file;
-  nextline = line;
-
-  return xx_sprintf;
-}
-
-#endif /* DEBUG_MEMORY */
