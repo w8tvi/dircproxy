@@ -4,8 +4,10 @@
  *
  * irc_server.c
  *  - Handling of servers connected to the proxy
+ *  - Reconnection to servers
+ *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.25 2000/10/12 16:02:42 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.26 2000/10/13 12:50:29 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
