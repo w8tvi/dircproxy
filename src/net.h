@@ -31,7 +31,7 @@
 
 /* functions */
 extern int net_socket(void);
-extern void net_create(int *);
+extern void net_create(int *, SSL *);
 extern void net_keepalive(int);
 extern int net_close(int *);
 extern int net_closeall(void);

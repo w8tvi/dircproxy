@@ -312,7 +312,7 @@ static void _dccnet_accept(struct dccproxy *p, int sock) {
   net_close(&(p->sendee_sock));
   p->sendee_status &= ~(DCC_SENDEE_LISTENING);
   p->sendee_sock = newsock;
-  net_create(&(p->sendee_sock));
+  net_create(&(p->sendee_sock), 0);
   
   if (p->sendee_sock != -1) {
     p->sendee_status |= DCC_SENDEE_CONNECTED;

@@ -293,53 +293,32 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
       {
         SSL_load_error_strings();
         SSL_library_init();
-        if(p->servSSL.ctx = SSL_CTX_new(SSLv23_client_method()))
+        if((p->servSSL.ctx = SSL_CTX_new(SSLv23_client_method())))
         {
-	        if(p->servSSL.ssl = SSL_new(p->servSSL.ctx))
+	        if((p->servSSL.ssl = SSL_new(p->servSSL.ctx)))
 	        {
-		        if(SSL_set_fd(p->servSSL.ssl, p->server_sock))
+		        if((SSL_set_fd(p->servSSL.ssl, p->server_sock)))
 		        {
-			        if(SSL_connect(p->servSSL.ssl) == 1)
-			        {
-				        if(p->servSSL.cert = SSL_get_peer_certificate(p->servSSL.ssl))
-				        {
-				        	/*
-				        	 * Once we retrieved the server certificate,
-				        	 * we must check its validity :
-				        	*/
-				        	/*
-				        	 * if(SSL_get_verify_result != X509_V_OK)
-				        	 *	debug("!!WARNING!! Server cert cannot be verified: unknown CA, invalid date, invalid servername");
-				        	*/
-				        	/*
-				        	 * In our case verifying validity would mean that if certificate could not be
-				        	 * automatically validated, we would have to stop the process and allow user to
-				        	 * validate manually.
-				        	 * How can we do that when dircproxy is launched ?
-				        	 * That's why we return 0 in any case.
-				        	 *
-				        	 * A solution could be to insert certificate signature in config-file.
-				        	*/
-									ret = 0;
-								}
-				        else {
-				        	/*
-				        	 * No certificate was sent by server, we assume this is a fatal error.
-				        	 * The doc says : "If an anonymous cipher is used, no certificates are sent."
-				        	 * Would someone want that ??
-				        	*/
-						      syscall_fail("SSL_get_peer_certificate", 0, 0);
-						      SSL_free(p->servSSL.ssl);
-						      SSL_CTX_free(p->servSSL.ctx);
-						      ret = -1;
-						    }
-				      }
-				      else {
-					      syscall_fail("SSL_connect", 0, 0);
-					      SSL_free(p->servSSL.ssl);
-					      SSL_CTX_free(p->servSSL.ctx);
-					      ret = -1;
-					    }
+			        SSL_connect(p->servSSL.ssl);
+				      p->servSSL.cert = SSL_get_peer_certificate(p->servSSL.ssl)
+		        	/*
+		        	 * Once we retrieved the server certificate,
+		        	 * we must check its validity :
+		        	*/
+		        	/*
+		        	 * if(SSL_get_verify_result != X509_V_OK)
+		        	 *	debug("!!WARNING!! Server cert cannot be verified: unknown CA, invalid date, invalid servername");
+		        	*/
+		        	/*
+		        	 * In our case verifying validity would mean that if certificate could not be
+		        	 * automatically validated, we would have to stop the process and allow user to
+		        	 * validate manually.
+		        	 * How can we do that when dircproxy is launched ?
+		        	 * That's why we return 0 in any case.
+		        	 *
+		        	 * A solution could be to insert certificate signature in config-file.
+		        	*/
+							ret = 0;
 			      }
 			      else {
 				      syscall_fail("SSL_set_fd", 0, 0);

@@ -122,7 +122,7 @@ int net_socket(void) {
     return -1;
   }
 
-  net_create(&sock);
+  net_create(&sock, 0);
   return sock;
 }
 
@@ -143,7 +143,7 @@ void net_keepalive(int sock) {
 }
 
 /* Create a sockinfo structure */
-void net_create(int *sock) {
+void net_create(int *sock, SSL *ssl) {
   struct sockinfo *sockinfo;
   int flags;
 
@@ -168,7 +168,8 @@ void net_create(int *sock) {
   sockinfo = (struct sockinfo *)malloc(sizeof(struct sockinfo));
   memset(sockinfo, 0, sizeof(struct sockinfo));
   sockinfo->sock = *sock;
-
+	sockinfo->ssl = ssl;
+	
   if (sockets) {
     struct sockinfo *ss;
 
