@@ -1,3 +1,7 @@
+2004-02-26 21:10  Francois Harvey <fharvey@securiweb.net>
+	* src/irc_log.c, src/irc_net.h: Fixed minor error for building on 
+	  MacOS X 10.2
+
 2004-02-15 10:15 Francois Harvey <fharvey@securiweb.net>
 	* src/irc_server.c: Fix crash on CTCP without params
 

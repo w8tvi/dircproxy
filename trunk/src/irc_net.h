@@ -3,7 +3,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.54 2004/02/14 09:05:12 fharvey Exp $
+ * @(#) $Id: irc_net.h,v 1.55 2004/02/26 20:06:15 fharvey Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -208,7 +208,11 @@ struct dcc_resume {
   char *capfile;
   char *rejmsg;
   char *fullname;
-  uint32_t size;
+#ifdef __APPLE__   
+   u_int32_t size;
+#else
+   uint32_t size;
+#endif   
   struct in_addr r_addr;
   struct dcc_resume *next; 
 };
