@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.23 2000/08/25 09:42:00 keybuk Exp $
+ * @(#) $Id: main.c,v 1.24 2000/08/25 09:43:21 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.23 2000/08/25 09:42:00 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.24 2000/08/25 09:43:21 keybuk Exp $";
 
 /* The name of the program */
 char *progname;
@@ -67,6 +67,7 @@ static int stop_poll = 0;
 
 /* Long options */
 struct option long_opts[] = {
+  { "config-file", 1, NULL, 'f' },
   { "help", 0, NULL, 'h' },
   { "version", 0, NULL, 'v' },
 #ifndef DEBUG
@@ -75,12 +76,11 @@ struct option long_opts[] = {
   { "daemon", 0, NULL, 'D' },
 #endif /* DEBUG */
   { "inetd", 0, NULL, 'I' },
-  { "listen-port", 1, NULL, 'P' },
-  { "config-file", 1, NULL, 'f' }
+  { "listen-port", 1, NULL, 'P' }
 };
 
 /* Options */
-#define GETOPTIONS "hvDIP:f:"
+#define GETOPTIONS "f:hvDIP:"
 
 /* We need this */
 int main(int argc, char *argv[]) {
