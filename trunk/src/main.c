@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.17 2000/08/22 13:08:08 keybuk Exp $
+ * @(#) $Id: main.c,v 1.18 2000/08/23 11:43:45 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.17 2000/08/22 13:08:08 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.18 2000/08/23 11:43:45 keybuk Exp $";
 
 /* The name of the program */
 char *progname;
@@ -68,9 +68,6 @@ static int stop_poll = 0;
 
 /* whether we went in the background or not */
 int in_background = 0;
-
-/* whether we are a dedicated proxy or not */
-int dedicated_proxy = -1;
 
 /* Long options */
 struct option long_opts[] = {
