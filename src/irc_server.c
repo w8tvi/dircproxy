@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.31 2000/10/16 10:59:10 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.32 2000/10/16 11:17:19 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -704,15 +704,17 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       str = x_strdup(msg.params[1]);
       ircprot_stripctcp(str);
       if (strlen(str)) {
-        if (msg.src.username && msg.src.hostname) {
+        if (msg.src.type & IRC_USER) {
           char *tmp;
 
           tmp = x_sprintf("%s!%s@%s", msg.src.name, msg.src.username,
                           msg.src.hostname);
           irclog_msg(p, msg.params[0], tmp, "%s", str);
           free(tmp);
-        } else {
+        } else if (msg.src.type & IRC_SERVER) {
           irclog_msg(p, msg.params[0], msg.src.name, "%s", str);
+        } else if (msg.src.type == IRC_PEER) {
+          irclog_msg(p, msg.params[0], p->servername, "%s", str);
         }
       }
       free(str);
@@ -728,15 +730,17 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       str = x_strdup(msg.params[1]);
       ircprot_stripctcp(str);
       if (strlen(str)) {
-        if (msg.src.username && msg.src.hostname) {
+        if (msg.src.type & IRC_USER) {
           char *tmp;
 
           tmp = x_sprintf("%s!%s@%s", msg.src.name, msg.src.username,
                           msg.src.hostname);
-          irclog_notice(p, msg.params[0], tmp, str);
+          irclog_notice(p, msg.params[0], tmp, "%s", str);
           free(tmp);
-        } else {
-          irclog_notice(p, msg.params[0], msg.src.name, str);
+        } else if (msg.src.type & IRC_SERVER) {
+          irclog_notice(p, msg.params[0], msg.src.name, "%s", str);
+        } else if (msg.src.type == IRC_PEER) {
+          irclog_notice(p, msg.params[0], p->servername, "%s", str);
         }
       }
       free(str);
