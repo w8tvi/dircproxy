@@ -9,7 +9,7 @@
  *  - Signal handling
  *  - Debug functions
  * --
- * @(#) $Id: main.c,v 1.47 2000/11/15 14:59:12 keybuk Exp $
+ * @(#) $Id: main.c,v 1.48 2000/12/26 16:07:39 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,7 +63,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.47 2000/11/15 14:59:12 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.48 2000/12/26 16:07:39 keybuk Exp $";
 
 /* The name of the program */
 static char *progname;
@@ -390,7 +390,7 @@ static void _sig_hup(int sig) {
     p = ircnet_fetchclass(c);
     if (p) {
       p->conn_class = 0;
-      ircserver_send_peercmd(p, "QUIT", ":Permission revoked - %s %s",
+      ircserver_send_command(p, "QUIT", ":Permission revoked - %s %s",
                              PACKAGE, VERSION);
       ircserver_close_sock(p);
 
