@@ -7,7 +7,7 @@
  *  - Handling of log programs
  *  - Recalling from log files
  * --
- * @(#) $Id: irc_log.c,v 1.28 2000/11/01 14:59:57 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.29 2000/11/10 15:09:43 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -38,7 +38,7 @@
 /* forward declarations */
 static void _irclog_close(struct logfile *);
 static struct logfile *_irclog_getlog(struct ircproxy *, const char *);
-static char *_irclog_read(struct logfile *);
+static char *_irclog_read(FILE *);
 static void _irclog_printf(FILE *, const char *, ...);
 static int _irclog_write(struct logfile *, const char *, ...);
 static int _irclog_pipe(struct logfile *log, const char *, const char *,
@@ -321,15 +321,12 @@ static struct logfile *_irclog_getlog(struct ircproxy *p, const char *to) {
 }
 
 /* Read a line from the log */
-static char *_irclog_read(struct logfile *log) {
+static char *_irclog_read(FILE *file) {
   char buff[512], *line;
-
-  if (!log->open)
-    return 0;
 
   line = 0;
   while (1) {
-    if (!fgets(buff, 512, log->file)) {
+    if (!fgets(buff, 512, file)) {
       free(line);
       return 0;
     } else if (!strlen(buff)) {
@@ -404,13 +401,13 @@ static int _irclog_write(struct logfile *log, const char *format, ...) {
     }
 
     /* Eat from the start */
-    while ((log->nlines >= log->maxlines) && (l = _irclog_read(log))) {
+    while ((log->nlines >= log->maxlines) && (l = _irclog_read(log->file))) {
       free(l);
       log->nlines--;
     }
 
     /* Write the rest */
-    while ((l = _irclog_read(log))) {
+    while ((l = _irclog_read(log->file))) {
       fprintf(out, "%s\n", l);
       free(l);
     }
@@ -630,7 +627,7 @@ int irclog_autorecall(struct ircproxy *p, const char *to) {
 
 /* Called to manually recall stuff */
 int irclog_recall(struct ircproxy *p, const char *to,
-                  unsigned long start, unsigned long lines, const char *from) {
+                  long start, long lines, const char *from) {
   struct logfile *log;
 
   log = _irclog_getlog(p, to);
@@ -656,9 +653,6 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
                           const char *to, const char *from) {
   FILE *file;
   int close;
-  int is_chan;
-
-  is_chan = (log == &(p->other_log) ? 0 : 1);
 
   /* If the file isn't open, we have to open it and remember to close it
      later */
@@ -684,13 +678,16 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
     char *l;
 
     /* Skip start lines */
-    while (start-- && (l = _irclog_read(log))) free(l);
+    while (start && (l = _irclog_read(file))) {
+      free(l);
+      start--;
+    }
 
     /* Make lines sensible */
     lines = MIN(lines, log->nlines - start);
 
     /* Recall lines */
-    while (lines-- && (l = _irclog_read(log))) {
+    while (lines && (l = _irclog_read(file))) {
       time_t when = 0;
       char *ll;
 
@@ -765,17 +762,16 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
             free(ll);
             continue;
           }
+          free(comp);
         }
 
         /* If there was a timestamp on it, we either fake the old-style
            stuff or do the new fancy stuff */
-        if (when && (is_chan ? p->conn_class->chan_log_timestamp
-                             : p->conn_class->other_log_timestamp)) {
+        if (when && log->timestamp) {
           char tbuf[40];
 
 
-          if ((is_chan ? p->conn_class->chan_log_relativetime
-                       : p->conn_class->other_log_relativetime)) {
+          if (log->relativetime) {
             time_t now, diff;
 
             time(&now);
@@ -788,11 +784,11 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
               /* Within 6 days [day hh:mm] */
               strftime(tbuf, sizeof(tbuf), "%a %H:%M", localtime(&when));
             } else if (diff < 25920000L) {
-              /* Within 300 days [d mon hh:mm] */
-              strftime(tbuf, sizeof(tbuf), "%d %b %H:%M", localtime(&when));
+              /* Within 300 days [d mon] */
+              strftime(tbuf, sizeof(tbuf), "%d %b", localtime(&when));
             } else {
-              /* Otherwise [d mon yyyy hh:mm] */
-              strftime(tbuf, sizeof(tbuf), "%d %b %Y %H:%M", localtime(&when));
+              /* Otherwise [d mon yyyy] */
+              strftime(tbuf, sizeof(tbuf), "%d %b %Y", localtime(&when));
             }
           } else {
             strftime(tbuf, sizeof(tbuf), LOG_TIME_FORMAT, localtime(&when));
@@ -833,6 +829,7 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
       }
 
       free(ll);
+      lines--;
     }
   }
 
