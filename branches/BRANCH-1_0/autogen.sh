@@ -4,7 +4,7 @@
 
 # gettextize
 aclocal-1.4
-autoheader-1.4
+autoheader2.13
 automake-1.4 --add-missing --copy
 autoconf2.13
 ./configure $@
