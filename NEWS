@@ -1,6 +1,10 @@
 NEWS about changes for existing users.
 --------------------------------------
 
+Version 1.0.4 - Mon Sep  9 13:45:00 BST 2002
+
+	* Just bug fixes.  No changes to worry about.
+
 Version 1.0.3 - Fri Feb  8 17:45:00 GMT 2002
 
 	* New 'pid_file', 'allow_users' and 'allow_kill' config
