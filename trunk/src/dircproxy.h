@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.32 2000/10/13 13:42:56 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.33 2000/10/13 13:50:24 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -239,6 +239,13 @@
  * 0 = don't do this
  */
 #define DEFAULT_DETACH_MESSAGE 0
+
+/* DEFAULT_DETACH_NICKNAME
+ * When the client detaches, we change their nickname to this.  If it
+ * contains * then that is replaced by their current nickname.
+ * 0 = don't do this
+ */
+#define DEFAULT_DETACH_NICKNAME 0
 
 /* DEFAULT_CHAN_LOG_ENABLED
  * Whether to log channel text

@@ -2,7 +2,7 @@
 .\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.19 2000/10/13 13:42:56 keybuk Exp $
+.\" @(#) $Id: dircproxy.1,v 1.20 2000/10/13 13:50:24 keybuk Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -283,6 +283,15 @@ start this with "/ME " then it will be sent as an ACTION CTCP message
 (just like the ircII /me command).
 
  none = Do not announce detachment
+
+.TB
+.B detach_nickname
+Nickname to change to automatically after you detach, to indicate you
+are away for example.  If this contains a '*' character, then that
+character is replaced with whataver your nickname was before you
+detached (ie "*_away" adds "_away" to the end of your nickname);
+ 
+ none = Leave nickname as it is
 
 .TP
 .B chan_log_enabled

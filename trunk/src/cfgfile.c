@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.24 2000/10/13 13:42:56 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.25 2000/10/13 13:50:24 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -83,6 +83,8 @@ int cfg_read(const char *filename, char **listen_port,
                          ? x_strdup(DEFAULT_ATTACH_MESSAGE) : 0);
   def->detach_message = (DEFAULT_DETACH_MESSAGE
                          ? x_strdup(DEFAULT_DETACH_MESSAGE) : 0);
+  def->detach_nickname = (DEFAULT_DETACH_NICKNAME
+                          ? x_strdup(DEFAULT_DETACH_NICKNAME) : 0);
   def->chan_log_enabled = DEFAULT_CHAN_LOG_ENABLED;
   def->chan_log_dir = (DEFAULT_CHAN_LOG_DIR
                        ? x_strdup(DEFAULT_CHAN_LOG_DIR) : 0);
@@ -381,6 +383,24 @@ int cfg_read(const char *filename, char **listen_port,
         free((class ? class : def)->detach_message);
         (class ? class : def)->detach_message = str;
 
+      } else if (!strcasecmp(key, "detach_nickname")) {
+        /* detach_nickname none
+           detach_nickname ""    # same as none
+           detach_nickname "FooAWAY"
+           detach_nickname "*AWAY" */
+        char *str;
+
+        if (_cfg_read_string(&buf, &str))
+          UNMATCHED_QUOTE;
+
+        if (!strcasecmp(str, "none") || !strlen(str)) {
+          free(str);
+          str = 0;
+        }
+
+        free((class ? class : def)->detach_nickname);
+        (class ? class : def)->detach_nickname = str;
+
       } else if (!strcasecmp(key, "chan_log_enabled")) {
         /* chan_log_enabled yes
            chan_log_disabled no */
@@ -668,6 +688,8 @@ int cfg_read(const char *filename, char **listen_port,
                                  ? x_strdup(def->attach_message) : 0);
         class->detach_message = (def->detach_message
                                  ? x_strdup(def->detach_message) : 0);
+        class->detach_nickname = (def->detach_nickname
+                                  ? x_strdup(def->detach_nickname) : 0);
         class->chan_log_dir = (def->chan_log_dir
                                ? x_strdup(def->chan_log_dir) : 0);
         class->chan_log_program = (def->chan_log_program
@@ -853,6 +875,7 @@ int cfg_read(const char *filename, char **listen_port,
   free(def->quit_message);
   free(def->attach_message);
   free(def->detach_message);
+  free(def->detach_nickname);
   free(def->chan_log_dir);
   free(def->chan_log_program);
   free(def->other_log_dir);

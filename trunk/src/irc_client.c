@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.54 2000/10/13 13:35:42 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.55 2000/10/13 13:50:24 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -136,6 +136,30 @@ static int _ircclient_detach(struct ircproxy *p, const char *message) {
     debug("Detaching proxy");
     if (p->client_status == IRC_CLIENT_ACTIVE)
       irclog_notice(p, 0, PACKAGE, "You disconnected");
+
+    /* Change Nickname */
+    if ((p->client_status == IRC_CLIENT_ACTIVE)
+        && p->conn_class->detach_nickname) {
+      char *nick, *ptr;
+
+      nick = x_strdup(p->conn_class->detach_nickname);
+      ptr = strchr(nick, '*');
+      if (ptr) {
+        char *newnick;
+
+        *(ptr++) = 0;
+        newnick = x_sprintf("%s%s%s", nick, p->nickname, ptr);
+        free(nick);
+        nick = newnick;
+      }
+      debug("Auto-nick-change '%s'", nick);
+
+      ircclient_change_nick(p, nick);
+      if (p->server_status == IRC_SERVER_ACTIVE)
+        ircserver_send_peercmd(p, "NICK", "%s", p->nickname);
+
+      free(nick);
+    }
 
     /* Send detach message to all channels we're on */
     if ((p->server_status == IRC_SERVER_ACTIVE)
