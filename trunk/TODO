@@ -5,6 +5,8 @@ New features for 0.8.0:
         * New stage in the PRIVMSG/NOTICE handling that filters things
 	  out.
 
+	  DIRCPROXY FILTERS /ME'S THIS NEEDS TO BE FIXED!!
+
 	    Looks for CTCP messages that we handle, automatic CTCP
 	    replying, DCC rewriting etc.
 	      ctcp_ping_reply yes/NO
