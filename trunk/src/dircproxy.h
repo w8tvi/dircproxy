@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.18 2000/08/29 10:45:19 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.19 2000/08/29 11:10:24 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -141,25 +141,95 @@
  */
 #define DEFAULT_DROP_MODES "oOws"
 
-/* DEFAULT_LOG_AUTORECALL
- * How many lines of log off the bottom do we give to the client when it
- * reattaches?
+/* DEFAULT_LOCAL_ADDRESS
+ * This can be set to a domain name on the local machine that dircproxy
+ * should bind to before connection to an irc server.
+ * 0 = don't do this
  */
-#define DEFAULT_LOG_AUTORECALL 128
+#define DEFAULT_LOCAL_ADDRESS 0
 
-/* DEFAULT_DETACH_AWAY
+/* DEFAULT_AWAY_MESSAGE
  * If the client detaches without leaving an AWAY message, set this as the
  * AWAY message until it comes back.
  * 0 = don't do this
  */
-#define DEFAULT_DETACH_AWAY "Not available, messages are logged"
+#define DEFAULT_AWAY_MESSAGE "Not available, messages are logged"
+
+/* DEFAULT_CHAN_LOG_DIR
+ * Default directory to log channel text to.
+ * 0 = Place in temporary directory and delete after use
+ */
+#define DEFAULT_CHAN_LOG_DIR 0
+
+/* DEFAULT_CHAN_LOG_ALWAYS
+ * Log channel text even while the client is online?
+ *  1 = Yes
+ *  0 = No
+ */
+#define DEFAULT_CHAN_LOG_ALWAYS 1
+
+/* DEFAULT_CHAN_LOG_TIMESTAMP
+ * Include a timestamp with the logged text.
+ *  1 = Yes
+ *  0 = No
+ */
+#define DEFAULT_CHAN_LOG_TIMESTAMP 0
+
+/* DEFAULT_CHAN_LOG_MAXSIZE
+ * Maximum number of lines a log file should be.  Once they reach this size,
+ * dircproxy will roll the log removing lines from the front.
+ *  0 = No limit
+ */
+#define DEFAULT_CHAN_LOG_MAXSIZE 0
+
+/* DEFAULT_CHAN_LOG_RECALL
+ * Number of lines to automatically recall on reconnection to dircproxy.
+ * If this is defined, then it is also used as the default size for the
+ * /DIRCPROXY RECALL command
+ * -1 = All lines (not recommended if always)
+ *  0 = Don't recall any
+ */
+#define DEFAULT_CHAN_LOG_RECALL 128
+
+/* DEFAULT_OTHER_LOG_DIR
+ * Default directory to log private messages and notices to.
+ * 0 = Place in temporary directory and delete after use
+ */
+#define DEFAULT_OTHER_LOG_DIR 0
+
+/* DEFAULT_OTHER_LOG_ALWAYS
+ * Log private messages and notices even while the client is online?
+ *  1 = Yes
+ *  0 = No
+ */
+#define DEFAULT_OTHER_LOG_ALWAYS 0
+
+/* DEFAULT_OTHER_LOG_TIMESTAMP
+ * Include a timestamp with the logged text.
+ *  1 = Yes
+ *  0 = No
+ */
+#define DEFAULT_OTHER_LOG_TIMESTAMP 0
+
+/* DEFAULT_OTHER_LOG_MAXSIZE
+ * Maximum number of lines a log file should be.  Once they reach this size,
+ * dircproxy will roll the log removing lines from the front.
+ *  0 = No limit
+ */
+#define DEFAULT_OTHER_LOG_MAXSIZE 0
+
+/* DEFAULT_OTHER_LOG_RECALL
+ * Number of lines to automatically recall on reconnection to dircproxy.
+ * If this is defined, then it is also used as the default size for the
+ * /DIRCPROXY RECALL command
+ * -1 = All lines (not recommended if always)
+ *  0 = Don't recall any
+ */
+#define DEFAULT_OTHER_LOG_RECALL -1
 
 /* global variables */
 extern char *progname;
 extern int in_background;
-
-/* obsolete! obsolete! delete me! */
-extern unsigned long log_autorecall;
 
 /* functions in main.c */
 extern int syscall_fail(const char *, const char *, const char *);
