@@ -2,7 +2,7 @@
 .\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.4 2000/08/23 13:34:21 keybuk Exp $
+.\" @(#) $Id: dircproxy.1,v 1.5 2000/08/23 13:38:35 keybuk Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -11,7 +11,7 @@
 \fBdircproxy\fR \- Detachable Internal Relay Chat Proxy Server
 
 .SH SYNOPSIS
-\fBdircproxy\fR [\fI\-D\fR] [\fI\-I\fR] [\fI\-h\fR] [\fI\-v\fR]
+\fBdircproxy\fR [\fIoptions\fR]
 
 .SH DESCRIPTION
 .B dircproxy
@@ -34,10 +34,10 @@ X ones!
 
 .SH OPTIONS
 .TP
-.I -D
+.I -D, --daemon
 Run in the foreground instead of becoming a daemon.
 .TP
-.I -I
+.I -I, --inetd
 Indicates
 .B dircproxy
 is being run from the
@@ -45,17 +45,20 @@ is being run from the
 daemon.  This implies
 .I -D.
 .TP
-.I -h
+.I -h, --help
 Displays a brief help message about the command-line options and exits.
 .TP
-.I -v
+.I -v, --version
 Displays the dircproxy version number and exits.
 
 .SH DETAILED DESCRIPTION
 
-.SH NOTES
-
 .SH SIGNALS
+
+.SH NOTES
+.B The dircproxy homepage can be found at:
+.IP
+http://dircproxy.sourceforge.net/
 
 .SH SEE ALSO
 .BR inetd (8)
