@@ -1,14 +1,13 @@
 Summary: irc proxy
 Name: dircproxy
-%define branch 1.1
-%define	version %{branch}.1
+%define	version 1.0.3
 %define location /usr
 Version: %{version}
 Release: 1
 Copyright: GPL
 Group: Applications/Internet
-URL: http://www.dircproxy.net/
-Source: ftp://ftp.dircproxy.net/pub/dircproxy/%{branch}/dircproxy-%{version}.tar.gz
+URL: http://dircproxy.sourceforge.net/
+Source: http://download.sourceforge.net/dircproxy/dircproxy-%{version}.tar.gz
 BuildRoot: /var/tmp/%{name}-root
 Packager: Hollis Blanchard <hollis@yellowdoglinux.com>
 
