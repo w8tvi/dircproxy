@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.19 2000/08/25 09:38:23 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.20 2000/08/29 10:34:37 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -331,12 +331,28 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
     struct ircproxy *tmp_p;
 
     tmp_p = ircnet_fetchclass(cc);
-    if (tmp_p) {
-      if (tmp_p->client_status & IRC_CLIENT_CONNECTED) {
+    if (tmp_p && (tmp_p->client_status & IRC_CLIENT_CONNECTED)) {
+      if (tmp_p->conn_class->disconnect_existing) {
+        debug("Already connected, disconnecting existing");
+
+        ircclient_send_error(tmp_p, "Collided with new user");
+        ircclient_close(tmp_p);
+
+        if (tmp_p->dead) {
+          debug("Kicked off client, and they died");
+          tmp_p = 0;
+        }
+      } else {
+        debug("Already connected, disconnecting incoming");
         ircclient_send_error(p, "Already connected");
         ircclient_close(p);
         return -1;
       }
+    }
+
+    /* Check again, in case killing existing user killed the proxy */
+    if (tmp_p) {
+      debug("Attaching new client to old server session");
 
       tmp_p->client_sock = p->client_sock;
       tmp_p->client_status |= IRC_CLIENT_CONNECTED | IRC_CLIENT_AUTHED;

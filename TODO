@@ -1,10 +1,5 @@
 For the next release (0.7.0)
 
-	* When a user comes in and is already connected, disconnect the
-	  existing user?
-
-	  disconnect_existing_user	1/0
-
 	* Drop modes when detached
 
 	  drop_modes			"+o"

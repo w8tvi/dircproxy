@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.15 2000/08/25 09:38:23 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.16 2000/08/29 10:34:37 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -127,6 +127,14 @@
  *  0 = Immediately
  */
 #define DEFAULT_CHANNEL_REJOIN 15
+
+/* DEFAULT_DISCONNECT_EXISTING
+ * If a connecting user tries to use a proxy that is already in user, do
+ * we disconnect that proxy?
+ *  1 = Yes, causes problems with auto-reconnecting clients
+ *  0 = No, disconnect the new user
+ */
+#define DEFAULT_DISCONNECT_EXISTING 0
 
 /* DEFAULT_LOG_AUTORECALL
  * How many lines of log off the bottom do we give to the client when it
