@@ -1451,7 +1451,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
                   && (p->client_status != IRC_CLIENT_ACTIVE)) {
           ircserver_send_command(p, "NOTICE", "%s :\001VERSION %s %s - %s\001",
                                  msg.src.name, PACKAGE, VERSION,
-                                 "http://www.dircproxy.net/");
+                                 "http://dircproxy.securiweb.net/");
 
         } else if (!strcmp(cmsg.cmd, "USERINFO")
                   && p->conn_class->ctcp_replies

@@ -1,3 +1,6 @@
+2005-08-09 06:48  Francois Harvey <fharvey@securiweb.net>
+	* Lot of update of the url to dircproxy.securiweb.net
+	
 2004-04-02 22:55  Francois Harvey <fharvey@securiweb.net>
 	* irc_client.c : initial 005 support (thanks to Gabor Nyeki)
 	* dcc_net.c : small fixes in debug mode

@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 # $Id: configure.ac,v 1.9 2003/12/31 23:16:25 fharvey Exp $
 
-AC_INIT([dircproxy], [1.1.1], [http://bugzilla.dircproxy.net/])
+AC_INIT([dircproxy], [1.1.1], [http://dircproxy.securiweb.net/])
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
 AC_COPYRIGHT([Copyright (C) 2001, 2002, 2003 Scott James Remnant <scott@netsplit.com>.])
