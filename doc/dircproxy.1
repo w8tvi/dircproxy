@@ -2,7 +2,7 @@
 .\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.14 2000/10/10 13:08:35 keybuk Exp $
+.\" @(#) $Id: dircproxy.1,v 1.15 2000/10/12 16:24:14 keybuk Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -235,6 +235,14 @@ can for you, so people don't think you are really at your keyboard
 when you're not.
 
  none = Do not set an away message for you
+
+.TP
+.B quit_message
+If you don't explicitly give a message when you /DIRCPROXY QUIT, this
+will be used instead.  Also used for when you've sent \fBdircproxy\fR not to
+remain attached to the server on detachment.
+
+ none = Use \fBdircproxy\fR version number as QUIT message
 
 .TP
 .B attach_message
