@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.17 2000/08/30 10:54:53 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.18 2000/08/31 15:32:32 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -151,6 +151,7 @@ extern int ircnet_addchannel(struct ircproxy *, const char *);
 extern int ircnet_delchannel(struct ircproxy *, const char *);
 extern struct ircchannel *ircnet_freechannel(struct ircchannel *);
 extern int ircnet_rejoin(struct ircproxy *, const char *);
+extern int ircnet_dedicate(struct ircproxy *);
 extern int ircnet_announce_dedicated(struct ircproxy *);
 extern int ircnet_announce_nolisten(struct ircproxy *);
 extern int ircnet_announce_status(struct ircproxy *);
