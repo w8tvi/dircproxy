@@ -1,5 +1,5 @@
 /* dircproxy
- * Copyright (C) 2001 Scott James Remnant <scott@netsplit.com>.
+ * Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.
  * All Rights Reserved.
  *
  * net.c
@@ -10,7 +10,7 @@
  *  - functions to retrieve data from buffers up to delimiters (newlines?)
  *  - main poll()/select() function
  * --
- * @(#) $Id: net.c,v 1.13 2001/12/21 19:59:25 keybuk Exp $
+ * @(#) $Id: net.c,v 1.14 2001/12/21 20:15:55 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the

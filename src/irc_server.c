@@ -1,5 +1,5 @@
 /* dircproxy
- * Copyright (C) 2001 Scott James Remnant <scott@netsplit.com>.
+ * Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.
  * All Rights Reserved.
  *
  * irc_server.c
@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.56 2001/12/21 20:07:54 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.57 2001/12/21 20:15:55 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the

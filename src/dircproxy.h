@@ -1,10 +1,10 @@
 /* dircproxy
- * Copyright (C) 2001 Scott James Remnant <scott@netsplit.com>.
+ * Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.
  * All Rights Reserved.
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.46 2001/12/21 19:59:25 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.47 2001/12/21 20:15:55 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
