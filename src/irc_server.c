@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.48 2000/12/07 16:59:28 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.49 2000/12/21 13:27:05 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -59,6 +59,7 @@ static void _ircserver_ping(struct ircproxy *, void *);
 static void _ircserver_stoned(struct ircproxy *, void *);
 static void _ircserver_antiidle(struct ircproxy *, void *);
 static int _ircserver_forclient(struct ircproxy *, struct ircmessage *);
+static int _ircserver_send_dccreject(struct ircproxy *, const char *);
 
 /* hook for timer code to reconnect to a server */
 static void _ircserver_reconnect(struct ircproxy *p, void *data) {
@@ -273,8 +274,7 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
                 sizeof(struct sockaddr_in))
         && (errno != EINPROGRESS)) {
       syscall_fail("connect", p->servername, 0);
-      net_close(p->server_sock);
-      p->server_sock = -1;
+      net_close(&(p->server_sock));
       ret = -1;
     } else {
       ret = 0;
@@ -286,8 +286,7 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
       ircclient_send_notice(p, "Connection failed: %s", strerror(errno));
     debug("Connection failed: %s", strerror(errno));
 
-    net_close(p->server_sock);
-    p->server_sock = -1;
+    net_close(&(p->server_sock));
     timer_new((void *)p, "server_recon", p->conn_class->server_retry,
               TIMER_FUNCTION(_ircserver_reconnect), (void *)0);
 
@@ -308,7 +307,7 @@ static void _ircserver_connected(struct ircproxy *p, int sock) {
   if (sock != p->server_sock) {
     error("Unexpected socket %d in _ircserver_connected, expected %d", sock,
           p->server_sock);
-    net_close(sock);
+    net_close(&sock);
     return;
   }
 
@@ -362,6 +361,12 @@ static void _ircserver_connected2(struct ircproxy *p, void *data,
     free(p->serverpassword);
     p->serverpassword = 0;
   }
+  
+  /* When connecting to a server, may as well try to start fresh, eh? */
+  if (p->setnickname && strcmp(p->nickname, p->setnickname)) {
+    free(p->nickname);
+    p->nickname = x_strdup(p->setnickname);
+  }
   ircserver_send_peercmd(p, "NICK", ":%s", p->nickname);
   ircserver_send_peercmd(p, "USER", "%s 0 * :%s", username, p->realname);
   p->server_status |= IRC_SERVER_INTRODUCED;
@@ -387,7 +392,7 @@ static void _ircserver_connectfailed(struct ircproxy *p, int sock, int bad) {
   if (sock != p->server_sock) {
     error("Unexpected socket %d in _ircserver_connectfailed, expected %d", sock,
           p->server_sock);
-    net_close(sock);
+    net_close(&sock);
     return;
   }
 
@@ -396,8 +401,7 @@ static void _ircserver_connectfailed(struct ircproxy *p, int sock, int bad) {
   if (IS_CLIENT_READY(p))
     ircclient_send_notice(p, "Connection failed: %s", strerror(errno));
 
-  net_close(p->server_sock);
-  p->server_sock = -1;
+  net_close(&(p->server_sock));
   p->server_status &= ~(IRC_SERVER_CREATED);
 
   timer_new((void *)p, "server_recon", p->conn_class->server_retry,
@@ -411,7 +415,7 @@ static void _ircserver_data(struct ircproxy *p, int sock) {
   if (sock != p->server_sock) {
     error("Unexpected socket %d in _ircserver_data, expected %d", sock,
           p->server_sock);
-    net_close(sock);
+    net_close(&sock);
     return;
   }
 
@@ -429,7 +433,7 @@ static void _ircserver_error(struct ircproxy *p, int sock, int bad) {
   if (sock != p->server_sock) {
     error("Unexpected socket %d in _ircserver_error, expected %d", sock,
           p->server_sock);
-    net_close(sock);
+    net_close(&sock);
     return;
   }
 
@@ -508,14 +512,14 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
     /* Restore the user mode */
     if (p->modes)
-      ircserver_send_command(p, "MODE", "%s +%s", p->nickname, p->modes);
+      ircserver_send_peercmd(p, "MODE", "%s +%s", p->nickname, p->modes);
 
     /* Restore the away message */
     if (p->awaymessage) {
-      ircserver_send_command(p, "AWAY", ":%s", p->awaymessage);
+      ircserver_send_peercmd(p, "AWAY", ":%s", p->awaymessage);
     } else if (!(p->client_status & IRC_CLIENT_AUTHED)
                && p->conn_class->away_message) {
-      ircserver_send_command(p, "AWAY", ":%s", p->conn_class->away_message);
+      ircserver_send_peercmd(p, "AWAY", ":%s", p->conn_class->away_message);
     }
 
     /* Restore the channel list */
@@ -526,9 +530,9 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       while (c) {
         if (!c->unjoined) {
           if (c->key) {
-            ircserver_send_command(p, "JOIN", "%s :%s", c->name, c->key);
+            ircserver_send_peercmd(p, "JOIN", "%s :%s", c->name, c->key);
           } else {
-            ircserver_send_command(p, "JOIN", ":%s", c->name);
+            ircserver_send_peercmd(p, "JOIN", ":%s", c->name);
           }
         }
         c = c->next;
@@ -565,25 +569,26 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
              || !irc_strcasecmp(msg.cmd, "433")
              || !irc_strcasecmp(msg.cmd, "436")
              || !irc_strcasecmp(msg.cmd, "438")) {
-    /* Our nickname got rejected */
+    /* Our nickname got rejected.  Don't update setnickname! */
     if (msg.numparams >= 2) {
       /* Fall back on our original if we can */
       if (strlen(msg.params[0]) && strcmp(msg.params[0], "*")) {
         if (p->client_status == IRC_CLIENT_ACTIVE)
           ircclient_send_selfcmd(p, "NICK", ":%s", msg.params[0]);
-        ircclient_change_nick(p, msg.params[0]);
+        ircclient_nick_changed(p, msg.params[0]);
+        ircclient_checknickname(p);
         squelch = 0;
       } else {
+        /* We don't have a nickname anymore.  Don't free it, so we've
+           still really got the old one lying around. */
+        p->client_status &= ~(IRC_CLIENT_GOTNICK);
+
         /* If we don't have a client connected, then we have to regenerate
            a new nickname ourselves... Otherwise we can just let the client
            do it */
         if (!(p->client_status & IRC_CLIENT_CONNECTED)) {
           ircclient_generate_nick(p, msg.params[1]);
-          ircserver_send_peercmd(p, "NICK", ":%s", p->nickname);
         } else {
-          /* Forget we've got a nickname (but keep it) */
-          p->client_status &= ~(IRC_CLIENT_GOTNICK);
-
           /* Have to anti-squelch this manually */
           net_send(p->client_sock, "%s\r\n", msg.orig);
         }
@@ -770,15 +775,23 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     if (_ircserver_forclient(p, &msg)) {
       /* Server telling us our nickname */
       if (msg.numparams >= 1) {
-        if (irc_strcmp(p->nickname, msg.params[0])) {
+        if (strcmp(p->nickname, msg.params[0])) {
           if (IS_CLIENT_READY(p))
             ircclient_send_selfcmd(p, "NICK", ":%s", msg.params[0]);
 
-          ircclient_change_nick(p, msg.params[0]);
+          ircclient_nick_changed(p, msg.params[0]);
           if (p->conn_class->log_events & IRC_LOG_NICK)
             irclog_notice(p, p->nickname, p->servername,
                           "You changed your nickname to %s", msg.params[0]);
         }
+
+        /* Is this as a result of a client NICK command? */
+        if (p->expecting_nick) {
+          ircclient_setnickname(p);
+          p->expecting_nick = 0;
+        }
+
+        ircclient_checknickname(p);
       }
     } else {
       /* Someone changing their nickname */
@@ -869,7 +882,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
           s->next = p->squelch_modes;
           p->squelch_modes = s;
 
-          ircserver_send_command(p, "MODE", ":%s", msg.params[0]);
+          ircserver_send_peercmd(p, "MODE", ":%s", msg.params[0]);
           squelch = 0;
         } else {
           /* Bizarre, joined a channel we thought we were already on */
@@ -1029,9 +1042,9 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
           } else if ((cmsg.numparams >= 4)
                      && (!irc_strcasecmp(cmsg.params[0], "CHAT")
                         || !irc_strcasecmp(cmsg.params[0], "SEND"))) {
+            char *tmp, *ptr, *dccmsg, *rejmsg;
             struct in_addr l_addr, r_addr;
             int l_port, r_port, t_port;
-            char *tmp, *ptr, *dccmsg;
             char *capfile = 0;
             char *rest = 0;
             int type = 0;
@@ -1120,6 +1133,13 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
                a moment with dccmsg */
             tmp = x_sprintf("\001%s\001", unquoted);
             ptr = strstr(str, tmp);
+            dccmsg = 0;
+
+            /* Save this in case we need it later */
+            rejmsg = x_sprintf(":%s NOTICE %s :\001DCC REJECT %s %s "
+                               "(%s: unable to proxy)\001",
+                               p->nickname, msg.src.name,
+                               cmsg.params[0], cmsg.params[1], PACKAGE);
 
             /* Set up a dcc proxy, note: type is 0 if there isn't a client
                active and we're not capturing it.  This will send a reject
@@ -1129,7 +1149,9 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
                                p->conn_class->dcc_proxy_ports,
                                p->conn_class->dcc_proxy_ports_sz,
                                &l_port, r_addr, r_port,
-                               capfile, p->conn_class->dcc_capture_maxsize))
+                               capfile, p->conn_class->dcc_capture_maxsize,
+                               DCCN_FUNCTION(_ircserver_send_dccreject),
+                               p, rejmsg))
             {
               if (capfile) {
                 dccmsg = x_strdup("");
@@ -1152,16 +1174,11 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
             } else if (ptr) {
               dccmsg = x_strdup("");
-              if (p->conn_class->dcc_proxy_sendreject) {
-                net_send(p->server_sock,
-                         ":%s NOTICE %s :\001DCC REJECT %s %s "
-                         "(%s: unable to proxy)\001\r\n", p->nickname,
-                         msg.src.name, cmsg.params[0], cmsg.params[1], PACKAGE);
-                debug("-> ':%s NOTICE %s :\001DCC REJECT %s %s "
-                      "(%s: unable to proxy)\001'", p->nickname,
-                      msg.src.name, cmsg.params[0], cmsg.params[1], PACKAGE);
-              }
+              _ircserver_send_dccreject(p, rejmsg);
             }
+
+            /* Don't need this anymore */
+            free(rejmsg);
 
             /* Cut out the old CTCP and replace with dccmsg */
             if (ptr) {
@@ -1269,9 +1286,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
 /* Close the server socket itself */
 int ircserver_close_sock(struct ircproxy *p) {
-  net_close(p->server_sock);
-  p->server_sock = -1;
-
+  net_close(&(p->server_sock));
   p->server_status &= ~(IRC_SERVER_CREATED | IRC_SERVER_CONNECTED
                         | IRC_SERVER_INTRODUCED | IRC_SERVER_GOTWELCOME);
 
@@ -1376,7 +1391,7 @@ static void _ircserver_antiidle(struct ircproxy *p, void *data) {
   if (IS_SERVER_READY(p)) {
     debug("Sending anti-idle");
     p->squelch_411 = 1;
-    ircserver_send_command(p, "PRIVMSG", "");
+    ircserver_send_peercmd(p, "PRIVMSG", "");
   }
 
   timer_new((void *)p, "server_antiidle", p->conn_class->idle_maxtime,
@@ -1455,5 +1470,18 @@ int ircserver_send_peercmd(struct ircproxy *p, const char *command,
   debug("-> '%s %s'", command, msg);
 
   free(msg);
+  return ret;
+}
+
+/* Send a DCC reject message */
+static int _ircserver_send_dccreject(struct ircproxy *p, const char *msg) {
+  int ret = 1;
+
+  if (p && p->conn_class && p->conn_class->dcc_proxy_sendreject &&
+      (p->server_status == IRC_SERVER_ACTIVE)) {
+    ret = net_send(p->server_sock, "%s\r\n", msg);
+    debug("-> '%s'", msg);
+  }
+
   return ret;
 }

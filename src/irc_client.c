@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.74 2000/12/07 16:59:28 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.75 2000/12/21 13:27:05 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -51,10 +51,12 @@ static void _ircclient_error(struct ircproxy *, int, int);
 static int _ircclient_detach(struct ircproxy *, const char *);
 static int _ircclient_gotmsg(struct ircproxy *, const char *);
 static int _ircclient_authenticate(struct ircproxy *, const char *);
+static void _ircclient_resetnick(struct ircproxy *, void *);
 static int _ircclient_got_details(struct ircproxy *, const char *,
                                   const char *, const char *, const char *);
 static int _ircclient_motd(struct ircproxy *);
 static void _ircclient_timedout(struct ircproxy *, void *);
+static int _ircclient_send_dccreject(struct ircproxy *, const char *);
 
 /* New user mode bits */
 #define RFC2812_MODE_W 0x04
@@ -104,7 +106,7 @@ static void _ircclient_data(struct ircproxy *p, int sock) {
   if (sock != p->client_sock) {
     error("Unexpected socket %d in _ircclient_data, expected %d", sock,
           p->client_sock);
-    net_close(sock);
+    net_close(&sock);
     return;
   }
 
@@ -122,7 +124,7 @@ static void _ircclient_error(struct ircproxy *p, int sock, int bad) {
   if (sock != p->client_sock) {
     error("Unexpected socket %d in _ircclient_error, expected %d", sock,
           p->client_sock);
-    net_close(sock);
+    net_close(&sock);
     return;
   }
 
@@ -159,28 +161,19 @@ static int _ircclient_detach(struct ircproxy *p, const char *message) {
         && (p->conn_class->log_events & IRC_LOG_CLIENT))
       irclog_notice(p, 0, PACKAGE, "You disconnected");
 
-    /* Change Nickname */
+    /* Drop modes */
     if ((p->client_status == IRC_CLIENT_ACTIVE)
-        && p->conn_class->detach_nickname) {
-      char *nick, *ptr;
+        && p->conn_class->drop_modes) {
+      char *mode;
 
-      nick = x_strdup(p->conn_class->detach_nickname);
-      ptr = strchr(nick, '*');
-      if (ptr) {
-        char *newnick;
+      mode = x_sprintf("-%s", p->conn_class->drop_modes);
+      debug("Auto-mode-change '%s'", mode);
 
-        *(ptr++) = 0;
-        newnick = x_sprintf("%s%s%s", nick, p->nickname, ptr);
-        free(nick);
-        nick = newnick;
-      }
-      debug("Auto-nick-change '%s'", nick);
-
-      ircclient_change_nick(p, nick);
+      ircclient_change_mode(p, mode);
       if (p->server_status == IRC_SERVER_ACTIVE)
-        ircserver_send_peercmd(p, "NICK", "%s", p->nickname);
+        ircserver_send_peercmd(p, "MODE", "%s %s", p->nickname, mode);
 
-      free(nick);
+      free(mode);
     }
 
     /* Send detach message to all channels we're on */
@@ -204,24 +197,14 @@ static int _ircclient_detach(struct ircproxy *p, const char *message) {
         while (c) {
           if (!c->inactive && !c->unjoined) {
             if (slashme) {
-              ircserver_send_command(p, "PRIVMSG", "%s :\001ACTION %s\001",
+              ircserver_send_peercmd(p, "PRIVMSG", "%s :\001ACTION %s\001",
                                      c->name, msg);
             } else {
-              ircserver_send_command(p, "PRIVMSG", "%s :%s", c->name, msg);
+              ircserver_send_peercmd(p, "PRIVMSG", "%s :%s", c->name, msg);
             }
           }
           c = c->next;
         }
-      }
-    }
-
-    /* Set away message */
-    if ((p->server_status == IRC_SERVER_ACTIVE)
-        && (p->client_status == IRC_CLIENT_ACTIVE)) {
-      if (message) {
-        ircserver_send_command(p, "AWAY", ":%s", message);
-      } else if (!p->awaymessage && p->conn_class->away_message) {
-        ircserver_send_command(p, "AWAY", ":%s", p->conn_class->away_message);
       }
     }
 
@@ -240,7 +223,7 @@ static int _ircclient_detach(struct ircproxy *p, const char *message) {
 
           /* Leave the channel and decide whether to delete it or rejoin */
           if (!t->inactive && !t->unjoined) {
-            ircserver_send_command(p, "PART", ":%s", t->name);
+            ircserver_send_peercmd(p, "PART", ":%s", t->name);
             if (p->conn_class->channel_rejoin_on_attach) {
               t->unjoined = 1;
             } else {
@@ -250,22 +233,46 @@ static int _ircclient_detach(struct ircproxy *p, const char *message) {
         }
       }
     }
-      
-    /* Drop modes */
-    if ((p->client_status == IRC_CLIENT_ACTIVE)
-        && p->conn_class->drop_modes) {
-      char *mode;
-
-      mode = x_sprintf("-%s", p->conn_class->drop_modes);
-      debug("Auto-mode-change '%s'", mode);
-
-      ircclient_change_mode(p, mode);
-      if (p->server_status == IRC_SERVER_ACTIVE)
-        ircserver_send_command(p, "MODE", "%s %s", p->nickname, mode);
-
-      free(mode);
+ 
+    /* Set away message */
+    if ((p->server_status == IRC_SERVER_ACTIVE)
+        && (p->client_status == IRC_CLIENT_ACTIVE)) {
+      if (message) {
+        ircserver_send_peercmd(p, "AWAY", ":%s", message);
+      } else if (!p->awaymessage && p->conn_class->away_message) {
+        ircserver_send_peercmd(p, "AWAY", ":%s", p->conn_class->away_message);
+      }
     }
 
+    /* Change Nickname */
+    if ((p->client_status == IRC_CLIENT_ACTIVE)
+        && p->conn_class->detach_nickname) {
+      char *nick, *ptr;
+
+      nick = x_strdup(p->conn_class->detach_nickname);
+      ptr = strchr(nick, '*');
+      if (ptr) {
+        char *newnick;
+
+        *(ptr++) = 0;
+        newnick = x_sprintf("%s%s%s", nick, p->nickname, ptr);
+        free(nick);
+        nick = newnick;
+      }
+      debug("Auto-nick-change '%s'", nick);
+
+      /* We need to remember what the setnickname is now so when the client
+         comes back we can reset it again.  So put it in oldnickname. */
+      if (p->oldnickname)
+        free(p->oldnickname);
+      p->oldnickname = p->setnickname;
+      p->setnickname = 0;
+
+      ircclient_change_nick(p, nick);
+
+      free(nick);
+    }
+     
     /* Open other_log */
     if ((p->client_status == IRC_CLIENT_ACTIVE)
         && p->conn_class->other_log_enabled
@@ -321,7 +328,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
     } else if (!irc_strcasecmp(msg.cmd, "NICK")) {
       if (msg.numparams >= 1) {
         if (!(p->client_status & IRC_CLIENT_GOTNICK)
-            || irc_strcmp(p->nickname, msg.params[0]))
+            || strcmp(p->nickname, msg.params[0]))
           ircclient_change_nick(p, msg.params[0]);
       } else {
         ircclient_send_numeric(p, 431, ":No nickname given");
@@ -347,18 +354,14 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
     /* We've lost the nickname */
     if (!irc_strcasecmp(msg.cmd, "NICK")) {
       if (msg.numparams >= 1) {
-        if (IS_SERVER_READY(p))
-          ircserver_send_command(p, "NICK", ":%s", msg.params[0]);
-        ircclient_send_selfcmd(p, "NICK", ":%s", msg.params[0]);
-
         ircclient_change_nick(p, msg.params[0]);
       } else {
         ircclient_send_numeric(p, 431, ":No nickname given");
       }
 
-   } else {
-     ircclient_send_notice(p, "Please send a /NICK command");
-   }
+    } else {
+      ircclient_send_notice(p, "Please send a /NICK command");
+    }
 
   } else {
     /* The server MUST be active to use most of the commands.  The only
@@ -386,14 +389,9 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
       } else if (!irc_strcasecmp(msg.cmd, "PONG")) {
         /* Ignore PONG */
       } else if (!irc_strcasecmp(msg.cmd, "NICK")) {
-        /* Change of nickname */
+        /* User changing their nickname */
         if (msg.numparams >= 1) {
-          if (irc_strcmp(p->nickname, msg.params[0])) {
-            if (p->server_status == IRC_SERVER_ACTIVE)
-              ircserver_send_command(p, "NICK", ":%s", msg.params[0]);
-
-            ircclient_change_nick(p, msg.params[0]);
-          }
+          ircclient_change_nick(p, msg.params[0]);
         } else {
           ircclient_send_numeric(p, 431, ":No nickname given");
         }
@@ -497,9 +495,9 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
               } else if ((cmsg.numparams >= 4)
                          && (!irc_strcasecmp(cmsg.params[0], "CHAT")
                              || !irc_strcasecmp(cmsg.params[0], "SEND"))) {
+                char *tmp, *ptr, *dccmsg, *rejmsg;
                 struct in_addr l_addr, r_addr;
                 int l_port, r_port, t_port;
-                char *tmp, *ptr, *dccmsg;
                 char *rest = 0;
                 int type = 0;
 
@@ -536,12 +534,21 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
                    a moment with dccmsg */
                 tmp = x_sprintf("\001%s\001", unquoted);
                 ptr = strstr(str, tmp);
+                dccmsg = 0;
+
+                /* Save this in case we need it later */
+                rejmsg = x_sprintf(":%s NOTICE %s :\001DCC REJECT %s %s "
+                                   "(%s: unable to proxy)",
+                                   msg.params[0], p->nickname,
+                                   cmsg.params[0], cmsg.params[1], PACKAGE);
  
                 /* Set up a dcc proxy */
                 if (ptr && !dccnet_new(type, p->conn_class->dcc_proxy_timeout,
                                        p->conn_class->dcc_proxy_ports,
                                        p->conn_class->dcc_proxy_ports_sz,
-                                       &l_port, r_addr, r_port, 0, 0)) {
+                                       &l_port, r_addr, r_port, 0, 0,
+                                       DCCN_FUNCTION(_ircclient_send_dccreject),
+                                       p, rejmsg)) {
                   dccmsg = x_sprintf("\001DCC %s %s %lu %u%s%s\001",
                                      cmsg.params[0], cmsg.params[1],
                                      l_addr.s_addr, l_port,
@@ -554,17 +561,11 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
 
                 } else if (ptr) {
                   dccmsg = x_strdup("");
-                  if (p->conn_class->dcc_proxy_sendreject) {
-                    net_send(p->client_sock,
-                             ":%s NOTICE %s :\001DCC REJECT %s %s "
-                             "(%s: unable to proxy)\r\n",
-                             msg.params[0], p->nickname,
-                             cmsg.params[0], cmsg.params[1], PACKAGE);
-                    debug("<- ':%s NOTICE %s :\001DCC REJECT %s %s "
-                          "(%s: unable to proxy)\001'", msg.params[0],
-                          p->nickname, cmsg.params[0], cmsg.params[1], PACKAGE);
-                  }
+                  _ircclient_send_dccreject(p, rejmsg);
                 }
+
+                /* Don't need this now */
+                free(rejmsg);
 
                 /* Cut out the old CTCP and replace with dccmsg */
                 if (ptr) {
@@ -1097,14 +1098,20 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
                ACTIVITY_FUNCTION(_ircclient_data),
                ERROR_FUNCTION(_ircclient_error));
 
-      /* Cope with change of nickname */
-      if ((p->client_status & IRC_CLIENT_GOTNICK)
-          && (!tmp_p->nickname || irc_strcmp(p->nickname, tmp_p->nickname))) {
-        if (tmp_p->server_status == IRC_SERVER_ACTIVE)
-          ircserver_send_peercmd(tmp_p, "NICK", ":%s", p->nickname);
-        ircclient_change_nick(tmp_p, p->nickname);
-      }
+      /* If the connecting client doesn't agree with the proxy about its
+         nickname, then correct it. */
+      if (strcmp(p->nickname, tmp_p->nickname))
+        ircclient_send_selfcmd(p, "NICK", ":%s", tmp_p->nickname);
 
+      /* If we've got to restore a different nickname, then do that now */
+      if (tmp_p->oldnickname && strcmp(tmp_p->oldnickname, tmp_p->nickname))
+        ircclient_change_nick(tmp_p, tmp_p->oldnickname);
+      
+      /* We don't need this anymore */
+      free(tmp_p->oldnickname);
+      tmp_p->oldnickname = 0;
+
+      /* Unset any away message if we set one */
       if (!tmp_p->awaymessage && (tmp_p->server_status == IRC_SERVER_ACTIVE)
           && tmp_p->conn_class->away_message)
         ircserver_send_peercmd(tmp_p, "AWAY", "");
@@ -1233,8 +1240,42 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
   return -1;
 }
 
-/* Change the nickname */
+/* Request a nickname change */
 int ircclient_change_nick(struct ircproxy *p, const char *newnick) {
+  /* If a server is ready to accept a NICK command, send it */
+  if (IS_SERVER_READY(p)) {
+    debug("Requesting nick change from '%s' to '%s'",
+          (p->nickname ? p->nickname : ""), newnick);
+    ircserver_send_peercmd(p, "NICK", ":%s", newnick);
+  }
+
+  /* If we have a nickname already then the server will confirm that, otherwise
+     we should remember it ourselves */
+  if (p->client_status & IRC_CLIENT_GOTNICK) {
+    debug("Server will change it for us");
+    p->expecting_nick = 1;
+
+    return 0;
+  } else {
+    int ret;
+    
+    /* Because we're not expecting a server confirmation, then we better
+       do the confirm for the client ourselves */
+    if ((p->client_status & IRC_CLIENT_CONNECTED) &&
+        (p->client_status & IRC_CLIENT_AUTHED))
+      ircclient_send_selfcmd(p, "NICK", ":%s", newnick);
+
+    /* Make the change in the wings */
+    ret = ircclient_nick_changed(p, newnick);
+    ircclient_setnickname(p);
+    ircclient_checknickname(p);
+    
+    return ret;
+  }
+}
+
+/* Nickname has now definitly been changed */
+int ircclient_nick_changed(struct ircproxy *p, const char *newnick) {
   if (p->nickname)
     debug("nickname WAS '%s'", p->nickname);
   free(p->nickname);
@@ -1242,6 +1283,26 @@ int ircclient_change_nick(struct ircproxy *p, const char *newnick) {
   p->nickname = x_strdup(newnick);
   p->client_status |= IRC_CLIENT_GOTNICK;
   debug("nickname NOW '%s'", p->nickname);
+
+  return 0;
+}
+
+/* Make the current nickname the set one */
+int ircclient_setnickname(struct ircproxy *p) {
+  /* Update setnickname too */
+  if (p->setnickname)
+    free(p->setnickname);
+  p->setnickname = x_strdup(p->nickname);
+  debug("Changed setnickname to '%s'", p->setnickname);
+
+  return 0;
+}
+
+/* Check whether we need to restore the nickname later */
+int ircclient_checknickname(struct ircproxy *p) {
+  if (strcmp(p->nickname, p->setnickname))
+    timer_new((void *)p, "client_resetnick", NICK_GUARD_TIME,
+              TIMER_FUNCTION(_ircclient_resetnick), (void *)0);
 
   return 0;
 }
@@ -1286,10 +1347,43 @@ int ircclient_generate_nick(struct ircproxy *p, const char *tried) {
     }
   }
 
-  ret = ircclient_change_nick(p, nick);
-  free(nick);
+  /* Ask the server to change the nickname */
+  if (IS_SERVER_READY(p)) {
+    debug("Requesting nick change from '%s' to '%s'",
+          (p->nickname ? p->nickname : ""), nick);
+    ircserver_send_peercmd(p, "NICK", ":%s", nick);
+  }
 
+  /* If we don't have a nickname yet, make the change ourselves */
+  if (!(p->client_status & IRC_CLIENT_GOTNICK)) {
+    /* We know that there is no client connected, otherwise this would
+       never have been called, so no point sending a nickname to the client.
+
+       Just change it in our memory */
+    ret = ircclient_nick_changed(p, nick);
+    ircclient_checknickname(p);
+  } else {
+    debug("Server will change it for us");
+  }
+  
+  free(nick);
   return 0;
+}
+
+/* Timer hook to restore a lost nickname */
+static void _ircclient_resetnick(struct ircproxy *p, void *data) {
+  /* We don't have a server anymore, setnickname will be restored on
+     connection attempt */
+  if (!IS_SERVER_READY(p))
+    return;
+
+  /* Is it worth doing this? */
+  if (!strcmp(p->nickname, p->setnickname))
+    return;
+  
+  /* Ask the server to change the nickname */
+  debug("Attempting to restore nickname to '%s'", p->setnickname);
+  ircclient_change_nick(p, p->setnickname);
 }
 
 /* Got some details */
@@ -1383,7 +1477,7 @@ int ircclient_close(struct ircproxy *p) {
   timer_del((void *)p, "client_auth");
   timer_del((void *)p, "client_connect");
 
-  net_close(p->client_sock);
+  net_close(&(p->client_sock));
   p->client_sock = -1;
   p->client_status &= ~(IRC_CLIENT_CONNECTED | IRC_CLIENT_AUTHED
                         | IRC_CLIENT_SENTWELCOME);
@@ -1700,7 +1794,7 @@ int ircclient_send_command(struct ircproxy *p, const char *command,
 
   ret = net_send(p->client_sock, ":%s %s %s\r\n",
                  (p->servername ? p->servername : PACKAGE), command, msg);
-  debug("<- :%s %s %s", (p->servername ? p->servername : PACKAGE),
+  debug("<- ':%s %s %s'", (p->servername ? p->servername : PACKAGE),
         command, msg);
 
   free(msg);
@@ -1728,7 +1822,7 @@ int ircclient_send_selfcmd(struct ircproxy *p, const char *command,
   }
 
   ret = net_send(p->client_sock, "%s%s %s\r\n", prefix, command, msg);
-  debug("<- %s%s %s", prefix, command, msg);
+  debug("<- '%s%s %s'", prefix, command, msg);
 
   free(prefix);
   free(msg);
@@ -1751,9 +1845,22 @@ int ircclient_send_error(struct ircproxy *p, const char *format, ...) {
 
   ret = net_send(p->client_sock, "%s :%s: %s[%s@%s] (%s)\r\n",
                  "ERROR", "Closing Link", nick, user, host, msg);
-  debug("<- %s :%s: %s[%s@%s] (%s)", "ERROR", "Closing Link",
+  debug("<- '%s :%s: %s[%s@%s] (%s)'", "ERROR", "Closing Link",
         nick, user, host, msg);
 
   free(msg);
+  return ret;
+}
+
+/* Send a DCC reject message */
+static int _ircclient_send_dccreject(struct ircproxy *p, const char *msg) {
+  int ret = 1;
+
+  if (p && p->conn_class && p->conn_class->dcc_proxy_sendreject &&
+      (p->client_status == IRC_CLIENT_ACTIVE)) {
+    ret = net_send(p->client_sock, "%s\r\n", msg);
+    debug("<- '%s'", msg);
+  }
+
   return ret;
 }

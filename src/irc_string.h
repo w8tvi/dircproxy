@@ -4,7 +4,7 @@
  *
  * irc_string.h
  * --
- * @(#) $Id: irc_string.h,v 1.1 2000/05/13 02:14:01 keybuk Exp $
+ * @(#) $Id: irc_string.h,v 1.2 2000/12/21 13:27:05 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -16,10 +16,6 @@
 
 /* required includes */
 #include "match.h"
-
-/* Non case sensitive versions are defined for completeness */
-#define irc_strcmp(_s1, _s2) strcmp((_s1), (_s2))
-#define irc_strmatch(_s, _m) strmatch((_s), (_m))
 
 /* functions */
 extern char *irc_strlwr(char *);
