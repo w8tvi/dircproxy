@@ -3,15 +3,25 @@
  *
  * irc_log.h
  * --
- * $Id: irc_log.h,v 1.14 2002/12/29 21:30:12 scott Exp $
+ * $Id: irc_log.h,v 1.15 2003/03/03 18:06:29 scott Exp $
  *
- * This file is distributed according to the GNU General Public
- * License.  For full details, read the top of 'main.c' or the
- * file called COPYING that was distributed with this code.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef _DIRCPROXY_IRC_LOG_H
-#define _DIRCPROXY_IRC_LOG_H
+#ifndef DIRCPROXY_IRC_LOG_H
+#define DIRCPROXY_IRC_LOG_H
 
 /* Required includes */
 #include <stdio.h>
@@ -62,4 +72,4 @@ extern int irclog_recall(struct ircproxy *, const char *, long, long,
 int	    irclog_strtoflag(const char *);
 const char *irclog_flagtostr(int);
 
-#endif /* !_DIRCPROXY_IRC_LOG_H */
+#endif /* !DIRCPROXY_IRC_LOG_H */
