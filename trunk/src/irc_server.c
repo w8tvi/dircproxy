@@ -5,7 +5,7 @@
  * irc_server.c
  *  - Handling of servers connected to the proxy
  * --
- * @(#) $Id: irc_server.c,v 1.7 2000/05/24 20:25:01 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.8 2000/05/24 20:29:26 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -384,6 +384,28 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
         ircnet_delchannel(p, msg.params[1]);
       }
 
+      squelch = 0;
+    }
+
+  } else if (!strcasecmp(msg.cmd, "403") || !strcasecmp(msg.cmd, "475")
+             || !strcasecmp(msg.cmd, "476") || !strcasecmp(msg.cmd, "405")) {
+    if (msg.numparams >= 2) {
+      /* Can't join a channel, permanent error */
+
+      /* No client connected?  Better notify it */
+      if (p->client_status != IRC_CLIENT_ACTIVE) {
+        struct ircchannel *chan;
+
+        if (msg.params >= 3) {
+          irclog_notice_to(p, p->nickname, "Couldn't rejoin %s: %s (%03d)",
+                           msg.params[1], msg.params[2], msg.cmd);
+        } else {
+          irclog_notice_to(p, p->nickname, "Couldn't rejoin %s (%03d)",
+                           msg.params[1], msg.cmd);
+        }
+      }
+
+      ircnet_delchannel(p, msg.params[1]);
       squelch = 0;
     }
 
