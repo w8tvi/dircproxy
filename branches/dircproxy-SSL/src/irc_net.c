@@ -164,7 +164,7 @@ int ircnet_hooksocket(int sock) {
   }
 
   p->die_on_close = 1;
-  net_create(&(p->client_sock));
+  net_create(&(p->client_sock), 0);
 
   if (p->client_sock != -1) {
     return _ircnet_client_connected(p);
@@ -188,7 +188,7 @@ static void _ircnet_acceptclient(void *data, int sock) {
     free(p);
     return;
   }
-  net_create(&(p->client_sock));
+  net_create(&(p->client_sock), 0);
 
   if (p->client_sock != -1) {
     _ircnet_client_connected(p);
