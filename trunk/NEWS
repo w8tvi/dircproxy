@@ -1,6 +1,10 @@
 NEWS about changes for existing users.
 --------------------------------------
 
+Version 0.7.1 - Thu Sep 14 13:15:00 BST 2000
+
+	* Just bug fixes.  No changes to worry about.
+
 Version 0.7.0 - Fri Sep  1 15:00:00 BST 2000
 
 	* The global configuration file is now called dircproxyrc not

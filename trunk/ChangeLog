@@ -1,3 +1,33 @@
+2000-09-14 12:07  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_server.c: [ Bug #114352 ] Thought dircproxy had none of
+	these pesky format string problems, but one slipped through in the
+	late stages.  Oops.
+
+2000-09-04 13:56  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxyrc, doc/dircproxy.1: Cleared up the documentation
+	to state that drop_modes 0 *doesn't* unset this option.
+
+2000-09-04 13:39  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: Removal of a mode flag when p->modes is 0
+	resulted in core dump.	Fixed this by checking p->modes is set
+	BEFORE doing a strchr() on it.
+
+2000-09-04 13:22  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_log.c: Only do log spinning if log->maxlines isn't 0
+	(duh!)
+
+2000-09-01 14:11  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in: CVS version now 0.7.1
+
+2000-09-01 13:40  Scott James Remnant <scott@netsplit.com>
+
+	* ChangeLog, NEWS, README, TODO: Version 0.7.0 released.
+
 2000-09-01 12:58  Scott James Remnant <scott@netsplit.com>
 
 	* src/irc_net.c: Need string.h
