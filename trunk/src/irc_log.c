@@ -6,14 +6,27 @@
  *  - Handling of log programs
  *  - Recalling from log files
  * --
- * $Id: irc_log.c,v 1.45 2002/12/29 21:30:12 scott Exp $
+ * $Id: irc_log.c,v 1.46 2003/03/03 18:06:29 scott Exp $
  *
- * This file is distributed according to the GNU General Public
- * License.  For full details, read the top of 'main.c' or the
- * file called COPYING that was distributed with this code.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include <dircproxy.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
+#include "dircproxy.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -604,7 +617,7 @@ _log_pipe(IRCProxy *p, int event, const char *to, const char *from,
 		syscall_fail("execlp", p->conn_class->log_program, 0);
 		exit(10);
 
-	efault:
+	default:
 		/* Parent process, close the read end of the pipe */
 		close(pfd[0]);
 
