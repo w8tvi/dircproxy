@@ -17,6 +17,7 @@ dircproxy_SOURCES = \
 	irc_string.c irc_string.h \
 	dcc_net.c dcc_net.h \
 	dcc_chat.c dcc_chat.h \
+	dcc_send.c dcc_send.h \
 	cfgfile.c cfgfile.h \
 	timers.c timers.h \
 	dns.c dns.h \
