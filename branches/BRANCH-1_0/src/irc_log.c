@@ -7,7 +7,7 @@
  *  - Handling of log programs
  *  - Recalling from log files
  * --
- * @(#) $Id: irc_log.c,v 1.35 2001/12/21 20:15:55 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.35.2.1 2002/09/09 12:24:07 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -64,6 +64,7 @@ static int _irclog_recall(struct ircproxy *, struct logfile *, unsigned long,
 /* Create a temporary directory for log files */
 int irclog_maketempdir(struct ircproxy *p) {
   struct passwd *pw;
+  static unsigned int counter = 0;
 
   if (p->temp_logdir)
     return 0;
@@ -80,7 +81,7 @@ int irclog_maketempdir(struct ircproxy *p) {
     debug("Username = '%s'", pw->pw_name);
     debug("PID = '%d'", getpid());
     p->temp_logdir = x_sprintf("%s/%s-%s-%d-%d", (tmpdir ? tmpdir : "/tmp"),
-                               PACKAGE, pw->pw_name, getpid(), p->client_sock);
+                               PACKAGE, pw->pw_name, getpid(), counter++);
     debug("temp_logdir = '%s'", p->temp_logdir);
 
     if (lstat(p->temp_logdir, &statinfo)) {
