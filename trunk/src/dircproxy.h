@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.26 2000/10/10 13:08:35 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.27 2000/10/12 15:59:05 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -61,6 +61,11 @@
  * once they've logged in.
  */
 #define CONNECT_TIMEOUT 60
+
+/* DNS_TIMEOUT
+ * Maximum amount of time (in seconds) to allow for a DNS request.
+ */
+#define DNS_TIMEOUT 20
 
 /* FALLBACK_NICKNAME
  * When sending a nickname while detached, its possible that we can get
