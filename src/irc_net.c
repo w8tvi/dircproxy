@@ -5,7 +5,7 @@
  * irc_net.c
  *  - Polling of sockets and acting on any data
  * --
- * @(#) $Id: irc_net.c,v 1.3 2000/05/13 05:25:04 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.4 2000/05/24 17:52:30 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -392,19 +392,63 @@ static int _ircnet_expunge_proxies(void) {
   return 0;
 }
 
-/* Get rid of all the proxies */
+/* Get rid of all the proxies and connection classes */
 void ircnet_flush(void) {
+  struct ircconnclass *c;
   struct ircproxy *p;
 
   p = proxies;
-
   while (p) {
-    struct ircproxy *n;
+    struct ircproxy *t;
 
-    n = p->next;
-    _ircnet_freeproxy(p);
-    p = n;
+    t = p;
+    p = p->next;
+    _ircnet_freeproxy(t);
+  }
+  proxies = 0;
+
+  c = connclasses;
+  while (c) {
+    struct ircconnclass *t;
+
+    t = c;
+    c = c->next;
+    ircnet_freeconnclass(t);
+  }
+  connclasses = 0;
+}
+
+/* Free a connection class structure */
+void ircnet_freeconnclass(struct ircconnclass *class) {
+  struct strlist *s;
+
+  free(class->password);
+  free(class->bind);
+  /* Cope with being called from cfgfile.c which does this */
+  if (class->awaymessage != (char *)-1)
+    free(class->awaymessage);
+
+  s = class->servers;
+  while (s) {
+    struct strlist *t;
+
+    t = s;
+    s = s->next;
+
+    free(t->str);
+    free(t);
   }
 
-  proxies = 0;
+  s = class->masklist;
+  while (s) {
+    struct strlist *t;
+
+    t = s;
+    s = s->next;
+
+    free(t->str);
+    free(t);
+  }
+
+  free(class);
 }
