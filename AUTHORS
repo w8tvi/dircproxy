@@ -12,6 +12,7 @@ Gabor Nyeki  - 005 initial support (IRCNET Bounce)
 van Heusden  - binding to local port
 Ryan Tolboom - DCC Resume in capture mode.
 Stephen Cope - Original Documentation
+Tilman Sauerbeck - Patch
 acklen, W8TVI and the folks on #dircproxy - User support
 
 If you have contributed any major patches or enhancements, and you
