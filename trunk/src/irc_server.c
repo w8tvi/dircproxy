@@ -5,7 +5,7 @@
  * irc_server.c
  *  - Handling of servers connected to the proxy
  * --
- * @(#) $Id: irc_server.c,v 1.13 2000/08/24 11:10:21 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.14 2000/08/25 09:38:23 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -43,6 +43,8 @@ static int _ircserver_forclient(struct ircproxy *, struct ircmessage *);
 
 /* hook for timer code to reconnect to a server */
 static void _ircserver_reconnect(struct ircproxy *p, void *data) {
+  debug("Reconnecting to server");
+
   /* Choose the next server.  If we have no more, choose the first again and
      increment attempts */
   p->conn_class->next_server = p->conn_class->next_server->next;
@@ -60,6 +62,7 @@ static void _ircserver_reconnect(struct ircproxy *p, void *data) {
     p->conn_class = 0;
     if (p->client_status & IRC_CLIENT_CONNECTED)
       ircclient_close(p);
+    debug("Giving up on servers, reattempted too much");
     p->dead = 1;
   } else if (!(p->server_status & IRC_SERVER_SEEN)
              && p->conn_class->server_maxinitattempts
@@ -71,6 +74,7 @@ static void _ircserver_reconnect(struct ircproxy *p, void *data) {
     p->conn_class = 0;
     if (p->client_status & IRC_CLIENT_CONNECTED)
       ircclient_close(p);
+    debug("Giving up on servers, can't get initial connection");
     p->dead = 1;
   } else {
     /* Attempt a new connection */
@@ -84,7 +88,10 @@ int ircserver_connect(struct ircproxy *p) {
   char *host;
   int ret;
 
+  debug("Connecting to server");
+
   if (timer_exists(p, "server_recon")) {
+    debug("Connection already in progress");
     if (IS_CLIENT_READY(p))
       ircclient_send_notice(p, "Connection already in progress...");
     return 0;
@@ -101,6 +108,8 @@ int ircserver_connect(struct ircproxy *p) {
     p->servername = host;
   }
 
+  debug("Connecting to %s port %d", p->servername,
+        ntohs(p->server_addr.sin_port));
   if (IS_CLIENT_READY(p))
     ircclient_send_notice(p, "Connecting to %s port %d",
                           p->servername, ntohs(p->server_addr.sin_port));
@@ -135,7 +144,7 @@ int ircserver_connect(struct ircproxy *p) {
     if (connect(p->server_sock, (struct sockaddr *)&(p->server_addr),
                 sizeof(struct sockaddr_in))
         && (errno != EINPROGRESS)) {
-      DEBUG_SYSCALL_FAIL("connect");
+      syscall_fail("connect", p->servername, 0);
       sock_close(p->server_sock);
       ret = -1;
     } else {
@@ -146,6 +155,7 @@ int ircserver_connect(struct ircproxy *p) {
   if (ret) {
     if (IS_CLIENT_READY(p))
       ircclient_send_notice(p, "Connection failed: %s", strerror(errno));
+    debug("Connection failed: %s", strerror(errno));
 
     sock_close(p->server_sock);
     timer_new(p, "server_recon", p->conn_class->server_retry,
@@ -154,6 +164,7 @@ int ircserver_connect(struct ircproxy *p) {
     p->server_status |= IRC_SERVER_CREATED;
   }
 
+  debug("Connected");
   return ret;
 }
 
@@ -161,9 +172,7 @@ int ircserver_connect(struct ircproxy *p) {
 int ircserver_connected(struct ircproxy *p) {
   char *username;
 
-#ifdef DEBUG
-  printf("Connection succeeded\n");
-#endif /* DEBUG */
+  debug("Connection succeeded");
   p->server_status |= IRC_SERVER_CONNECTED | IRC_SERVER_SEEN;
   p->server_attempts = 0;
 
@@ -180,7 +189,7 @@ int ircserver_connected(struct ircproxy *p) {
     if (!getsockname(p->server_sock, (struct sockaddr *)&sock_addr, &len)) {
       p->hostname = dns_hostfromaddr(sock_addr.sin_addr);
     } else {
-      DEBUG_SYSCALL_FAIL("getsockname");
+      syscall_fail("getsockname", "", 0);
     }
   }
 
@@ -194,9 +203,7 @@ int ircserver_connected(struct ircproxy *p) {
 
 /* Called when a connection fails */
 int ircserver_connectfailed(struct ircproxy *p, int error) {
-#ifdef DEBUG
-  printf("Connection failed\n");
-#endif /* DEBUG */
+  debug("Connection failed");
 
   if (IS_CLIENT_READY(p))
     ircclient_send_notice(p, "Connection failed: %s", strerror(error));
@@ -220,14 +227,10 @@ int ircserver_data(struct ircproxy *p) {
 
   switch (ret) {
     case SOCK_ERROR:
-#ifdef DEBUG
-      printf("Socket error\n");
-#endif /* DEBUG */
+      debug("Socket error");
 
     case SOCK_CLOSED:
-#ifdef DEBUG
-      printf("Server disconnected\n");
-#endif /* DEBUG */
+      debug("Server disconnected");
       _ircserver_close(p);
 
       return -1;
@@ -237,9 +240,7 @@ int ircserver_data(struct ircproxy *p) {
       return 0;
   }
 
-#ifdef DEBUG
-  printf("<< '%s'\n", str);
-#endif /* DEBUG */
+  debug("<< '%s'", str);
   _ircserver_gotmsg(p, str);
   free(str);
 

@@ -8,7 +8,7 @@
  *  - socket data buffering
  *  - recv() function that gets data up to delimeters (newlines?)
  * --
- * @(#) $Id: sock.c,v 1.3 2000/08/24 09:15:02 keybuk Exp $
+ * @(#) $Id: sock.c,v 1.4 2000/08/25 09:38:23 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -25,6 +25,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #include <dircproxy.h>
 #include "sprintf.h"
@@ -55,19 +56,19 @@ int sock_make(void) {
 
   sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (sock == -1) {
-    DEBUG_SYSCALL_FAIL("socket");
+    syscall_fail("socket", 0, 0);
     return -1;
   }
 
   param = 1;
   if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void *)&param, sizeof(int))) {
-    DEBUG_SYSCALL_FAIL("setsockopt");
+    syscall_fail("setsockopt", "SO_REUSEADDR", 0);
     close(sock);
     return -1;
   }
 
   if ((param = fcntl(sock, F_GETFL, 0)) == -1) {
-    DEBUG_SYSCALL_FAIL("fcntl[nonblock]");
+    syscall_fail("fcntl", "F_GETFL", 0);
     close(sock);
     return -1;
   }
@@ -107,7 +108,7 @@ int sock_send(int sock, const char *message, ...) {
 
   if (send(sock, msg, strlen(msg), 0) == -1) {
     if (errno != EPIPE)
-      DEBUG_SYSCALL_FAIL("send");
+      syscall_fail("send", msg, 0);
     ret = -1;
   }
 
@@ -142,7 +143,7 @@ int sock_peek(int sock) {
   if (numread == -1) {
     if ((errno != EWOULDBLOCK) && (errno != EAGAIN)) {
       if (errno != EPIPE)
-        DEBUG_SYSCALL_FAIL("recv[peek]");
+        syscall_fail("recv", "MSG_PEEK", 0);
       return SOCK_ERROR;
     } else {
       return SOCK_EMPTY;
@@ -182,7 +183,7 @@ int sock_recv(int sock, char **dest, const char *delim) {
     if (numread == -1) {
       if ((errno != EWOULDBLOCK) && (errno != EAGAIN)) {
         if (errno != EPIPE)
-          DEBUG_SYSCALL_FAIL("recv[peek]");
+          syscall_fail("recv", "MSG_PEEK", 0);
         free(tmpdest);
         return SOCK_ERROR;
       } else {
@@ -219,7 +220,7 @@ int sock_recv(int sock, char **dest, const char *delim) {
 
     /* Error condition. */
     if (numread == -1) {
-      DEBUG_SYSCALL_FAIL("recv");
+      syscall_fail("recv", 0, 0);
       free(tmpdest);
       return SOCK_ERROR;
     }
@@ -228,7 +229,7 @@ int sock_recv(int sock, char **dest, const char *delim) {
        (this really really can't happen I hope) */
     if (numread < retlen) {
       if (errno != EPIPE)
-        DEBUG_SYSCALL_DOH("recv", "lost data", 0);
+        syscall_fail("recv", 0, "Lost data between peek and recv");
       if (numread)
         _sock_createbuffer(sock, tmpdest, numread);
       free(tmpdest);
@@ -347,7 +348,7 @@ static int _sock_flag(int sock, int flag, int on) {
   int flags;
 
   if ((flags = fcntl(sock, F_GETFL)) == -1) {
-    DEBUG_SYSCALL_FAIL("fcntl[GETFL]");
+    syscall_fail("fcntl", "F_GETFL", 0);
     return -1;
   }
 
@@ -358,7 +359,7 @@ static int _sock_flag(int sock, int flag, int on) {
   }
 
   if (fcntl(sock, F_SETFL, flags)) {
-    DEBUG_SYSCALL_FAIL("fcntl[SETFL]");
+    syscall_fail("fcntl", "F_SETFL", 0);
     return -1;
   }
 

@@ -5,7 +5,7 @@
  * sprintf.c
  *  - various ways of doing allocating sprintf() functions to void b/o
  * --
- * @(#) $Id: sprintf.c,v 1.6 2000/05/24 19:11:46 keybuk Exp $
+ * @(#) $Id: sprintf.c,v 1.7 2000/08/25 09:38:23 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -14,6 +14,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdarg.h>
 #include <ctype.h>
 

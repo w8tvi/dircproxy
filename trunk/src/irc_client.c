@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.18 2000/08/23 11:48:41 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.19 2000/08/25 09:38:23 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -14,6 +14,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdarg.h>
 #include <crypt.h>
 
@@ -51,9 +52,7 @@ int ircclient_connected(struct ircproxy *p) {
   p->client_host = dns_hostfromaddr(p->client_addr.sin_addr);
   ircclient_send_notice(p, "Got your hostname.");
 
-#ifdef DEBUG
-  printf("Client connected from %s\n", p->client_host);
-#endif /* DEBUG */
+  debug("Client connected from %s", p->client_host);
 
   return 0;
 }
@@ -68,15 +67,11 @@ int ircclient_data(struct ircproxy *p) {
 
   switch (ret) {
     case SOCK_ERROR:
-#ifdef DEBUG
-      printf("Socket error\n");
-#endif /* DEBUG */
+      debug("Socket error");
 
     case SOCK_CLOSED:
-#ifdef DEBUG
-      printf("Client disconnected\n");
-#endif /* DEBUG */
       if (p->die_on_close) {
+        debug("Client disconnected, killing proxy");
         p->conn_class = 0;
         ircclient_close(p);
 
@@ -84,6 +79,7 @@ int ircclient_data(struct ircproxy *p) {
                                PACKAGE, VERSION);
         ircserver_close_sock(p);
       } else {
+        debug("Client disconnected, detaching proxy");
         irclog_notice_toall(p, "You disconnected");
         if ((p->server_status == IRC_SERVER_ACTIVE)
             && (p->client_status == IRC_CLIENT_ACTIVE)
@@ -102,9 +98,7 @@ int ircclient_data(struct ircproxy *p) {
       return 0;
   }
 
-#ifdef DEBUG
-  printf(">> '%s'\n", str);
-#endif /* DEBUG */
+  debug(">> '%s'", str);
   _ircclient_gotmsg(p, str);
   free(str);
 
@@ -118,9 +112,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
   if (ircprot_parsemsg(str, &msg) == -1)
     return -1;
 
-#ifdef DEBUG
-  printf("c=%02x, s=%02x\n", p->client_status, p->server_status);
-#endif /* DEBUG */
+  debug("c=%02x, s=%02x", p->client_status, p->server_status);
 
   if (!(p->client_status & IRC_CLIENT_AUTHED)) {
     if (!strcasecmp(msg.cmd, "PASS")) {
