@@ -40,7 +40,15 @@ typedef struct logfile {
   int always;
 } LogFile;
 
-/* a description of an authorised connction */
+/* A SSL session structure */
+struct SSL_struct {
+  SSL_CTX *ctx;
+  SSL *ssl;
+  X509 *cert;
+  SSL_METHOD *method;
+} SSL_struct;
+
+/* a description of an authorised connection */
 typedef struct ircconnclass {
   char *server_port;
   long server_retry;
@@ -176,15 +184,11 @@ typedef struct ircproxy {
   struct sockaddr_in server_addr;
   long server_attempts;
   
-  struct SSL_struct {
-    SSL_CTX *ctx;
-    SSL *ssl;
-    X509 *cert;
-  } SSL_struct;
-
   char *nickname;
   char *setnickname;
   char *oldnickname;
+  
+  struct SSL_struct servSSL;
 
   char *username;
   char *hostname;

@@ -293,15 +293,15 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
       {
         SSL_load_error_strings();
         SSL_library_init();
-        if(p->SSL_struct.ctx = SSL_CTX_new(SSLv23_client_method()))
+        if(p->servSSL.ctx = SSL_CTX_new(SSLv23_client_method()))
         {
-	        if(p->SSL_struct.ssl = SSL_new(p->SSL_struct.ctx))
+	        if(p->servSSL.ssl = SSL_new(p->servSSL.ctx))
 	        {
-		        if(SSL_set_fd(p->SSL_struct.ssl, p->server_sock))
+		        if(SSL_set_fd(p->servSSL.ssl, p->server_sock))
 		        {
-			        if(SSL_connect(p->SSL_struct.ssl) == 1)
+			        if(SSL_connect(p->servSSL.ssl) == 1)
 			        {
-				        if(p->SSL_struct.cert = SSL_get_peer_certificate(p->SSL_struct.ssl))
+				        if(p->servSSL.cert = SSL_get_peer_certificate(p->servSSL.ssl))
 				        {
 				        	/*
 				        	 * Once we retrieved the server certificate,
@@ -329,28 +329,28 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
 				        	 * Would someone want that ??
 				        	*/
 						      syscall_fail("SSL_get_peer_certificate", 0, 0);
-						      SSL_free(p->SSL_struct.ssl);
-						      SSL_CTX_free(p->SSL_struct.ctx);
+						      SSL_free(p->servSSL.ssl);
+						      SSL_CTX_free(p->servSSL.ctx);
 						      ret = -1;
 						    }
 				      }
 				      else {
 					      syscall_fail("SSL_connect", 0, 0);
-					      SSL_free(p->SSL_struct.ssl);
-					      SSL_CTX_free(p->SSL_struct.ctx);
+					      SSL_free(p->servSSL.ssl);
+					      SSL_CTX_free(p->servSSL.ctx);
 					      ret = -1;
 					    }
 			      }
 			      else {
 				      syscall_fail("SSL_set_fd", 0, 0);
-				      SSL_free(p->SSL_struct.ssl);
-				      SSL_CTX_free(p->SSL_struct.ctx);
+				      SSL_free(p->servSSL.ssl);
+				      SSL_CTX_free(p->servSSL.ctx);
 				      ret = -1;
 				    }
 		      }
 		      else {
 			      syscall_fail("SSL_new", 0, 0);
-			      SSL_CTX_free(p->SSL_struct.ctx);
+			      SSL_CTX_free(p->servSSL.ctx);
 			      ret = -1;
 			    }
       	}
@@ -380,7 +380,7 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
     if (p->conn_class->server_ssl) flag |= SOCK_SSL;
   	
     p->server_status |= IRC_SERVER_CREATED;
-    net_hook(p->server_sock, flag, p->SSL_struct.ssl, (void *)p,
+    net_hook(p->server_sock, flag, p->servSSL.ssl, (void *)p,
              ACTIVITY_FUNCTION(_ircserver_connected),
              ERROR_FUNCTION(_ircserver_connectfailed));
     debug("Connection in progress");
@@ -403,7 +403,7 @@ static void _ircserver_connected(struct ircproxy *p, int sock) {
 
   debug("Connection succeeded");
   p->server_status |= IRC_SERVER_CONNECTED;
-  net_hook(p->server_sock, flag, p->SSL_struct.ssl, (void *)p,
+  net_hook(p->server_sock, flag, p->servSSL.ssl, (void *)p,
            ACTIVITY_FUNCTION(_ircserver_data),
            ERROR_FUNCTION(_ircserver_error));
   if (p->conn_class->server_throttle)
