@@ -3,7 +3,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.52 2002/12/29 21:30:12 scott Exp $
+ * @(#) $Id: irc_net.h,v 1.53 2003/12/10 18:55:35 fharvey Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -68,7 +68,9 @@ typedef struct ircconnclass {
   char *detach_nickname;
 
   int nick_keep;
-
+  
+  char *nickserv_password;
+   
   int ctcp_replies;
 
   long log_timeoffset;

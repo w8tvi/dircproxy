@@ -4,7 +4,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.46 2002/12/29 21:30:11 scott Exp $
+ * @(#) $Id: cfgfile.c,v 1.47 2003/12/10 18:55:34 fharvey Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -95,6 +95,7 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
   def->detach_nickname = (DEFAULT_DETACH_NICKNAME
                           ? x_strdup(DEFAULT_DETACH_NICKNAME) : 0);
   def->nick_keep = DEFAULT_NICK_KEEP;
+  def->nickserv_password = NULL;
   def->ctcp_replies = DEFAULT_CTCP_REPLIES;
   def->log_timestamp = DEFAULT_LOG_TIMESTAMP;
   def->log_relativetime = DEFAULT_LOG_RELATIVETIME;
@@ -509,7 +510,24 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
         free((class ? class : def)->detach_nickname);
         (class ? class : def)->detach_nickname = str;
 
-      } else if (!strcasecmp(key, "nick_keep")) {
+      } else if  (!strcasecmp(key, "nickserv_password")) {	      
+        /* nickserv_password none
+	 * nickserv_password ""    # same as none
+	 * nickserv_password "identify_me" */
+	char *str;
+       
+	if (_cfg_read_string(&buf, &str))
+	  UNMATCHED_QUOTE;
+       
+	if (!strcasecmp(str, "none") || !strlen(str)) {
+	   free(str);
+	   str = 0;
+	}
+              
+       free((class ? class : def)->nickserv_password);
+       (class ? class : def)->nickserv_password = str;
+	 
+      }	 else if (!strcasecmp(key, "nick_keep")) {
         /* nick_keep yes
            nick_keep no */
         _cfg_read_bool(&buf, &(class ? class : def)->nick_keep);

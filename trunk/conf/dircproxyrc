@@ -343,6 +343,13 @@
 #
 #nick_keep yes
 
+# nickserv_password
+#     Adding support for nickserv, identify the user after a attach  
+#
+#     none = don't use nickserv
+#
+#nickserv_password "none"
+
 
 # CTCP OPTIONS
 #     Options affecting CTCP replies
@@ -960,6 +967,8 @@
 #    server "irc.linux.com:6668"
 #    server "oper.irc.netsplit.com:6660:scrumpy"
 #    server "oper.irc.gurgle.org::scrumpy"
+#
+#    nickserv_password "applejack"
 #
 #    from "*.myisp.com"
 #    from "*.mywork.net"
