@@ -1,3 +1,156 @@
+2002-08-17 21:48  Scott James Remnant <scott@netsplit.com>
+
+	* contrib/dircproxy.spec, src/irc_server.c: Elminiate code
+	references to sourceforge
+
+2002-08-17 21:46  Scott James Remnant <scott@netsplit.com>
+
+	* INSTALL: AIX and better Solaris descriptions
+
+2002-08-17 21:39  Scott James Remnant <scott@netsplit.com>
+
+	* README, doc/dircproxy.1: Documentation updates
+
+2002-08-17 21:22  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_log.c: Keep the original nickname (without <>s, []s or
+	--s) strip off anything after the ! and make sure the log filename
+	is lowercase.
+
+2002-08-17 21:07  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxyrc: Newer, leaner config file
+
+2002-08-17 21:06  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_log.c: Logging of a user's copy or to a program is done
+	universally now, with the advantage that privmsgs are logged by
+	nickname
+
+2002-08-17 21:05  Scott James Remnant <scott@netsplit.com>
+
+	* src/: cfgfile.c, irc_client.c, irc_net.c, irc_net.h, dircproxy.h:
+	Rename the other_log_* variables to server_log, remove _copydir and
+	_program in favour of new log_dir and log_program variables
+
+2002-08-17 19:52  Scott James Remnant <scott@netsplit.com>
+
+	* configure.ac: Ok, this will be dircproxy 1.1.0, a series of bug
+	fixes and new features until 1.2.0
+
+2002-08-17 19:52  Scott James Remnant <scott@netsplit.com>
+
+	* src/: cfgfile.c, dircproxy.h, irc_log.c, irc_net.h: Collapsed the
+	three *_log_timestamp and *_log_relativetime options into a single
+	log_timestamp and log_relativetime option.  I can't see any reason
+	why these would be customised seperately, and I need to make the
+	log config file easier!
+
+2002-08-17 19:40  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxyrc, doc/dircproxy.1, src/cfgfile.c,
+	src/dircproxy.h, src/help.h, src/irc_client.c, src/irc_log.c,
+	src/irc_log.h, src/irc_net.c, src/irc_net.h, src/irc_server.c:
+	Merged the code to seperate the private message log into a
+	different file.
+
+2002-08-17 19:39  Scott James Remnant <scott@netsplit.com>
+
+	* src/: irc_client.c, irc_server.c: Generate rejmsg without the end
+	bit, putting that on in the function that actually sends it
+
+2002-08-17 19:38  Scott James Remnant <scott@netsplit.com>
+
+	* src/: dcc_chat.c, dcc_send.c: Call the notify function if
+	connection fails
+
+2002-08-17 19:38  Scott James Remnant <scott@netsplit.com>
+
+	* src/: dcc_net.c, dcc_net.h: The notify function takes an extra
+	parameter now, the reason for the failure
+
+2002-08-17 19:24  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: Restored missing \001 off client rejmsg
+
+2002-08-17 17:49  Scott James Remnant <scott@netsplit.com>
+
+	* src/main.c: Handle config reloading in the main loop as well,
+	with the signal handler just setting a variable
+
+2002-08-17 17:46  Scott James Remnant <scott@netsplit.com>
+
+	* autogen.sh, configure.ac: Use the AM_MAINTAINER_MODE flag so
+	there aren't any surprises
+
+2002-08-17 17:35  Scott James Remnant <scott@netsplit.com>
+
+	* src/main.c: Instead of waiting on children and handling DNS
+	results in the CHLD signal handler, simply catch it (so it
+	interrupts whatever we're doing).  Then in the main loop, we always
+	wait on any children - that way we don't do anything exotic like
+	malloc() in the signal handler, which will hopefully appease
+	FreeBSD which has a bit of a problem with that.
+
+2002-08-14 21:15  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxyrc: Fixed a typo spotted by James O'Gorman
+
+2002-08-13 17:35  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: Removed TODO file
+
+2002-08-13 17:31  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: Applied modified version of Alexander Dohmen
+	<alex@netcase.nl>'s patch to log outgoing private messages
+
+2002-08-13 17:02  Scott James Remnant <scott@netsplit.com>
+
+	* .cvsignore, RELEASING, acconfig.h, autogen.sh, configure.ac,
+	configure.in: Updated to newer automake and autoconf
+
+2002-08-13 16:47  Scott James Remnant <scott@netsplit.com>
+
+	* FAQ: Expand stuff a bit more, moving things out of TODO which I
+	doubt people'll read.
+
+2002-08-13 16:37  Scott James Remnant <scott@netsplit.com>
+
+	* FAQ: Document why we don't do RESUME in the FAQ
+
+2002-08-13 14:56  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_log.c: Use a static int counter to make the log
+	directories unique, rather than the socket number, which was a bit
+	evil hackwise.
+
+2002-08-04 13:31  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: TODO for the package
+
+2002-08-04 13:26  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: More stuff TODO, must get around to DOing this sometime
+
+2002-07-14 09:53  Scott James Remnant <scott@netsplit.com>
+
+	* src/main.c: Handle CHLD signals portably by reaping any that
+	arrive (as we care about getting all of them)
+
+2002-04-25 22:57  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: Once again, things to do
+
+2002-02-08 18:12  Scott James Remnant <scott@netsplit.com>
+
+	* RELEASING, configure.in, contrib/dircproxy.spec: CVS version now
+	1.0.4
+
+2002-02-08 17:48  Scott James Remnant <scott@netsplit.com>
+
+	* ChangeLog, NEWS, RELEASING: Version 1.0.3 released.
+
 2002-02-06 10:10  Scott James Remnant <scott@netsplit.com>
 
 	* src/irc_client.c: Added /DIRCPROXY USERS and /DIRCPROXY KILL
@@ -2734,14 +2887,8 @@
 
 2000-05-13 02:13  Scott James Remnant <scott@netsplit.com>
 
-	* autogen.sh: Imported version 0.5.2 into the CVS tree.  Its in a
-	CLEAN state that requires autoconf and automake (run autogen.sh) to
-	build.
-
-2000-05-13 02:13  Scott James Remnant <scott@netsplit.com>
-
 	* AUTHORS, ChangeLog, FILES.autoconf, Makefile.am, NEWS, PROTOCOL,
-	README, TODO, acconfig.h, README.inetd, configure.in,
+	README, TODO, acconfig.h, autogen.sh, README.inetd, configure.in,
 	src/Makefile.am, src/dircproxy.h, src/dns.c, src/dns.h, src/sock.c,
 	src/irc_prot.c, src/main.c, src/match.c, src/match.h, src/sock.h,
 	src/sprintf.c, src/sprintf.h, src/irc_string.c, src/stringex.h,
