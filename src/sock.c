@@ -8,7 +8,7 @@
  *  - socket data buffering
  *  - recv() function that gets data up to delimeters (newlines?)
  * --
- * @(#) $Id: sock.c,v 1.4 2000/08/25 09:38:23 keybuk Exp $
+ * @(#) $Id: sock.c,v 1.5 2000/10/13 12:21:36 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -31,7 +31,7 @@
 #include "sprintf.h"
 #include "sock.h"
 
-/* Structure used to hold temporary buffers */
+/* Structure used to hold temporary input buffers */
 struct ircbuffer {
   int sock;
 
@@ -100,7 +100,7 @@ int sock_send(int sock, const char *message, ...) {
   msg = x_vsprintf(message, ap);
   va_end(ap);
 
-  /* Make the socket non-blocking for this */
+  /* Make the socket blocking for this */
   if (_sock_flag(sock, O_NONBLOCK, 0)) {
     free(msg);
     return -1;
@@ -115,7 +115,8 @@ int sock_send(int sock, const char *message, ...) {
   /* Free used memory */
   free(msg);
 
-  /* Make the socket blocking again.  If this don't work, we're in trouble */
+  /* Make the socket non-blocking again.
+     If this don't work, we're in trouble */
   if (_sock_flag(sock, O_NONBLOCK, 1)) {
     close(sock);
     sock = -1;
