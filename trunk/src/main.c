@@ -9,7 +9,7 @@
  *  - Signal handling
  *  - Debug functions
  * --
- * @(#) $Id: main.c,v 1.54 2002/08/17 17:35:27 scott Exp $
+ * @(#) $Id: main.c,v 1.55 2002/08/17 17:49:51 scott Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,12 +58,13 @@ static void _sig_child(int);
 #ifdef DEBUG_MEMORY
 static void _sig_usr(int);
 #endif /* DEBUG_MEMORY */
+static int _reload_config(void);
 static int _print_usage(void);
 static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.54 2002/08/17 17:35:27 scott Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.55 2002/08/17 17:49:51 scott Exp $";
 
 /* The name of the program */
 static char *progname;
@@ -73,6 +74,9 @@ static int in_background = 0;
 
 /* set to 1 to abort the main loop */
 static int stop_poll = 0;
+
+/* set to 1 to reload the configuration file */
+static int reload_config = 0;
 
 /* Port we're listening on */
 static char *listen_port;
@@ -322,6 +326,12 @@ int main(int argc, char *argv[]) {
       dns_endrequest(pid, status);
     }
 
+    /* Reload the configuration file? */
+    if (reload_config) {
+      _reload_config();
+      reload_config = 0;
+    }
+
     if (!ns && !nt)
       break;
   }
@@ -362,11 +372,39 @@ static void _sig_term(int sig) {
 
 /* Signal to reload configuration file */
 static void _sig_hup(int sig) {
+  debug("Received signal %d to reload config", sig);
+  reload_config = 1;
+
+  /* Restore the signal */
+  signal(sig, _sig_hup);
+}
+
+/* Signal to reap child process.  Don't do anything other than interrupt
+ * whatever we're doing so we reach the waitpid loop in the main loop quicker
+ */
+static void _sig_child(int sig) {
+  debug("Received signal %d to reap", sig);
+
+  /* Restore the signal */
+  signal(sig, _sig_child);
+}
+
+
+#ifdef DEBUG_MEMORY
+/* On USR signals, dump debug information */
+static void _sig_usr(int sig) {
+  mem_report(sig == SIGUSR1 ? 0 : "signal");
+  signal(sig, _sig_usr);
+}
+#endif /* DEBUG_MEMORY */
+
+/* Reload the configuration file */
+static int _reload_config(void) {
   struct ircconnclass *oldclasses, *c;
   struct globalvars newglobals;
   char *new_listen_port, *new_pid_file;
 
-  debug("Received signal %d to reload from %s", sig, config_file);
+  debug("Reloading config from %s", config_file);
   new_listen_port = x_strdup(DEFAULT_LISTEN_PORT);
   new_pid_file = (DEFAULT_PID_FILE ? x_strdup(DEFAULT_PID_FILE) : 0);
   oldclasses = connclasses;
@@ -380,7 +418,7 @@ static void _sig_hup(int sig) {
     connclasses = oldclasses;
     free(new_listen_port);
     free(new_pid_file);
-    return;
+    return -1;
   }
 
   /* Copy over new globals */
@@ -451,28 +489,8 @@ static void _sig_hup(int sig) {
   ircnet_flush_connclasses(&oldclasses);
   free(new_listen_port);
 
-  /* Restore the signal */
-  signal(sig, _sig_hup);
+  return 0;
 }
-
-/* Signal to reap child process.  Don't do anything other than interrupt
- * whatever we're doing so we reach the waitpid loop in the main loop quicker
- */
-static void _sig_child(int sig) {
-  debug("Received signal %d to reap", sig);
-
-  /* Restore the signal */
-  signal(sig, _sig_child);
-}
-
-
-#ifdef DEBUG_MEMORY
-/* On USR signals, dump debug information */
-static void _sig_usr(int sig) {
-  mem_report(sig == SIGUSR1 ? 0 : "signal");
-  signal(sig, _sig_usr);
-}
-#endif /* DEBUG_MEMORY */
 
 /* Print the usage instructions to stderr */
 static int _print_usage(void) {
