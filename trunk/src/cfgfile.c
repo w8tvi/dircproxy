@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.2 2000/05/24 20:54:39 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.3 2000/05/24 22:21:29 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -205,7 +205,7 @@ int cfg_read(const char *filename) {
         if (_cfg_read_string(&buf, &str))
           UNMATCHED_QUOTE;
 
-        if (class->awaymessage > 0)
+        if (class->awaymessage != (char *)-1)
           free(class->awaymessage);
 
         if (strcmp(str, "none")) {
