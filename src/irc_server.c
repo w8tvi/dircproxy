@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.55 2001/12/21 19:59:25 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.56 2001/12/21 20:07:54 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -457,6 +457,7 @@ static void _ircserver_error(struct ircproxy *p, int sock, int bad) {
 static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
   struct ircmessage msg;
   int squelch = 1;
+  int important = 0;
 
   if (ircprot_parsemsg(str, &msg) == -1)
     return -1;
@@ -996,6 +997,11 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
     squelch = 0;
 
+  } else if (!irc_strcasecmp(msg.cmd, "ERROR")) {
+    /* Errors are important enough to always forward to the client */
+    important = 1;
+    squelch = 0;
+
   } else if (!irc_strcasecmp(msg.cmd, "PRIVMSG")) {
     /* All PRIVMSGs go to the client unless we fiddle */
     squelch = 0;
@@ -1371,8 +1377,11 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     squelch = 0;
   }
 
-  if (!squelch && (p->client_status == IRC_CLIENT_ACTIVE))
+  if (!squelch 
+      && ((p->client_status == IRC_CLIENT_ACTIVE)
+          || (important && (p->client_status & IRC_CLIENT_CONNECTED)))) {
     net_send(p->client_sock, "%s\r\n", msg.orig);
+  }
 
   ircprot_freemsg(&msg);
   return 0;
