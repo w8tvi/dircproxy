@@ -1,40 +1,5 @@
 New features for 0.8.0:
 
-    FILTERING
-
-        * New stage in the PRIVMSG/NOTICE handling that filters things
-	  out.
-
-	  DIRCPROXY FILTERS /ME'S THIS NEEDS TO BE FIXED!!
-
-	    Looks for CTCP messages that we handle, automatic CTCP
-	    replying, DCC rewriting etc.
-	      ctcp_ping_reply yes/NO
-	      ctcp_ping_reply_always yes/NO
-	      ctcp_time_reply yes/NO
-	      ctcp_time_reply_always yes/NO
-	      ctcp_version_reply none/"dircproxy 0.8.0"
-	      ctcp_version_reply_always yes/NO
-	      ctcp_finger_reply none/"http://dircproxy.sourceforge.net/"
-	      ctcp_finger_reply_always yes/NO
-	      ctcp_userinfo_reply none/"some random text"
-	      ctcp_userinfo_reply_always yes/NO
-	      ctcp_clientinfo_reply none/"ACTION DCC VERSION CLIENT..."
-	      ctcp_clientinfo_reply_always yes/NO
-
-	    Filters out anything undesirable
-	      filter_effects yes/NO            # bold, underline etc
-	      filter_effects_always yes/NO
-	      filter_color yes/NO
-	      filter_color_always yes/NO
-	      filter_beep yes/NO
-	      filter_beep_always yes/NO
-	      filter_ctcp YES/no
-	      filter_ctcp_always yes/NO
-	      filter_ctcp_command NONE/command,command
-	      filter_ctcp_command_always YES/no
-
-
     DCC
 
 	* DCC proxying.  Essential feature really.  Intercept DCC requests,
@@ -96,16 +61,15 @@ New features for 0.8.0:
 
     SETUID
     
-        * setuid() support for when dircproxy is running as root.  This is
-	  also gonna have many forms
+        * setuid() support for when dircproxy is running as root.  The
+	  switch can be done before a server connection or afterwards.
 
             switch_user NONE/"nobody"
 	    switch_user_afterconnect yes/NO
 
-          This will fork() and dedicate the proxy unless already dedicated,
-	  then setuid() it.  The parent will close its proxy and make it dead
-	  (so inetd will result in a new process, with a dead parent).
-
+          This will fork(), dedicate the new proxy then setuid() to the right
+	  user.  The parent will declare its copy of that proxy dead and close
+	  up all its sockets etc.
 
 
 Would be nice:
@@ -116,6 +80,9 @@ Would be nice:
 	  its already in another client I have the source for :)
 
 	* XDCC proxy support, once I learn how it works (see above).
+
+	* dircproxy to send a number of ctcp's to the client on first
+	  connection, then use those as replies when the client is detached.
 
 	* Multiple listen ports if I can think of a good reason to
 	  have them.  

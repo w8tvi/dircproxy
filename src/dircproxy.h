@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.37 2000/10/30 13:44:55 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.38 2000/10/31 13:11:19 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -383,11 +383,17 @@
  */
 #define DEFAULT_OTHER_LOG_PROGRAM 0
 
-/* DEFAULT_TIME_OFFSET
+/* DEFAULT_LOG_TIMEOFFSET
  * Different in minutes from the IRC client to the dircproxy machine.
  *  0 = No difference
  */
-#define DEFAULT_TIME_OFFSET 0
+#define DEFAULT_LOG_TIMEOFFSET 0
+
+/* DEFAULT_LOG_EVENTS
+ * Bitmask of events that we can log.  All is 0xffff, best to keep it at
+ * that.  Otherwise check irc_net.h for the possible list.
+ */
+#define DEFAULT_LOG_EVENTS 0xffff
 
 /* DEFAULT_MOTD_LOGO
  * Display a nice dircproxy logo in the message of the day.  This logo is

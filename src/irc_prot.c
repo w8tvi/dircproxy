@@ -5,10 +5,11 @@
  * irc_prot.c
  *  - IRC protocol message parsing
  *  - IRC x!y@z parsing
- *  - CTCP stripping
+ *  - CTCP stripping and dequoting
+ *  - CTCP message parsing
  *  - Username sanitisation
  * --
- * @(#) $Id: irc_prot.c,v 1.8 2000/10/16 10:45:58 keybuk Exp $
+ * @(#) $Id: irc_prot.c,v 1.9 2000/10/31 13:11:20 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -20,6 +21,7 @@
 
 #include <dircproxy.h>
 #include "sprintf.h"
+#include "stringex.h"
 #include "irc_prot.h"
 #include "irc_string.h"
 
@@ -28,6 +30,7 @@ static int _ircprot_parse_prefix(char *, struct ircsource *);
 static int _ircprot_count_params(char *);
 static int _ircprot_get_params(char *, char ***, char ***);
 static char *_ircprot_skip_spaces(char *);
+static char *_ircprot_ctcpdequote(const char *);
 
 /* Parse an IRC message. num of params or -1 if no command */
 int ircprot_parsemsg(const char *message, struct ircmessage *msg) {
@@ -213,23 +216,163 @@ static char *_ircprot_skip_spaces(char *ptr) {
     return ptr;
 }
 
-/* Strip CTCP from a strip */
-void ircprot_stripctcp(char *msg) {
-  char *out, *in;
-  int inctcp;
+/* Returns a new string that's the dequoted version of the old one */
+static char *_ircprot_ctcpdequote(const char *msg) {
+  char *new, *out, *in, *ret;
+  int quote = 0;
 
-  out = in = msg;
-  inctcp = 0;
-
+  in = out = new = x_strdup(msg);
   while (*in) {
-    if (*in == 1) {
-      inctcp = (inctcp ? 0 : 1);
-    } else if (!inctcp) {
-      *(out++) = *in;
+    if (quote) {
+      if (*in == 'a') {
+        *(out++) = '\\';
+      } else {
+        *(out++) = *in;
+      }
+
+      quote = 0;
+    } else {
+      if (*in == '\\') {
+        quote = 1;
+      } else {
+        *(out++) = *in;
+      }
     }
+
     in++;
   }
   *out = 0;
+
+  ret = x_strdup(new);
+  free(new);
+  return ret;
+}
+
+/* Strip embedded CTCP messages from a string, placing the new string in the
+ * newmsg pointer and a strlist of the ctcp's that were found in the list
+ * pointer */
+void ircprot_stripctcp(const char *msg, char **newmsg, struct strlist **list) {
+  char *copy, *in, *out, *start = 0;
+  int ctcp = 0;
+
+  if (list)
+    *list = 0;
+
+  in = out = copy = x_strdup(msg);
+  while (*in) {
+    if (*in == 0x01) {
+      if (ctcp) {
+        *(in++) = 0;
+        out -= strlen(start);
+        ctcp = 0;
+
+        if (strlen(start + 1) && list) {
+          struct strlist *s;
+
+          s = (struct strlist *)malloc(sizeof(struct strlist));
+          s->str = _ircprot_ctcpdequote(start + 1);
+          s->next = 0;
+                                          
+          if (*list) {
+            struct strlist *ss;
+
+            ss = *list;
+            while (ss->next)
+              ss = ss->next;
+
+            ss->next = s;
+          } else {
+            *list = s;
+          }
+        }
+      } else {
+        /* Found start of a CTCP */
+        start = in;
+        ctcp = 1;
+        *(out++) = *(in++);
+      }
+    } else {
+      *(out++) = *(in++);
+    }
+  }
+  *out = 0;
+
+  if (newmsg)
+    *newmsg = x_strdup(copy);
+  free(copy);
+}
+
+/* Parse an CTCP message. num of params or -1 if no command */
+int ircprot_parsectcp(const char *message, struct ctcpmessage *cmsg) {
+  char *start, *ptr;
+
+  /* Copy the original message as well */
+  ptr = start = cmsg->orig = x_strdup(message);
+
+  /* No command? */
+  if (!*ptr) {
+    free(cmsg->orig);
+    return -1;
+  }
+
+  /* Take the command off the front */
+  ptr += strcspn(ptr, " ");
+  cmsg->cmd = (char *)malloc(ptr - start + 1);
+  strncpy(cmsg->cmd, start, ptr - start);
+  cmsg->cmd[ptr - start] = 0;
+  strupr(cmsg->cmd);
+
+  /* Get the parameters */
+  ptr += strspn(ptr, " ");
+  if (*ptr) {
+    int p;
+
+    start = ptr;
+    cmsg->numparams = 0;
+    while (*ptr) {
+      ptr += strcspn(ptr, " ");
+      ptr += strspn(ptr, " ");
+      cmsg->numparams++;
+    }
+
+    cmsg->params = (char **)malloc(sizeof(char *) * cmsg->numparams);
+    cmsg->paramstarts = (char **)malloc(sizeof(char *) * cmsg->numparams);
+
+    p = 0;
+    ptr = start;
+    while (*ptr) {
+      ptr += strcspn(ptr, " ");
+
+      cmsg->paramstarts[p] = start;
+      cmsg->params[p] = (char *)malloc(ptr - start + 1);
+      strncpy(cmsg->params[p], start, ptr - start);
+      cmsg->params[p][ptr - start] = 0;
+
+      ptr += strspn(ptr, " ");
+      start = ptr;
+      p++;
+    }
+
+  } else {
+    cmsg->numparams = 0;
+    cmsg->params = 0;
+    cmsg->paramstarts = 0;
+  }
+
+  return cmsg->numparams;
+}
+
+/* Free an CTCP message */
+void ircprot_freectcp(struct ctcpmessage *cmsg) {
+  int i;
+
+  for (i = 0; i < cmsg->numparams; i++)
+    free(cmsg->params[i]);
+
+  free(cmsg->cmd);
+  free(cmsg->params);
+  free(cmsg->paramstarts);
+  free(cmsg->orig);
 }
 
 /* Strip silly characters from a username */
