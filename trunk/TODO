@@ -2,19 +2,9 @@ For the next release (0.7.0)
 
 	* Maximum log sizes
 
-	* the /DIRCPROXY command.
-	  HELP
-	  RECALL [ nickname | [#chan] [from] ] < nlines | all >
-	  LOGSIZE [ nickname | #chan ]
-	  DETACH [ away-msg ]
-          PERSIST
-	  QUIT [ msg ]		(change /DQUIT to this)
+	* Fix FreeBSD compilation
 
-	* If dedicated_proxy = 1 then announce port on DETACH
-	  and if p->die_on_close = 1 then announce too
-
-	* PERSIST is available if die_on_close is 1, runs above function
-	  and sets die_on_close to 0
+	* Fix ia64 compilation
 
 
 Whenever time permits:
