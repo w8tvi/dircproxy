@@ -3,28 +3,192 @@ Stuff to do/fix in 0.7.x:
 	* Nothing yet
 
 
-Stuff for 0.8.0:
+Stuff for 0.8.0 and future development:
 
-	* DCC proxying/rewriting.  Not entirely sure what this involves,
-	  probably having listening sockets, rewriting addresses and all
-	  sorts of things like that.  Ick.
+	* DCC proxing.  Essential feature really.  Intercept DCC requests,
+	  making listen sockets and connect sockets, forwarding data
+	  between them, changing the addresses that get sent.
 
-	* DCC send capturing - capture files and store them on the server.
+	    dcc_proxy_incoming YES/no
+	    dcc_proxy_outgoing YES/no
 
-	* DCC-via-ssh.  This is quite nice, when we get a dcc request,
-	  we somehow run an ssh tunnel and forward the necessary ports
-	  via ssh.  Would involve killing the process when the proxy
-	  has died.  A nice feature to have if possible.
+          Silently reject, or physically reject?
 
-	* Possible "user" directive if dircproxy is running as root, which
-	  apon authentication would fork(), setuid() then dedicate the proxy
-	  to that user.  This would get around some of the ident issues...
+            dcc_proxy_reject_if_detched YES/no
 
-	* Support for identd's that can change username presented.
+	  Ports we should allocate to listen on, this should be a range
+	  that the client can connect to.
 
-	* Flood protection?  (How?  ctcp's are stripped are they not?)
+	    dcc_proxy_listen_ports port,port-port
 
-        * Server jumping/lists
+          No ssh proxying, its too complicated to maintain ssh connections
+
+        * DCC send capturing, instead of proxying them, it stores the files
+	  locally.
+
+	    dcc_capture_sends_always yes/NO
+	    dcc_capture_sends yes/NO
+
+        * setuid() support for when dircproxy is running as root.  This is
+	  also gonna have many forms
+
+            switch_user "nobody" (none)
+	    switch_user_after_connect yes/NO
+
+          This inherently forks() and dedicates the proxy if not already
+	  dedicated.
+
+	* Leave channels when user detaches, and rejoin when attached.
+
+	    channel_part_on_detach yes/NO
+	    channel_rejoin_on_attach YES/no
+
+	  If not rejoin, literally parts and removes record, if rejoin then
+	  it just sets it inactive and maybe a new flag to rejoin.
+
+	* Announce attachment and detachment to channels the user is on
+	  using a /ME
+
+	    detach_action "vanishes into the fog"
+	    attach_action "returns from the abyss"
+
+	* To remove idle times send empty PRIVMSGs to the server while
+	  away
+
+	    antiidle_timer 120
+	    
+	* There are some modes we shoud refuse to accept from a server
+	  (results in disconnection and cycling)
+
+	    server_refuse_modes "r"
+    
+	* Initial channels to join on first connection would be nice,
+	  could be probably done by seeding the channels list.
+
+	    join #lush
+	    join #foo
+
+        * Restrictions on /dircproxy commands
+
+	    allow_persist YES/no
+	    allow_detach YES/no
+
+        * New /dircproxy commands to show the server list and jump to
+	  any server in the list, or a new one to be added to the list
+
 	    /DIRCPROXY SERVERS
-	    /DIRCPROXY JUMP < num | server:port >
-	                            (adds to lists)
+	    /DIRCPROXY < JUMP | CONNECT > < num | server[:[port][:[pass]]] >
+
+          These are enabled/disabled using
+
+	    allow_jump YES/no
+
+	  And jumping to a different server using
+
+	    allow_jump_new YES/no
+
+        * Have an option whether to automatically connect to a server
+	  upon first connection.  If "no" then a notice is sent telling
+	  them to specify a server to connect to.  This is only there if
+	  allow_jump is yes.
+
+	    server_auto_connect YES/no
+
+        * If "server_auto_connect" is "no", and "allow_jump_new" is "yes"
+	  then connection classes can have no "server" lines
+
+        * Another new /dircproxy command, to change the host they
+	  bind() to, ie changes local_address on the fly.
+
+            /DIRCPROXY HOSTS
+
+	  To see which ones are in the list, and to change to one:
+
+	    /DIRCPROXY HOST < num | hostname >
+
+	  Which of course can be enabled/disabled
+
+	    allow_host YES/no
+
+          Any number of "local_address" lines can be specified, adding to
+	  a list of them.  /dircproxy host can add to this list depending on
+
+	    allow_host_new YES/no
+
+	  Changing hosts will result in disconnection from server and
+	  reconnection to it again.
+
+	* Include some kind of miniature identd daemon to answer queries
+	  for dircproxy.  Any number of
+
+	    ident_username "scott"
+
+	  lines can be specified, the first of which is used.  They can be
+	  listed with
+
+	    /DIRCPROXY IDENTS
+
+	  and changed with
+	  
+	    /DIRCPROXY IDENT < num | username >
+
+	  depending on whether either of these exist
+
+	    allow_ident yes
+	    allow_ident_new yes
+
+        * /DIRCPROXY needs to be documented in README, along with a number
+	  of scripts for IRC clients in contrib
+
+	* mIRC color stripping, when detached and when not detached
+
+	  filter_color yes/NO
+	  filter_color_always yes/NO
+
+        * Beep removal, when detached and when not detached
+
+	  filter_beep yes/NO
+	  filter_beep_always yes/NO
+
+        * CTCP removal can be customised
+
+	  filter_ctcp YES/no
+	  filter_ctcp_always yes/NO
+
+	  This won't affect DCC's, which will be grabbed before CTCP
+	  filtering
+
+	* Also some CTCPs can be replied to if so desired (done before
+	  CTCP filtering)
+
+	  ctcp_ping_reply yes/NO
+	  ctcp_finger_reply NONE/"message"
+	  ctcp_version_reply NONE/"message"
+
+	* Internal timeout timers for authentication and connection
+
+	    client_auth_timeout seconds
+	    client_connect_timeout seconds
+
+	  The latter only applying if server_auto_connect is no.
+
+	* Log messages can be passed to an external program
+
+	    chan_log_program NONE/"path"
+	    other_log_program NONE/"path"
+
+	  This will be done using traditional fork() and pipe()s.  They
+	  will still go in the files.
+	
+	* Perhaps a perl script in contrib that takes them in, filters them
+	  and mails them to an address?
+
+	* Multiple listen ports perhaps?
+
+	* Transparent proxying using ipchains/ipfwadm or whatever the
+	  kernel uses this week.  Figure out how its done.
+
+	* Proxy message of the day file, after logo, before stats
+
+	    motd_file none/"path"
+
