@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.30 2000/10/13 13:55:13 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.31 2000/10/16 10:46:48 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -21,6 +21,7 @@
 #include <arpa/inet.h>
 #include <time.h>
 
+#include "irc_prot.h"
 #include "stringex.h"
 
 /* a log file - there are good reasons why this isn't defined in irc_log.h */
@@ -142,6 +143,7 @@ struct ircproxy {
   int allow_motd;
   int allow_pong;
   int squelch_411;
+  struct strlist *squelch_modes;
 
   char *awaymessage;
   char *modes;
@@ -192,6 +194,8 @@ extern struct ircproxy *ircnet_fetchclass(struct ircconnclass *);
 extern struct ircchannel *ircnet_fetchchannel(struct ircproxy *, const char *);
 extern int ircnet_addchannel(struct ircproxy *, const char *);
 extern int ircnet_delchannel(struct ircproxy *, const char *);
+extern int ircnet_channel_mode(struct ircproxy *, struct ircchannel *,
+                               struct ircmessage *, int);
 extern struct ircchannel *ircnet_freechannel(struct ircchannel *);
 extern int ircnet_rejoin(struct ircproxy *, const char *);
 extern int ircnet_dedicate(struct ircproxy *);
