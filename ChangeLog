@@ -1,3 +1,100 @@
+2002-02-06 10:10  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: Added /DIRCPROXY USERS and /DIRCPROXY KILL
+	commands, improved the STATUS command a little too
+
+2002-02-06 10:08  Scott James Remnant <scott@netsplit.com>
+
+	* src/help.h: Documented /DIRCPROXY USERS and /DIRCPROXY KILL
+	commands
+
+2002-02-06 10:08  Scott James Remnant <scott@netsplit.com>
+
+	* src/main.c: Write pid file on startup and unlink on close.  This
+	is specified by the 'pid_file' config directive or the new -p
+	command line parameter
+
+2002-02-06 10:07  Scott James Remnant <scott@netsplit.com>
+
+	* src/: cfgfile.c, cfgfile.h, dircproxy.h, irc_net.h: Added config
+	file code for allow_users, allow_kill and pid_file directives
+
+2002-02-06 10:06  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxyrc, doc/dircproxy-crypt.1, doc/dircproxy.1: Added
+	new pid_file, allow_users and allow_kill config documentation
+
+2002-02-06 10:05  Scott James Remnant <scott@netsplit.com>
+
+	* contrib/: Makefile.am, README, cronchk.sh: Added the
+	much-asked-for crontab checking script, and a spot of documentation
+	about what all these things are.
+
+2002-02-05 10:07  Scott James Remnant <scott@netsplit.com>
+
+	* FAQ: Added a few more FAQs
+
+2002-02-05 10:05  Scott James Remnant <scott@netsplit.com>
+
+	* src/: help.h, irc_client.c: Implemented new /DIRCPROXY STATUS
+	command to dump the interesting members of struct ircproxy
+
+2002-02-05 10:01  Scott James Remnant <scott@netsplit.com>
+
+	* contrib/: Makefile.am, privmsg-log.pl: Added an other_log_program
+	script to log private messages to seperate files (fixes a FAQ)
+
+2002-02-05 10:00  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxyrc, doc/dircproxy.1: Documented that nick_keep
+	generally only works while you DON'T connect a client
+
+2002-02-05 09:56  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: Not going to do automatic connection to server
+
+2002-02-05 09:55  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: Only run the client_resetnick timer if
+	nick_keep is set in the configuration file
+
+2002-01-31 14:56  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_server.c: Removed extra brace that broke it
+
+2002-01-31 13:55  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxyrc, doc/dircproxy.1, src/cfgfile.c, src/irc_net.h,
+	src/irc_server.c: Log topic changes too
+
+2002-01-28 04:00  Scott James Remnant <scott@netsplit.com>
+
+	* src/main.c: That bad patch has left a haunting bug ever since
+	0.8.0 that I only spotted by reading the source for some random
+	reason.
+	
+	If the config file couldn't be re-read, the global variables (all 3
+	of them) would be reset to their default values, because the
+	memcpy() had been duplicated inside the failure if {}
+
+2002-01-27 23:43  Scott James Remnant <scott@netsplit.com>
+
+	* FAQ, README: Changed URLs to dircproxy.net now, yay
+
+2002-01-24 01:00  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_server.c: Resend the detach message to each channel we
+	rejoin when the server gets disconnected while the client is
+	detached.
+
+2002-01-24 00:37  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in, contrib/dircproxy.spec: CVS version now 1.0.3
+
+2002-01-01 18:14  Scott James Remnant <scott@netsplit.com>
+
+	* ChangeLog, NEWS, README, TODO: Version 1.0.2 released.
+
 2002-01-01 18:05  Scott James Remnant <scott@netsplit.com>
 
 	* AUTHORS.map: Moved CVS server so adjusted AUTHORS.map to reflect
