@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.64 2000/11/01 15:01:59 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.65 2000/11/02 16:13:44 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -14,6 +14,7 @@
  */
 
 #include <stdio.h>
+#include <sys/socket.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
@@ -37,6 +38,7 @@
 #include "irc_string.h"
 #include "irc_server.h"
 #include "irc_client.h"
+#include "dcc_net.h"
 #include "logo.h"
 #include "help.h"
 
@@ -411,9 +413,11 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
         squelch = 0;
 
       } else if (!irc_strcasecmp(msg.cmd, "PRIVMSG")) {
+        squelch = 0;
+
         /* Privmsgs from us get logged */
         if (msg.numparams >= 2) {
-          struct strlist *list;
+          struct strlist *list, *s;
           char *str;
 
           ircprot_stripctcp(msg.params[1], &str, &list);
@@ -435,51 +439,122 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
           }
           free(str);
 
-          if (list) {
-            struct strlist *s;
+          s = list;
+          while (s) {
+            struct ctcpmessage cmsg;
+            struct strlist *n;
+            char *unquoted;
+            int r;
 
-            s = list;
-            while (s) {
-              struct ctcpmessage cmsg;
-              struct strlist *n;
-              int r;
+            n = s->next;
+            r = ircprot_parsectcp(s->str, &cmsg);
+            unquoted = s->str;
+            free(s);
+            s = n;
+            if (r == -1) {
+              free(unquoted);
+              continue;
+            }
 
-              n = s->next;
-              r = ircprot_parsectcp(s->str, &cmsg);
-              free(s->str);
-              free(s);
-              s = n;
-              if (r == -1)
-                continue;
+            if (!strcmp(cmsg.cmd, "ACTION")) {
+              if (p->conn_class->log_events & IRC_LOG_ACTION) {
+                struct ircchannel *c;
 
-              if (!strcmp(cmsg.cmd, "ACTION")) {
-                if (p->conn_class->log_events & IRC_LOG_ACTION) {
-                  struct ircchannel *c;
+                c = ircnet_fetchchannel(p, msg.params[0]);
+                if (c) {
+                  char *tmp;
 
-                  c = ircnet_fetchchannel(p, msg.params[0]);
-                  if (c) {
-                    char *tmp;
-
-                    tmp = x_sprintf("%s!%s@%s", p->nickname, p->username,
-                                    p->hostname);
-                    irclog_ctcp(p, msg.params[0], tmp, "%s", cmsg.orig);
-                    free(tmp);
-                  }
+                  tmp = x_sprintf("%s!%s@%s", p->nickname, p->username,
+                                  p->hostname);
+                  irclog_ctcp(p, msg.params[0], tmp, "%s", cmsg.orig);
+                  free(tmp);
                 }
+              }
+              
+            } else if (!strcmp(cmsg.cmd, "DCC")) {
+              struct sockaddr_in vis_addr;
+              int len;
+
+              /* We need our local address to do anything DCC related */
+              len = sizeof(struct sockaddr_in);
+              if (getsockname(p->server_sock, (struct sockaddr *)&vis_addr,
+                               &len)) {
+                syscall_fail("getsockname", "", 0);
+
+              } else if ((cmsg.numparams >= 4)
+                         && !irc_strcasecmp(cmsg.params[0], "CHAT")) {
+                char *tmp, *oldmsg, *ptr, *dccmsg;
+                struct in_addr l_addr, r_addr;
+                short l_port, r_port;
+                char *rest = 0;
+                int type = 0;
+
+                /* Find out what type of DCC request this is */
+                if (!irc_strcasecmp(cmsg.params[0], "CHAT"))
+                  type = DCC_CHAT;
+
+                /* Eww, host order, how the hell does this even work
+                   between machines of a different byte order? */
+                r_addr.s_addr = strtoul(cmsg.params[2], (char **)NULL, 10);
+                r_port = atoi(cmsg.params[3]);
+                l_addr.s_addr = ntohl(vis_addr.sin_addr.s_addr);
+                if (cmsg.numparams >= 5)
+                  rest = cmsg.paramstarts[4];
+
+                /* Set up a dcc proxy */
+                if (!dccnet_new(type, 0, &l_port, r_addr, r_port)) {
+                  dccmsg = x_sprintf("\001DCC %s %s %lu %u%s%s\001",
+                                     cmsg.params[0], cmsg.params[1],
+                                     l_addr.s_addr, l_port,
+                                     (rest ? " " : ""), (rest ? rest : ""));
+                } else {
+                  dccmsg = x_strdup("");
+                  net_send(p->client_sock,
+                           ":%s NOTICE %s :\001DCC REJECT %s %s "
+                           "(%s: unable to proxy)\r\n",
+                           msg.params[0], p->nickname,
+                           cmsg.params[0], cmsg.params[1], PACKAGE);
+                }
+
+                /* Strip out the CTCP message */
+                oldmsg = x_strdup(msg.params[1]);
+                tmp = x_sprintf("\001%s\001", unquoted);
+                /* We're guaranteed that tmp is in oldmsg! */
+                ptr = strstr(oldmsg, tmp);
+                *ptr = 0;
+                ptr += strlen(tmp);
+
+                if (strlen(oldmsg) || strlen(dccmsg) || strlen(ptr))
+                  net_send(p->server_sock, ":%s PRIVMSG %s :%s%s%s\r\n",
+                           (msg.src.orig ? msg.src.orig : p->nickname),
+                           msg.params[0], oldmsg, dccmsg, ptr);
+
+                squelch = 1;
+                free(oldmsg);
+                free(dccmsg);
+                free(tmp);
+
               } else {
-                if (p->conn_class->log_events & IRC_LOG_CTCP)
-                  irclog_notice(p, msg.params[0], p->servername,
-                                "Sent CTCP %s to %s", cmsg.cmd, msg.params[0]);
+                /* Unknown DCC */
+                debug("Unknown or Unimplemented DCC request - %s",
+                      cmsg.params[0]);
               }
 
-              ircprot_freectcp(&cmsg);
+            } else {
+              /* Unknown CTCP */
+              if (p->conn_class->log_events & IRC_LOG_CTCP)
+                irclog_notice(p, msg.params[0], p->servername,
+                              "Sent CTCP %s to %s", cmsg.cmd, msg.params[0]);
+
             }
+
+            ircprot_freectcp(&cmsg);
+            free(unquoted);
           }
         }
 
         if (p->conn_class->idle_maxtime)
           ircserver_resetidle(p);
-        squelch = 0;
 
       } else if (!irc_strcasecmp(msg.cmd, "NOTICE")) {
         /* Notices from us get logged */
