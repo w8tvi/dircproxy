@@ -6,7 +6,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.67 2004/02/15 09:18:35 fharvey Exp $
+ * @(#) $Id: irc_server.c,v 1.68 2004/04/02 21:34:11 fharvey Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -552,7 +552,77 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     }
 
   } else if (!irc_strcasecmp(msg.cmd, "005")) {
-    /* Ignore 005 */
+    char *c0 = x_strdup(msg.params[1]), *c1, *c2;
+    int i = 0;
+
+    squelch = 0;
+
+    c1 = strchr(c0, ',');
+    if (!c1) {
+      i = 1;
+    } else {
+      *(c1++) = 0;
+      c2 = strrchr(c1, ' ');
+      if (!c2) {
+	i = 1;
+      } else {
+	*(c2++) = 0;
+	c1 = strrchr(c0, ' ');
+	if (!c1) {
+	  i = 1;
+	} else {
+	  *(c1++) = 0;
+	}
+      }
+    }
+
+    if (i) {
+      debug("Weird 005 message");
+    } else {
+      struct strlist *s;
+      char *server;
+
+      server = (char *)malloc(strlen(c1) + strlen(c2) + 2);
+      server = x_sprintf("%s:%s", c1, c2);
+
+      for (s = p->conn_class->servers; s; s = s->next) {
+	if (!irc_strcasecmp(server, s->str)) {
+	  break;
+	}
+      }
+
+      if (!s && p->conn_class->allow_jump_new) {
+	debug("New server because of a 005");
+
+	s = (struct strlist *)malloc(sizeof(struct strlist));
+	s->str = x_strdup(server);
+	s->next = 0;
+
+	if (p->conn_class->servers) {
+	  struct strlist *ss;
+
+	  for (ss = p->conn_class->servers; ss->next; ss = ss->next)
+	    ;
+
+	  ss->next = s;
+	} else {
+	  p->conn_class->servers = s;
+	}
+      }
+
+      if (s && p->conn_class->allow_jump) {
+	debug("Jumping to %s because of a 005", s->str);
+
+	if (IS_CLIENT_READY(p)) {
+	  ircclient_send_notice(p, "Got redirected to server %s", s->str);
+	}
+	irclog_log(p, IRC_LOG_SERVER, IRC_LOGFILE_SERVER, PACKAGE,
+		   "Got redirected to server %s by %s", s->str, msg.src.name);
+
+	p->conn_class->next_server = s;
+	ircserver_connectagain(p);
+      }
+    }
   } else if (!irc_strcasecmp(msg.cmd, "375")) {
     /* Ignore 375 unless allow_motd */
     if (p->allow_motd)

@@ -7,7 +7,7 @@
  *  - The list of currently active DCC proxies
  *  - Miscellaneous DCC functions
  * --
- * @(#) $Id: dcc_net.c,v 1.15 2004/02/14 09:05:12 fharvey Exp $
+ * @(#) $Id: dcc_net.c,v 1.16 2004/04/02 21:34:11 fharvey Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -176,7 +176,7 @@ static int _dccnet_connect(struct dccproxy *p, struct in_addr addr, int port,
   
   if (connect(p->sender_sock, (struct sockaddr *)&(p->sender_addr),
               sizeof(struct sockaddr_in)) && (errno != EINPROGRESS)) {
-    syscall_fail("connect", inet_ntoa(addr), 0);
+    syscall_fail("connect", inet_ntoa(p->sender_addr.sin_addr), 0);
     net_close(&(p->sender_sock));
     return -1;
   }
