@@ -6,7 +6,7 @@
  *  - Case conversion functions for IRC protocol
  *  - Comparison and match functions for IRC protocol
  * --
- * @(#) $Id: irc_string.c,v 1.4 2000/10/13 12:43:39 keybuk Exp $
+ * @(#) $Id: irc_string.c,v 1.5 2000/11/02 16:39:42 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -65,7 +65,7 @@ char *irc_strupr(char *str) {
         *c = '\\';
         break;
       default:
-        *c = tolower(*c);
+        *c = toupper(*c);
         break;
     }
     c++;
