@@ -9,6 +9,8 @@ Stuff for 0.8.0:
 	  probably having listening sockets, rewriting addresses and all
 	  sorts of things like that.  Ick.
 
+	* DCC send capturing - capture files and store them on the server.
+
 	* DCC-via-ssh.  This is quite nice, when we get a dcc request,
 	  we somehow run an ssh tunnel and forward the necessary ports
 	  via ssh.  Would involve killing the process when the proxy
@@ -20,3 +22,9 @@ Stuff for 0.8.0:
 
 	* Support for identd's that can change username presented.
 
+	* Flood protection?  (How?  ctcp's are stripped are they not?)
+
+        * Server jumping/lists
+	    /DIRCPROXY SERVERS
+	    /DIRCPROXY JUMP < num | server:port >
+	                            (adds to lists)
