@@ -1,30 +1,9 @@
 Need to do
 
-	* Misc log is dissapearing because we reopen it every client connection
-	  This is okay, just need to neaten it a bit, I reckon this log should
-	  be for server events, and wiped every time its recalled.  PRIVMSG's
-	  we'll somehow put in their own logs, and maybe only spool what you
-	  missed also?
-
-	* Perhaps more permanent logging for those people that want it
-	  (from x-trem@gmx.net)
-	  [ i'm thinking this is up to the client though ... ]
-
-	* put stats into motd about size of log files and channels joined etc
-
 	* the /DIRCPROXY command. (0.7.0 ?)
 	  RECALL <chan/nick/*> from nlines
 	  DETACH <away-msg>
 	  QUIT <msg>		(change /DQUIT to this)
-
-	* Re-isolate certain "Connecting to server..." notices back to
-	  being from "dircproxy" and not the server...  It seems to be
-	  confusing ircII
-
-	* Need to respond to Anti-JOIN messages if the client isn't connected
-	  by deleting the channel from our lists.  (Otherwise it'll get
-	  confused if when rejoining a server it can't rejoin the channel).
-	  Perhaps notify user we couldn't rejoin ?
 
 
 Would be nice
@@ -39,4 +18,5 @@ Would be nice
 
 	* (further to above to)
 	  -dircproxy- Reconnect to this session at hostname.domain.tld:46702
+          Maybe only if /DIRCPROXY PERSIST is sent ... ? :o)
 
