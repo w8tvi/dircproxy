@@ -9,7 +9,7 @@
  *  - Signal handling
  *  - Debug functions
  * --
- * @(#) $Id: main.c,v 1.46 2000/11/10 15:12:35 keybuk Exp $
+ * @(#) $Id: main.c,v 1.47 2000/11/15 14:59:12 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,7 +63,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.46 2000/11/10 15:12:35 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.47 2000/11/15 14:59:12 keybuk Exp $";
 
 /* The name of the program */
 static char *progname;
@@ -264,10 +264,10 @@ int main(int argc, char *argv[]) {
     }
 
   } else {
-    debug("Inetd SuperTed mode!");
-
     /* running under inetd means we are backgrounded right *now* */
     in_background = 1;
+
+    debug("Inetd SuperTed mode!");
 
     /* Hook STDIN into a new proxy */
     ircnet_hooksocket(STDIN_FILENO);

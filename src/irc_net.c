@@ -8,7 +8,7 @@
  *  - The list of currently active proxies
  *  - Miscellaneous IRC functions
  * --
- * @(#) $Id: irc_net.c,v 1.37 2000/11/10 15:07:10 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.38 2000/11/15 14:59:12 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -143,8 +143,14 @@ int ircnet_hooksocket(int sock) {
   }
 
   p->die_on_close = 1;
+  net_create(&(p->client_sock));
 
-  return _ircnet_client_connected(p);
+  if (p->client_sock != -1) {
+    return _ircnet_client_connected(p);
+  } else {
+    free(p);
+    return -1;
+  }
 }
 
 /* Accept a client. */
@@ -163,8 +169,11 @@ static void _ircnet_acceptclient(void *data, int sock) {
   }
   net_create(&(p->client_sock));
 
-  if (p->client_sock != -1) 
+  if (p->client_sock != -1) {
     _ircnet_client_connected(p);
+  } else {
+    free(p);
+  }
   return;
 }
 
