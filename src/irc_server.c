@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.41 2000/11/02 16:15:50 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.42 2000/11/02 16:48:52 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -30,6 +30,7 @@
 #include "net.h"
 #include "dns.h"
 #include "timers.h"
+#include "dcc_net.h"
 #include "irc_log.h"
 #include "irc_net.h"
 #include "irc_prot.h"
@@ -905,12 +906,16 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     squelch = 0;
 
   } else if (!irc_strcasecmp(msg.cmd, "PRIVMSG")) {
+    /* All PRIVMSGs go to the client unless we fiddle */
+    squelch = 0;
+
     if (msg.numparams >= 2) {
-      struct strlist *list;
+      struct strlist *list, *s;
       char *str;
 
       ircprot_stripctcp(msg.params[1], &str, &list);
 
+      /* Privmsgs get logged */
       if (str && strlen(str)) {
         if (p->conn_class->log_events & IRC_LOG_TEXT)
           irclog_msg(p, msg.params[0],
@@ -918,42 +923,110 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       }
       free(str);
 
-      if (list) {
-        struct strlist *s;
+      /* Handle CTCP */
+      s = list;
+      while (s) {
+        struct ctcpmessage cmsg;
+        struct strlist *n;
+        char *unquoted;
+        int r;
 
-        s = list;
-        while (s) {
-          struct ctcpmessage cmsg;
-          struct strlist *n;
-          int r;
+        n = s->next;
+        r = ircprot_parsectcp(s->str, &cmsg);
+        unquoted = s->str;
+        free(s);
+        s = n;
+        if (r == -1) {
+          free(unquoted);
+          continue;
+        }
+      
+        if (!strcmp(cmsg.cmd, "ACTION")) {
+          if (p->conn_class->log_events & IRC_LOG_ACTION)
+            irclog_ctcp(p, msg.params[0],
+                        (msg.src.orig ? msg.src.orig : p->servername),
+                        "%s", cmsg.orig);
 
-          n = s->next;
-          r = ircprot_parsectcp(s->str, &cmsg);
-          free(s->str);
-          free(s);
-          s = n;
-          if (r == -1)
-            continue;
-        
-          if (!strcmp(cmsg.cmd, "ACTION")) {
-            if (p->conn_class->log_events & IRC_LOG_ACTION)
-              irclog_ctcp(p, msg.params[0],
-                          (msg.src.orig ? msg.src.orig : p->servername),
-                          "%s", cmsg.orig);
+        } else if (!strcmp(cmsg.cmd, "DCC")) {
+          struct sockaddr_in vis_addr;
+          int len;
+
+          /* We need our local address to do anything DCC related */
+          len = sizeof(struct sockaddr_in);
+          if (getsockname(p->server_sock, (struct sockaddr *)&vis_addr, &len)) {
+            syscall_fail("getsockname", "", 0);
+
+          } else if ((cmsg.numparams >= 4)
+                     && !irc_strcasecmp(cmsg.params[0], "CHAT")) {
+            char *tmp, *oldmsg, *ptr, *dccmsg;
+            struct in_addr l_addr, r_addr;
+            short l_port, r_port;
+            char *rest = 0;
+            int type = 0;
+
+            /* Find out what type of DCC request this is */
+            if (!irc_strcasecmp(cmsg.params[0], "CHAT"))
+              type = DCC_CHAT;
+
+            /* Eww, host order, how the hell does this even work
+               between machines of a different byte order? */
+            r_addr.s_addr = strtoul(cmsg.params[2], (char **)NULL, 10);
+            r_port = atoi(cmsg.params[3]);
+            l_addr.s_addr = ntohl(vis_addr.sin_addr.s_addr);
+            if (cmsg.numparams >= 5)
+              rest = cmsg.paramstarts[4];
+
+            /* Set up a dcc proxy */
+            if (!dccnet_new(type, 0, &l_port, r_addr, r_port)) {
+              dccmsg = x_sprintf("\001DCC %s %s %lu %u%s%s\001",
+                                 cmsg.params[0], cmsg.params[1],
+                                 l_addr.s_addr, l_port,
+                                 (rest ? " " : ""), (rest ? rest : ""));
+            } else {
+              dccmsg = x_strdup("");
+              net_send(p->server_sock,
+                       ":%s NOTICE %s :\001DCC REJECT %s %s "
+                       "(%s: unable to proxy)\r\n", p->nickname,
+                       (msg.src.name ? msg.src.name : p->servername),
+                       cmsg.params[0], cmsg.params[1], PACKAGE);
+            }
+
+            /* Strip out the CTCP message */
+            oldmsg = x_strdup(msg.params[1]);
+            tmp = x_sprintf("\001%s\001", unquoted);
+            /* We're guaranteed that tmp is in oldmsg! */
+            ptr = strstr(oldmsg, tmp);
+            *ptr = 0;
+            ptr += strlen(tmp);
+
+            if (strlen(oldmsg) || strlen(dccmsg) || strlen(ptr))
+              net_send(p->client_sock, ":%s PRIVMSG %s :%s%s%s\r\n",
+                       (msg.src.orig ? msg.src.orig : p->servername),
+                       msg.params[0], oldmsg, dccmsg, ptr);
+
+            squelch = 1;
+            free(oldmsg);
+            free(dccmsg);
+            free(tmp);
+
           } else {
-            if (p->conn_class->log_events & IRC_LOG_CTCP)
-              irclog_notice(p, msg.params[0], p->servername, "CTCP %s from %s",
-                            cmsg.cmd, (msg.src.fullname
-                                       ? msg.src.fullname : p->servername));
+            /* Unknown DCC */
+            debug("Unknown or Unimplemented DCC request - %s",
+                  cmsg.params[0]);
           }
 
-          ircprot_freectcp(&cmsg);
+        } else {
+          /* Unknown CTCP */
+          if (p->conn_class->log_events & IRC_LOG_CTCP)
+            irclog_notice(p, msg.params[0], p->servername, "CTCP %s from %s",
+                          cmsg.cmd, (msg.src.fullname
+                                     ? msg.src.fullname : p->servername));
         }
+
+        ircprot_freectcp(&cmsg);
+        free(unquoted);
       }
     }
-
-    /* All PRIVMSGs go to the client */
-    squelch = 0;
 
   } else if (!irc_strcasecmp(msg.cmd, "NOTICE")) {
     if (msg.numparams >= 1) {
