@@ -64,6 +64,8 @@ struct sockbuff {
 struct sockinfo {
   int sock;
   int closed;
+
+  SSL *ssl;
  
   struct sockbuff *in_buff, *in_buff_last;
   struct sockbuff *out_buff, *out_buff_last;
@@ -303,7 +305,7 @@ static void _net_expunge(void) {
   l = 0;
   s = sockets;
   while (s) {
-    if (s->closed && ((s->type != SOCK_NORMAL) || !s->out_buff)) {
+	if (s->closed && ((!(s->type & SOCK_NORMAL)) || !s->out_buff)) {
       struct sockinfo *n;
 
       n = s->next;
@@ -322,7 +324,7 @@ static void _net_expunge(void) {
 }
 
 /* Amend a socket's hooks */
-int net_hook(int sock, int type, void *info, void (*activity_func)(void *, int),
+int net_hook(int sock, int type, SSL *ssl, void *info, void (*activity_func)(void *, int),
              void (*error_func)(void *, int, int)) {
   struct sockinfo *sockinfo;
 
@@ -330,6 +332,7 @@ int net_hook(int sock, int type, void *info, void (*activity_func)(void *, int),
   if (sockinfo) {
     sockinfo->type = type;
     sockinfo->info = info;
+    sockinfo->ssl = ssl;    
     sockinfo->activity_func = activity_func;
     sockinfo->error_func = error_func;
     return 0;
@@ -714,17 +717,17 @@ int net_poll(void) {
        there's data to write and we're either not throttling this socket or
        we've sent less then the throttle (period stuff is done above) */
 #ifdef HAVE_POLL
-    if (s->type == SOCK_CONNECTING) {
+    if (s->type & SOCK_CONNECTING) {
       ufds[sn].events |= POLLOUT;
-    } else if ((s->type != SOCK_LISTENING) && s->out_buff
+    } else if ((!(s->type & SOCK_LISTENING)) && s->out_buff
                && (!s->throtbytes || (s->throtamt < s->throtbytes))) {
       ufds[sn].events |= POLLOUT;
     }
 #else /* HAVE_POLL */
 # ifdef HAVE_SELECT
-    if (s->type == SOCK_CONNECTING) {
+    if (s->type & SOCK_CONNECTING) {
       FD_SET(s->sock, &writeset);
-    } else if ((s->type != SOCK_LISTENING) && s->out_buff
+    } else if ((!(s->type & SOCK_LISTENING)) && s->out_buff
                && (!s->throtbytes || (s->throtamt < s->throtbytes))) {
       FD_SET(s->sock, &writeset);
     }
@@ -770,7 +773,7 @@ int net_poll(void) {
     if (sn >= ns)
       break;
 
-    if (!s->closed || ((s->type == SOCK_NORMAL) && s->out_buff)) {
+    if (!s->closed || ((s->type & SOCK_NORMAL) && s->out_buff)) {
       int can_read, can_write;
 
 #ifdef HAVE_POLL
@@ -784,7 +787,7 @@ int net_poll(void) {
 # endif /* HAVE_SELECT */
 #endif /* HAVE_POLL */
 
-      if (s->type == SOCK_CONNECTING) {
+      if (s->type & SOCK_CONNECTING) {
         if (can_read || can_write) {
           int error, len;
 
@@ -813,7 +816,7 @@ int net_poll(void) {
           }
         }
 
-      } else if (s->type == SOCK_LISTENING) {
+      } else if (s->type & SOCK_LISTENING) {
         /* No error conditions for listening sockets */
         if (can_read) {
           debug("Got new connection");
@@ -830,10 +833,18 @@ int net_poll(void) {
           int br, rr;
 
           br = 0;
-          while ((rr = read(s->sock, buff, NET_BLOCK_SIZE)) > 0) {
-            _net_buffer(s, SB_IN, SM_RAW, buff, rr);
-            br += rr;
-          }
+          if (s->type & SOCK_SSL) {
+				    while ((rr = SSL_read(s->ssl, buff, NET_BLOCK_SIZE)) > 0) {
+	    			  _net_buffer(s, SB_IN, SM_RAW, buff, rr);
+	      			br += rr;
+	    			}
+	  			} 
+          else {
+	    			while ((rr = read(s->sock, buff, NET_BLOCK_SIZE)) > 0) {
+	      			_net_buffer(s, SB_IN, SM_RAW, buff, rr);
+	      			br += rr;
+	    			}
+	  			}
 
           /* Some kind of error :( */
           if (rr == -1) {
@@ -892,7 +903,13 @@ int net_poll(void) {
                     ? (s->throtbytes - s->throtamt) : bl);
             }
 
-            wl = write(s->sock, s->out_buff->data, bl);
+            if (s->type & SOCK_SSL) {
+              wl = SSL_write(s->ssl, s->out_buff->data, bl);
+            }
+            else {
+              wl = write(s->sock, s->out_buff->data, bl);
+            }
+
             if (wl == -1) {
               /* Don't actually detect errors or closure using write, it'll
                  poll for HUP or IN if that happens */

@@ -289,6 +289,16 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
       net_close(&(p->server_sock));
       ret = -1;
     } else {
+      if (p->conn_class->server_ssl)
+      {
+        SSL_load_error_strings();
+        SSL_library_init();
+        p->SSL_struct.ctx = SSL_CTX_new(SSLv23_client_method());
+        p->SSL_struct.ssl = SSL_new(p->SSL_struct.ctx);
+        SSL_set_fd(p->SSL_struct.ssl, p->server_sock);
+        SSL_connect(p->SSL_struct.ssl);
+        p->SSL_struct.cert = SSL_get_peer_certificate(p->SSL_struct.ssl);
+      }
       ret = 0;
     }
   }
@@ -306,8 +316,12 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
     p->serverpassword = 0;
 
   } else {
+    int flag;
+    flag = SOCK_CONNECTING;
+    if (p->conn_class->server_ssl) flag |= SOCK_SSL;
+  	
     p->server_status |= IRC_SERVER_CREATED;
-    net_hook(p->server_sock, SOCK_CONNECTING, (void *)p,
+    net_hook(p->server_sock, flag, p->SSL_struct.ssl, (void *)p,
              ACTIVITY_FUNCTION(_ircserver_connected),
              ERROR_FUNCTION(_ircserver_connectfailed));
     debug("Connection in progress");
@@ -316,6 +330,11 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
 
 /* Called when a new server has connected */
 static void _ircserver_connected(struct ircproxy *p, int sock) {
+  int flag;
+
+  flag = SOCK_NORMAL;
+  if (p->conn_class->server_ssl) flag |= SOCK_SSL;
+
   if (sock != p->server_sock) {
     error("Unexpected socket %d in _ircserver_connected, expected %d", sock,
           p->server_sock);
@@ -325,7 +344,7 @@ static void _ircserver_connected(struct ircproxy *p, int sock) {
 
   debug("Connection succeeded");
   p->server_status |= IRC_SERVER_CONNECTED;
-  net_hook(p->server_sock, SOCK_NORMAL, (void *)p,
+  net_hook(p->server_sock, flag, p->SSL_struct.ssl, (void *)p,
            ACTIVITY_FUNCTION(_ircserver_data),
            ERROR_FUNCTION(_ircserver_error));
   if (p->conn_class->server_throttle)

@@ -45,7 +45,7 @@ void dccsend_connected(struct dccproxy *p, int sock) {
 
   debug("DCC Connection succeeded");
   p->sender_status |= DCC_SENDER_CONNECTED;
-  net_hook(p->sender_sock, SOCK_NORMAL, (void *)p,
+  net_hook(p->sender_sock, SOCK_NORMAL, NULL, (void *)p,
            ACTIVITY_FUNCTION(_dccsend_data),
            ERROR_FUNCTION(_dccsend_error));
 }
@@ -71,7 +71,7 @@ void dccsend_connectfailed(struct dccproxy *p, int sock, int bad) {
 
 /* Called when the sendee has been accepted */
 void dccsend_accepted(struct dccproxy *p) {
-  net_hook(p->sendee_sock, SOCK_NORMAL, (void *)p,
+  net_hook(p->sendee_sock, SOCK_NORMAL, NULL, (void *)p,
            ACTIVITY_FUNCTION(_dccsend_data),
            ERROR_FUNCTION(_dccsend_error));
 

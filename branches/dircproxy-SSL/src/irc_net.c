@@ -123,7 +123,7 @@ int _ircnet_listen(struct sockaddr_in *local_addr) {
   }
   debug("Listening on socket %d", this_sock);
   listen_sock = this_sock;
-  net_hook(listen_sock, SOCK_LISTENING, 0,
+  net_hook(listen_sock, SOCK_LISTENING, NULL, 0,
            ACTIVITY_FUNCTION(_ircnet_acceptclient), 0);
 
   return 0;

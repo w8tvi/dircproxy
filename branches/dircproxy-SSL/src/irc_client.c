@@ -98,7 +98,7 @@ static void _ircclient_connected2(struct ircproxy *p, void *data,
   ircclient_send_notice(p, "Got your hostname.");
 
   p->client_status |= IRC_CLIENT_CONNECTED;
-  net_hook(p->client_sock, SOCK_NORMAL, (void *)p,
+  net_hook(p->client_sock, SOCK_NORMAL, NULL, (void *)p,
            ACTIVITY_FUNCTION(_ircclient_data),
            ERROR_FUNCTION(_ircclient_error));
 
@@ -743,7 +743,7 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
       tmp_p->client_sock = p->client_sock;
       tmp_p->client_status |= IRC_CLIENT_CONNECTED | IRC_CLIENT_AUTHED;
       tmp_p->client_addr = p->client_addr;
-      net_hook(tmp_p->client_sock, SOCK_NORMAL, (void *)tmp_p,
+      net_hook(tmp_p->client_sock, SOCK_NORMAL, NULL, (void *)tmp_p,
                ACTIVITY_FUNCTION(_ircclient_data),
                ERROR_FUNCTION(_ircclient_error));
 
