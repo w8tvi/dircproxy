@@ -1,9 +1,5 @@
 For the next release (0.7.0)
 
-	* Drop modes when detached
-
-	  drop_modes			"+o"
-
 	* Reload configuration file on a HUP.  Probably the best way is to
 	  reassociate everyone who's password hasn't been changed.  Password
 	  changes will kick people off.
