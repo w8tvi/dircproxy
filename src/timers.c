@@ -5,7 +5,7 @@
  * timers.c
  *  - Scheduling events
  * --
- * @(#) $Id: timers.c,v 1.5 2000/10/10 13:08:36 keybuk Exp $
+ * @(#) $Id: timers.c,v 1.6 2000/10/23 12:03:44 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -18,15 +18,14 @@
 
 #include <dircproxy.h>
 #include "sprintf.h"
-#include "irc_net.h"
 #include "timers.h"
 
 /* structure of a timer */
 struct timer {
   char *id;
   time_t time;
-  struct ircproxy *proxy;
-  void (*function)(struct ircproxy *, void *);
+  void (*function)(void *, void *);
+  void *boundto;
   void *data;
   
   struct timer *next;
@@ -42,12 +41,12 @@ static struct timer *timers = 0;
 static unsigned long nexttimer = 0;
 
 /* Check if a timer exists */
-int timer_exists(struct ircproxy *p, const char *id) {
+int timer_exists(void *b, const char *id) {
   struct timer *t;
 
   t = timers;
   while (t) {
-    if ((p == t->proxy) && !strcmp(id, t->id))
+    if ((b == t->boundto) && !strcmp(id, t->id))
       return 1;
     t = t->next;
   }
@@ -56,15 +55,14 @@ int timer_exists(struct ircproxy *p, const char *id) {
 }
 
 /* Add a new timer */
-char *timer_new(struct ircproxy *p, const char *id, unsigned long interval,
-                void (*func)(struct ircproxy *, void *), void *data) {
+char *timer_new(void *b, const char *id, unsigned long interval,
+                void (*func)(void *, void *), void *data) {
   struct timer *t;
 
-  if (id && timer_exists(p, id))
+  if (id && timer_exists(b, id))
     return 0;
 
   t = (struct timer *)malloc(sizeof(struct timer));
-  t->proxy = p;
   if (id) {
     t->id = x_strdup(id);
   } else {
@@ -72,6 +70,7 @@ char *timer_new(struct ircproxy *p, const char *id, unsigned long interval,
   }
   t->time = (interval ? time(NULL) + interval : 0);
   t->function = func;
+  t->boundto = b;
   t->data = data;
 
   t->next = timers;
@@ -83,14 +82,14 @@ char *timer_new(struct ircproxy *p, const char *id, unsigned long interval,
 }
 
 /* Delete a timer */
-int timer_del(struct ircproxy *p, char *id) {
+int timer_del(void *b, char *id) {
   struct timer *t, *l;
 
   l = 0;
   t = timers;
 
   while (t) {
-    if ((p == t->proxy) && !strcmp(id, t->id)) {
+    if ((b == t->boundto) && !strcmp(id, t->id)) {
       if (l) {
         l->next = t->next;
       } else {
@@ -111,7 +110,7 @@ int timer_del(struct ircproxy *p, char *id) {
 }
 
 /* Delete all timers with a certain ircproxy class */
-int timer_delall(struct ircproxy *p) {
+int timer_delall(void *b) {
   struct timer *t, *l;
   int numdone;
 
@@ -120,7 +119,7 @@ int timer_delall(struct ircproxy *p) {
   numdone = 0;
 
   while (t) {
-    if (t->proxy == p) {
+    if (t->boundto == b) {
       struct timer *n;
 
       n = t->next;
@@ -156,13 +155,12 @@ int timer_poll(void) {
   while (t) {
 
     if (t->time <= ctime) {
-      void (*function)(struct ircproxy *, void *);
-      struct ircproxy *p;
+      void (*function)(void *, void *);
       struct timer *n;
-      void *data;
+      void *b, *data;
 
       function = t->function;
-      p = t->proxy;
+      b = t->boundto;
       data = t->data;
       n = t->next;
       debug("Timer %s triggered", t->id);
@@ -175,7 +173,7 @@ int timer_poll(void) {
       }
 
       if (function)
-        function(p, data);
+        function(b, data);
     } else {
       l = t;
       t = t->next;
