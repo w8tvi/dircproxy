@@ -6,7 +6,7 @@
  *  - Handling of log programs
  *  - Recalling from log files
  * --
- * $Id: irc_log.c,v 1.47 2003/11/25 20:49:21 bear Exp $
+ * $Id: irc_log.c,v 1.48 2004/02/26 20:06:15 fharvey Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,6 +74,11 @@
 #define IS_SERVER_LOG(_p, _log)  ((_log) == &((_p)->server_log))
 #define IS_PRIVATE_LOG(_p, _log) ((_log) == &((_p)->private_log))
 
+// MacOSX dont add PACKAGE_NAME to config.h
+#ifndef PACKAGE_NAME
+# define PACKAGE_NAME "dircproxy"
+#endif 
+       
 
 /* Key/Value pairs to hold a string event flag and associated #define value */
 typedef struct _flag_info {
@@ -160,7 +165,7 @@ irclog_maketempdir(IRCProxy *p)
 
 	/* Combine them all to make the log directory name */
 	debug("Process ID = '%d'", getpid());
-	p->temp_logdir = x_sprintf("%s/%s-%s-%d-%d", tmpdir, PACKAGE_NAME,
+        p->temp_logdir = x_sprintf("%s/%s-%s-%d-%d", tmpdir, PACKAGE_NAME,
 				   uname, getpid(), counter++);
 	debug("Log temp directory = '%s'", p->temp_logdir);
 
