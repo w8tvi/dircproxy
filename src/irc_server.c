@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.60 2002/01/31 14:56:37 scott Exp $
+ * @(#) $Id: irc_server.c,v 1.60.2.1 2002/08/17 19:08:41 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -331,8 +331,7 @@ static void _ircserver_connected(struct ircproxy *p, int sock) {
     ircclient_send_notice(p, "Connected to server");
 
   if (p->conn_class->log_events & IRC_LOG_SERVER)
-    irclog_notice(p, p->nickname, PACKAGE,
-                  "Connected to server: %s", p->servername);
+    irclog_notice(p, 0, PACKAGE, "Connected to server: %s", p->servername);
 
   /* Need to try and look up our local hostname now we have a socket to
      somewhere that will tell us */
@@ -640,12 +639,11 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
         if (p->client_status != IRC_CLIENT_ACTIVE) {
           if (p->conn_class->log_events & IRC_LOG_ERROR) {
             if (msg.numparams >= 3) {
-              irclog_notice(p, p->nickname, PACKAGE, 
-                            "Couldn't rejoin %s: %s (%s)",
+              irclog_notice(p, 0, PACKAGE, "Couldn't rejoin %s: %s (%s)",
                             msg.params[1], msg.params[2], msg.cmd);
             } else {
-              irclog_notice(p, p->nickname, PACKAGE,
-                            "Couldn't rejoin %s (%s)", msg.params[1], msg.cmd);
+              irclog_notice(p, 0, PACKAGE, "Couldn't rejoin %s (%s)",
+                            msg.params[1], msg.cmd);
             }
           }
 
@@ -789,7 +787,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
           ircclient_nick_changed(p, msg.params[0]);
           if (p->conn_class->log_events & IRC_LOG_NICK)
-            irclog_notice(p, p->nickname, p->servername,
+            irclog_notice(p, 0, p->servername,
                           "You changed your nickname to %s", msg.params[0]);
         }
 
@@ -805,8 +803,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       /* Someone changing their nickname */
       if (msg.numparams >= 1) {
         if (p->conn_class->log_events & IRC_LOG_NICK)
-          irclog_notice(p, p->nickname, p->servername,
-                        "%s changed nickname to %s",
+          irclog_notice(p, 0, p->servername, "%s changed nickname to %s",
                         msg.src.fullname, msg.params[0]);
       }
       squelch = 0;
@@ -821,7 +818,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
         int param;
 
         if (p->conn_class->log_events & IRC_LOG_MODE)
-          irclog_notice(p, p->nickname, p->servername,
+          irclog_notice(p, 0, p->servername,
                         "Your mode was changed: %s", msg.paramstarts[1]);
 
         for (param = 1; param < msg.numparams; param++)
@@ -1023,10 +1020,10 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     /* Somebody left IRC */
     if (p->conn_class->log_events & IRC_LOG_QUIT) {
       if (msg.numparams >= 1) {
-        irclog_notice(p, p->nickname, p->servername, "%s quit from IRC: %s",
+        irclog_notice(p, 0, p->servername, "%s quit from IRC: %s",
                       msg.src.fullname, msg.params[0]);
       } else {
-        irclog_notice(p, p->nickname, p->servername, "%s quit from IRC",
+        irclog_notice(p, 0, p->servername, "%s quit from IRC",
                       msg.src.fullname);
       }
     }
@@ -1448,7 +1445,7 @@ static int _ircserver_close(struct ircproxy *p) {
   }
 
   if (p->conn_class->log_events & IRC_LOG_SERVER)
-    irclog_notice(p, p->nickname, PACKAGE, "Lost connection to server: %s",
+    irclog_notice(p, 0, PACKAGE, "Lost connection to server: %s",
                   p->servername);
 
   timer_new((void *)p, "server_recon", p->conn_class->server_retry,
@@ -1479,7 +1476,7 @@ int ircserver_connectagain(struct ircproxy *p) {
     if (IS_CLIENT_READY(p)) {
       ircclient_send_notice(p, "Dropped connnection to server");
       if (p->conn_class->log_events & IRC_LOG_SERVER)
-        irclog_notice(p, p->nickname, PACKAGE,
+        irclog_notice(p, 0, PACKAGE,
                       "Dropped connection to server: %s", p->servername);
       _ircserver_lost(p);
     }

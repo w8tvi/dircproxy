@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.41 2002/02/06 10:07:42 scott Exp $
+ * @(#) $Id: cfgfile.c,v 1.41.2.1 2002/08/17 19:08:41 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -117,6 +117,16 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
                             ? x_strdup(DEFAULT_OTHER_LOG_COPYDIR) : 0);
   def->other_log_program = (DEFAULT_OTHER_LOG_PROGRAM
                             ? x_strdup(DEFAULT_OTHER_LOG_PROGRAM) : 0);
+  def->private_log_enabled = DEFAULT_PRIVATE_LOG_ENABLED;
+  def->private_log_always = DEFAULT_PRIVATE_LOG_ALWAYS;
+  def->private_log_maxsize = DEFAULT_PRIVATE_LOG_MAXSIZE;
+  def->private_log_recall = DEFAULT_PRIVATE_LOG_RECALL;
+  def->private_log_timestamp = DEFAULT_PRIVATE_LOG_TIMESTAMP;
+  def->private_log_relativetime = DEFAULT_PRIVATE_LOG_RELATIVETIME;
+  def->private_log_copydir = (DEFAULT_PRIVATE_LOG_COPYDIR
+                              ? x_strdup(DEFAULT_PRIVATE_LOG_COPYDIR) : 0);
+  def->private_log_program = (DEFAULT_PRIVATE_LOG_PROGRAM
+                              ? x_strdup(DEFAULT_PRIVATE_LOG_PROGRAM) : 0);
   def->log_timeoffset = DEFAULT_LOG_TIMEOFFSET;
   def->log_events = DEFAULT_LOG_EVENTS;
   def->dcc_proxy_incoming = DEFAULT_DCC_PROXY_INCOMING;
@@ -717,6 +727,103 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
 
         free((class ? class : def)->other_log_program);
         (class ? class : def)->other_log_program = str;
+
+      } else if (!strcasecmp(key, "private_log_enabled")) {
+        /* private_log_enabled yes
+           private_log_disabled no */
+        _cfg_read_bool(&buf, &(class ? class : def)->private_log_enabled);
+
+      } else if (!strcasecmp(key, "private_log_always")) {
+        /* private_log_always yes
+           private_log_always no */
+        _cfg_read_bool(&buf, &(class ? class : def)->private_log_always);
+
+      } else if (!strcasecmp(key, "private_log_maxsize")) {
+        /* private_log_maxsize 128
+           private_log_maxsize 0 */
+        _cfg_read_numeric(&buf, &(class ? class : def)->private_log_maxsize);
+
+      } else if (!strcasecmp(key, "private_log_recall")) {
+        /* private_log_recall 128
+           private_log_recall 0
+           private_log_recall -1 */
+        _cfg_read_numeric(&buf, &(class ? class : def)->private_log_recall);
+
+      } else if (!strcasecmp(key, "private_log_timestamp")) {
+        /* private_log_timestamp yes
+           private_log_timestamp no */
+        _cfg_read_bool(&buf, &(class ? class : def)->private_log_timestamp);
+
+      } else if (!strcasecmp(key, "private_log_relativetime")) {
+        /* private_log_relativetime yes
+           private_log_relativetime no */
+        _cfg_read_bool(&buf, &(class ? class : def)->private_log_relativetime);
+
+      } else if (!strcasecmp(key, "private_log_copydir")) {
+        /* private_log_copydir none
+           private_log_copydir ""    # same as none
+           private_log_copydir "/log"
+           private_log_copydir "~/logs" */
+        char *str;
+
+        if (_cfg_read_string(&buf, &str))
+          UNMATCHED_QUOTE;
+
+        if (!strcasecmp(str, "none") || !strlen(str)) {
+          free(str);
+          str = 0;
+          
+        } else if (!strncmp(str, "~/", 2)) {
+          char *home;
+
+          home = getenv("HOME");
+          if (home) {
+            char *tmp;
+
+            tmp = x_sprintf("%s%s", home, str + 1);
+            free(str);
+            str = tmp;
+          } else {
+            /* Best we can do */
+            *str = '.';
+          }
+        }
+
+        free((class ? class : def)->private_log_copydir);
+        (class ? class : def)->private_log_copydir = str;
+
+      } else if (!strcasecmp(key, "private_log_program")) {
+        /* private_log_program none
+           private_log_program ""    # same as none
+           private_log_program "/logprog"
+           private_log_program "~/logprog" */
+        char *str;
+
+        if (_cfg_read_string(&buf, &str))
+          UNMATCHED_QUOTE;
+
+        if (!strcasecmp(str, "none") || !strlen(str)) {
+          free(str);
+          str = 0;
+          
+        } else if (!strncmp(str, "~/", 2)) {
+          char *home;
+
+          home = getenv("HOME");
+          if (home) {
+            char *tmp;
+
+            tmp = x_sprintf("%s%s", home, str + 1);
+            free(str);
+            str = tmp;
+          } else {
+            /* Best we can do */
+            *str = '.';
+          }
+        }
+
+        free((class ? class : def)->private_log_program);
+        (class ? class : def)->private_log_program = str;
 
       } else if (!strcasecmp(key, "log_timeoffset")) {
         /* log_timeoffset 0

@@ -2,7 +2,7 @@
 .\" Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.37 2002/02/06 10:06:40 scott Exp $
+.\" @(#) $Id: dircproxy.1,v 1.37.2.1 2002/08/17 19:08:41 scott Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -467,29 +467,29 @@ and '\fBchan_log_always\fR' options.
 
 .TP
 .B other_log_enabled
-Whether logging of server and private messages to files should take
-place.  If this is 'yes', then you'll be able to recall server and
-private messages when you rejoined and see what you missed.
+Whether logging of server  messages to files should take
+place.  If this is 'yes', then you'll be able to recall server
+messages when you rejoin and see what you missed.
 
- yes = Server/private messages are logged to files
- no = Server/private messages are NOT logged to files
+ yes = Server messages are logged to files
+ no = Server messages are NOT logged to files
 
 .TP
 .B other_log_always
-Server and private messages will always be logged while you are offline,
+Server messages will always be logged while you are offline,
 so when you come back you can see what you missed.  You can also, if you
 wish, log these messages while online, so if you're only away a short
 time you can get an idea of any context etc.
 
 This only applies if '\fBother_log_enabled\fR' is 'yes'.
 
- yes = Log server/private messages while offline and online
- no = Log server/private messages only while offline
+ yes = Log server messages while offline and online
+ no = Log server messages only while offline
 
 .TP
 .B other_log_maxsize
 To preserve your harddisk space, you can limit the size of the
-server/private message log file.  Once the log file reaches this number
+server message log file.  Once the log file reaches this number
 of lines, every line added will result in a line removed from the top.
 If you know you are never going to want all that logged information,
 this might be a good setting for you.
@@ -500,7 +500,7 @@ This only applies if '\fBother_log_enabled\fR' is 'yes'.
 
 .TP
 .B other_log_recall
-Number of lines from the server/private message log file to automatically
+Number of lines from the server message log file to automatically
 recall to your IRC client when you attach.  If this is low, you may not
 get much useful information, if this is high, it may take a long time for
 all the information to arrive.
@@ -512,11 +512,11 @@ This only applies if '\fBother_log_enabled\fR' is 'yes'.
 
 .TP
 .B other_log_timestamp
-Server and private messages can have a timestamp added to the front to
+Server messages can have a timestamp added to the front to
 let you know exactly when a message was logged.  These timestamps are
 displayed when you recall the log files, or when automatially dumped.
 
-This applies to the server/private message log if '\fBother_log_enabled\fR'
+This applies to the server message log if '\fBother_log_enabled\fR'
 is 'yes' and also the permanet copy if '\fBother_log_copydir\fR' is set to
 something other than 'none'.
 
@@ -542,7 +542,7 @@ if you're doing things with the log files yourself.
 .TP
 .B other_log_copydir
 As well as \fBdircproxy\fR's own log file, it can keep a permanent copy
-somewhere for your use.  \fBdircproxy\fR will append all server and private
+somewhere for your use.  \fBdircproxy\fR will append all server
 messages seen to this file, but will not use it itself.
 
 If you do define it, it'll add to the log as it uses it.  If you start
@@ -557,7 +557,7 @@ The timestamping options do apply however.
 
 .TP
 .B other_log_program
-Program to pipe server and private messages into.  If given, \fBdircproxy\fR
+Program to pipe server messages into.  If given, \fBdircproxy\fR
 will run this program for each log file entry giving the full source
 information as the first argument, the destination as the second
 and the text as a single line on standard input.
@@ -567,6 +567,111 @@ The program can be anywhere in your $PATH, or you can start it with
 
 This is done regardless of the '\fBother_log_enabled\fR'
 and '\fBother_log_always\fR' options.
+
+ none = Do not pipe log messages to a program
+
+.TP
+.B private_log_enabled
+Whether logging of private messages to files should take
+place.  If this is 'yes', then you'll be able to recall server and
+private messages when you rejoin and see what you missed.
+
+ yes = Private messages are logged to files
+ no = Private messages are NOT logged to files
+
+.TP
+.B private_log_always
+Private messages will always be logged while you are offline,
+so when you come back you can see what you missed.  You can also, if you
+wish, log these messages while online, so if you're only away a short
+time you can get an idea of any context etc.
+
+This only applies if '\fBprivate_log_enabled\fR' is 'yes'.
+
+ yes = Log private messages while offline and online
+ no = Log private messages only while offline
+
+.TP
+.B private_log_maxsize
+To preserve your harddisk space, you can limit the size of the
+private message log file.  Once the log file reaches this number
+of lines, every line added will result in a line removed from the top.
+If you know you are never going to want all that logged information,
+this might be a good setting for you.
+
+This only applies if '\fBprivate_log_enabled\fR' is 'yes'.
+
+ 0 = No limit to log file
+
+.TP
+.B private_log_recall
+Number of lines from the private message log file to automatically
+recall to your IRC client when you attach.  If this is low, you may not
+get much useful information, if this is high, it may take a long time for
+all the information to arrive.
+
+This only applies if '\fBprivate_log_enabled\fR' is 'yes'.
+
+ -1 = Recall the whole log (not recommended if private_log_always is yes)
+ 0 = Don't automatically recall anything
+
+.TP
+.B private_log_timestamp
+Private messages can have a timestamp added to the front to
+let you know exactly when a message was logged.  These timestamps are
+displayed when you recall the log files, or when automatially dumped.
+
+This applies to the private message log if '\fBprivate_log_enabled\fR'
+is 'yes' and also the permanet copy if '\fBprivate_log_copydir\fR' is set to
+something other than 'none'.
+
+ yes = Include timestamp
+ no = Do not include timestamp
+
+.TP
+.B private_log_relativetime
+If '\fBprivate_log_timestamp\fR' is 'yes' then you also have the option of
+using intelligent relative timestamps.  If you do, the timestamp shown
+when log file information is recalled depends on how old that line is,
+making sure it displays enough information (including date if necessary).
+Otherwise \fBdircproxy\fR will just tell you the time in HH:MM format which
+may not be as useful.
+
+This does mean that the time itself won't be displayed in the log files
+themselves, a timestamp is in place instead.  This may cause problems
+if you're doing things with the log files yourself.
+
+ yes = Do fancy relative timestamping
+ no = Do normal timestamping
+
+.TP
+.B private_log_copydir
+As well as \fBdircproxy\fR's own log file, it can keep a permanent copy
+somewhere for your use.  \fBdircproxy\fR will append all private
+messages seen to this file, but will not use it itself.
+
+If you do define it, it'll add to the log as it uses it.  If you start
+with "~/" then it will use a directory under your home directory.
+
+This is done regardless of the '\fBprivate_log_enabled\fR'
+and '\fBprivate_log_always\fR' options, although if those are off then won't
+get that text recalled to your client, despite it being in this file.
+The timestamping options do apply however.
+
+ none = Do not make a permanent copy
+
+.TP
+.B private_log_program
+Program to pipe private messages into.  If given, \fBdircproxy\fR
+will run this program for each log file entry giving the full source
+information as the first argument, the destination as the second
+and the text as a single line on standard input.
+
+The program can be anywhere in your $PATH, or you can start it with
+"~/" if its in a directory under your home directory.
+
+This is done regardless of the '\fBprivate_log_enabled\fR'
+and '\fBprivate_log_always\fR' options.
 
  none = Do not pipe log messages to a program
 
