@@ -1796,7 +1796,42 @@ void _ircclient_handle_kill(struct ircproxy *p, struct ircmessage msg) {
   /* /DIRCPROXY NOTIFY handler */
 void _ircclient_handle_notify(struct ircproxy *p, struct ircmessage msg) 
 {   
-	
+   struct ircproxy *proxy;
+   /* User wants to kill a user */
+   if (msg.numparams >= 2) { 
+      struct ircconnclass *c;
+      struct ircproxy *cp;
+      int i;
+        
+      /* Check the user list */
+      proxy = 0;
+      c = connclasses;
+      i = 0;
+      while (c)  {  
+         cp = ircnet_fetchclass(c);
+         if (!cp) {
+            c = c->next;
+            continue;
+         }
+         if ((atoi(msg.params[1]) == ++i)
+             || (cp->client_host
+                 && !irc_strcasecmp(msg.params[1], cp->client_host))
+             || (cp->servername
+                 && !irc_strcasecmp(msg.params[1], cp->servername))
+             || (cp->nickname
+                 && !irc_strcasecmp(msg.params[1], cp->nickname))) {
+            proxy = cp;
+            break;
+         }
+         c = c->next;
+      }
+      
+      if (proxy) {
+         net_send(proxy->client_sock, ":dircproxy!dircproxy@localhost NOTICE %s :%s\r\n",cp->nickname, msg.paramstarts[2]);
+      } else {
+         ircclient_send_numeric(p, 401, "No such user, use /DIRCPROXY USERS to see them");
+      }
+   }
 	 
 }
    
