@@ -9,7 +9,7 @@
  *  - CTCP message parsing
  *  - Username sanitisation
  * --
- * @(#) $Id: irc_prot.c,v 1.10 2000/11/01 17:57:11 keybuk Exp $
+ * @(#) $Id: irc_prot.c,v 1.11 2000/11/02 16:14:46 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -41,21 +41,18 @@ int ircprot_parsemsg(const char *message, struct ircmessage *msg) {
 
   /* Begins with a prefix? */
   if (*ptr == ':') {
-    char *tmp;
-
     while (*ptr && (*ptr != ' ')) ptr++;
 
-    tmp = (char *)malloc(ptr - start);
-    strncpy(tmp, start + 1, ptr - start - 1);
-    tmp[ptr - start - 1] = 0;
+    msg->src.orig = (char *)malloc(ptr - start);
+    strncpy(msg->src.orig, start + 1, ptr - start - 1);
+    msg->src.orig[ptr - start - 1] = 0;
 
-    _ircprot_parse_prefix(tmp, &(msg->src));
-    free(tmp);
+    _ircprot_parse_prefix(msg->src.orig, &(msg->src));
 
     ptr = _ircprot_skip_spaces(ptr);
   } else {
     /* It just came from our peer */
-    msg->src.name = msg->src.username = msg->src.hostname = 0;
+    msg->src.name = msg->src.username = msg->src.hostname = msg->src.orig = 0;
     msg->src.fullname = 0;
     msg->src.type = IRC_PEER;
   }
@@ -66,6 +63,7 @@ int ircprot_parsemsg(const char *message, struct ircmessage *msg) {
     free(msg->src.username);
     free(msg->src.hostname);
     free(msg->src.fullname);
+    free(msg->src.orig);
     free(msg->orig);
     return -1;
   }
@@ -105,6 +103,7 @@ void ircprot_freemsg(struct ircmessage *msg) {
   free(msg->src.username);
   free(msg->src.hostname);
   free(msg->src.fullname);
+  free(msg->src.orig);
   free(msg->cmd);
   free(msg->params);
   free(msg->paramstarts);
