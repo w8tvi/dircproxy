@@ -577,6 +577,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     }
 
     if (i) {
+       // TODO: Use or pass to the client 005
+       // After that we can close #03, #10, #11,#12
       debug("Weird 005 message");
     } else {
       struct strlist *s;
