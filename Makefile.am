@@ -2,7 +2,8 @@
 
 EXTRA_DIST = \
 	PROTOCOL \
-	README.inetd
+	README.inetd \
+	FAQ
 
 SUBDIRS = \
 	conf \
