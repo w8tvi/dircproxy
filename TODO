@@ -11,6 +11,22 @@ New features for 0.8.0:
 	  available for write()ing.  Would remove the "dircproxy busy,
 	  ping timeout" problem that can happen.
 
+	* Socket throttling for irc connections, number of bytes in x
+	  seconds type things
+
+	* Change timestamps to add gmtime() inside the square brackets
+	  like this
+
+	  <Keybuk> [3954949646 12:01] text goes here
+
+	  If *_log_relativetime is set to yes, then when we recall, we
+	  cleverly do things like "[12:01]" "[Wed 12:01]" "[4 Oct 12:01]"
+	  etc.
+
+	* Time offsets for timestamping (in minutes)
+
+	  *_log_timeoffset +60
+
 
     FILTERING
 
