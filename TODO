@@ -22,9 +22,6 @@ For the next release (0.7.0)
 
 	* Reload configuration file on a HUP
 
-	* Many config options we be able to go in the connection { } class
-	  to aid per-user configuration.
-
 	* Rewrite irc_log.c to make it a little less primitive.
 
 	  irclog_channel_msg(p, chan, from, msg, ...)
@@ -81,6 +78,10 @@ Whenever time permits:
 	  we somehow run an ssh tunnel and forward the necessary ports
 	  via ssh.  Would involve killing the process when the proxy
 	  has died.  A nice feature to have if possible.
+
+	* Possible "user" directive if dircproxy is running as root, which
+	  apon authentication would fork(), setuid() then dedicate the proxy
+	  to that user.  This would get around some of the ident issues...
 
 
 Would be nice:
