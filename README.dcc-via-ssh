@@ -1,0 +1,141 @@
+Tunneling DCC over ssh using dircproxy
+---------------------------------------
+
+WARNING, THIS IS NOT EASY TO DO.
+Don't read any further unless you are a fully qualified UNIX guru,
+complete with the long hair and sandals.
+
+
+Why do this?
+============
+
+DCC chats and sends will not work if your desktop is behind a
+firewall if that firewall prevents you from freely accessing the
+Internet, or prevents people from connecting to you.
+
+There are normal three ways around this.
+
+ o Placing rules in the firewall that allow certain ports such as IRC
+   through, and using the `dcc_proxy_ports` config option to limit
+   dircproxy's port range to that which you've allowed.
+
+   You probably don't have that kind of access to the firewall though,
+   or wouldn't be allowed to if you did.
+
+ o Install dircproxy on the firewall itself, so it can freely proxy
+   between both networks without being affected by the rules on the
+   firewall.
+
+   Again, you probably don't have that kind of access.  Its also not
+   good practice anyway.
+
+ o Piggy back your IRC traffic on something that the firewall does
+   let through.
+
+   Most firewalls let ssh traffic through, at least in the out-bound
+   direction, and that's perfect.  This is what this file tells you
+   how to do.
+
+
+What do I need?
+===============
+
+For this to work, the firewall must allow ssh traffic through
+and must allow connections to be made from inside the firewall
+to outside.  It probably does, or you can probably persuade the
+firewall admin to let ssh through, its secure after all.
+
+
+You will also need two UNIX machines, one inside the firewall and
+one outside.
+
+The inside one must have dircproxy installed and ssh installed.
+The best choice is probably your desktop if that runs UNIX.
+(You *could* use a Windows machine if you can get dircproxy to
+compile on it and use something like SecureCRT of F-Secure SSH to
+do the tunnels).
+
+The outside machine must also have dircproxy installed, and must
+have the ssh daemon (sshd) installed and running.
+
+
+Setting up the Tunnels
+======================
+
+You'll need three different tunnels across the firewall from
+the machine inside to the machine outside.  One to forward the
+IRC connection itself, and a further two for DCC traffic, one
+for incoming and one for outgoing.  You can do this with one ssh
+command, specifying all three tunnels at the same time.  (Replace
+'outside.firewall' with the hostname of the machine outside).
+
+	$ ssh -L 57010:localhost:57000 \
+	      -L 57110:localhost:57100 \
+	      -R 57110:localhost:57100 outside.firewall
+
+This will actually start a shell on the remote machine.  Exiting from
+it will end the tunnels.  For safety you may want to run this under
+screen or something, as it doesn't run in the background either.
+
+
+Configuring dircproxy on the Outside machine
+============================================
+
+This will be the master dircproxy, connecting to the IRC server
+itself and doing all the normal things such as logging etc.
+Configure it as you normally would, except for the following two
+options which need to be set as shown.
+
+	dcc_proxy_ports 57100
+	dcc_proxy_tunnelport 57110
+
+This tells dircproxy to listen for DCC connections on port 57100,
+which is pointed to by a tunnel, and to make DCC connections through
+a tunnel on port 57110.
+
+This dircproxy is probably best run as a daemon (i.e. normally).
+
+
+Configuring dircproxy on the Inside machine
+===========================================
+
+This dircproxy will be a simple slave, forwarding to the one outside
+without doing anything clever.  The configuration file should be left
+untouched, only add a connection class, which should look like this.
+
+	connection {
+		password "encpass"
+		server "localhost:57010:pass"
+
+		channel_rejoin 0
+		disconnect_on_detach yes
+		dcc_proxy_ports 57100
+		dcc_proxy_tunnelport 57110
+	}
+
+Replace "encpass" with an encrypted password that should match
+that you configure the IRC client with, and replace "pass" with
+the unencrypted version of whatever you set the password to on the
+dircproxy outside the firewall.
+
+You can run this dircproxy as a daemon or from inetd, whichever
+suits you best.
+
+
+Using dircproxy now
+===================
+
+Connect your IRC client to the dircproxy inside the firewall.
+This will then connect through the tunnels to the dircproxy outside
+the firewall which will connect to the IRC server for you.
+
+When you disconnect your IRC client, the dircproxy inside will
+disconnect to.  If you so desire, you can close the tunnels again
+until you run the client again (leaving dircproxy running on the
+machine outside).
+
+So if you do use your desktop, you can still switch it off.
+
+
+Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
+All Rights Reserved.
