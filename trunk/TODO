@@ -5,14 +5,31 @@ Need to do
 	* Think better how to do PRIVMSGs/NOTICEs from people that you missed
 	  perhaps one per person...
 
-	* put stats into motd
+	* Maybe make misc/privmsg log remember nlines when we disconnected
+	  and only spool what was missed.
+	  (Channels are slightly different as we can SEE what we sent).
 
-	* recalling stuff from log files /DIRCPROXY RECALL etc
+	* put stats into motd about size of log files and channels joined etc
 
-	* change /DQUIT to /DIRCPROXY QUIT
+	* the /DIRCPROXY command.
+	  RECALL <chan/nick/*> from nlines
+	  DETACH <away-msg>
+	  QUIT <msg>		(change /DQUIT to this)
 
-	* /DIRCPROXY DETACH
+	* config file
+	  (0.6.0)
 
+	* Perhaps more permanent logging for those people that want it
+	  (from x-trem@gmx.net)
+
+	* Re-isolate certain "Connecting to server..." notices back to
+	  being from "dircproxy" and not the server...  It seems to be
+	  confusing ircII
+
+	* Need to respond to Anti-JOIN messages if the client isn't connected
+	  by deleting the channel from our lists.  (Otherwise it'll get
+	  confused if when rejoining a server it can't rejoin the channel).
+	  Perhaps notify user we couldn't rejoin ?
 
 
 Would be nice
@@ -23,7 +40,12 @@ Would be nice
 	  for a client to reconnect.  Either enter listen mode somehow, or
 	  disconnect everything.
 
-	* config file
+	* How can we change the username being presented?  Team up with an
+	  identd perhaps, or we could fork(), close all the other sockets and
+	  become a one-proxy program relistening (see above).
+
+	* (further to above to)
+	  -dircproxy- Reconnect to this session at hostname.domain.tld:46702
 
 	* -p PASSWORD [ -s SERVER ]... [ -H HOST ] [ -m MASK ]...
   	  --password=  --server=  --bind-host=  --from-mask=
