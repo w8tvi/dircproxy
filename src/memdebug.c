@@ -12,7 +12,7 @@
  * get accidentally overrun.  This is purely debug, you should
  * NEVER use this in a real program.
  * --
- * @(#) $Id: memdebug.c,v 1.5 2000/10/23 12:26:42 keybuk Exp $
+ * @(#) $Id: memdebug.c,v 1.6 2000/11/10 15:13:03 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -185,6 +185,11 @@ void *mem_malloc(size_t size, char *file, int line) {
       strcpy(ms->file, file);
       ms->allocnum = memalloccount++;
       ms->line = line;
+
+#if 0
+      fprintf(stderr, "MEM: malloc of %lu bytes (%s/%d)\n",
+              (unsigned long)size, file, line);
+#endif
     } else {
       ms->file = 0;
       ms->allocnum = 0;
