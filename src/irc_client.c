@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.40 2000/09/27 16:45:32 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.41 2000/09/28 10:37:15 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -452,6 +452,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
         free(str);
       }
 
+      ircserver_resetidle(p);
       squelch = 0;
 
     } else if (!strcasecmp(msg.cmd, "NOTICE")) {
@@ -476,6 +477,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
         free(str);
       }
 
+      ircserver_resetidle(p);
       squelch = 0;
 
     } else {

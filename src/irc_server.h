@@ -4,7 +4,7 @@
  *
  * irc_server.h
  * --
- * @(#) $Id: irc_server.h,v 1.1 2000/05/13 02:14:14 keybuk Exp $
+ * @(#) $Id: irc_server.h,v 1.2 2000/09/28 10:37:15 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -23,6 +23,7 @@ extern int ircserver_connected(struct ircproxy *);
 extern int ircserver_connectfailed(struct ircproxy *, int);
 extern int ircserver_data(struct ircproxy *);
 extern int ircserver_close_sock(struct ircproxy *);
+extern void ircserver_resetidle(struct ircproxy *);
 extern int ircserver_send_command(struct ircproxy *, const char *, const char *,
                                   ...);
 extern int ircserver_send_peercmd(struct ircproxy *, const char *, const char *,
