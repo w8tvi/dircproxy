@@ -9,7 +9,7 @@
  *  - Signal handling
  *  - Debug functions
  * --
- * @(#) $Id: main.c,v 1.51 2002/01/28 04:00:14 scott Exp $
+ * @(#) $Id: main.c,v 1.52 2002/02/06 10:08:22 scott Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,7 +63,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.51 2002/01/28 04:00:14 scott Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.52 2002/02/06 10:08:22 scott Exp $";
 
 /* The name of the program */
 static char *progname;
@@ -76,6 +76,9 @@ static int stop_poll = 0;
 
 /* Port we're listening on */
 static char *listen_port;
+
+/* File to write our pid to */
+static char *pid_file;
 
 /* The configuration file we used */
 static char *config_file;
@@ -95,6 +98,7 @@ static struct option long_opts[] = {
 #endif /* DEBUG */
   { "inetd", 0, NULL, 'I' },
   { "listen-port", 1, NULL, 'P' },
+  { "pid-file", 1, NULL, 'p' },
   { 0, 0, 0, 0 }
 };
 
@@ -104,19 +108,20 @@ static struct option long_opts[] = {
 /* We need this */
 int main(int argc, char *argv[]) {
   int optc, show_help, show_version, show_usage;
-  char *local_file, *cmd_listen_port;
+  char *local_file, *cmd_listen_port, *cmd_pid_file;
   int inetd_mode, no_daemon;
 
   /* Set up some globals */
   progname = argv[0];
   listen_port = x_strdup(DEFAULT_LISTEN_PORT);
+  pid_file = (DEFAULT_PID_FILE ? x_strdup(DEFAULT_PID_FILE) : 0);
 
 #ifndef DEBUG
   no_daemon = 0;
 #else /* DEBUG */
   no_daemon = 1;
 #endif /* DEBUG */
-  local_file = cmd_listen_port = 0;
+  local_file = cmd_listen_port = cmd_pid_file = 0;
   show_help = show_version = show_usage = inetd_mode = 0;
   while ((optc = getopt_long(argc, argv, GETOPTIONS, long_opts, NULL)) != -1) {
     switch (optc) {
@@ -139,6 +144,10 @@ int main(int argc, char *argv[]) {
       case 'P':
         free(cmd_listen_port);
         cmd_listen_port = x_strdup(optarg);
+        break;
+      case 'p':
+        free(cmd_pid_file);
+        cmd_pid_file = x_strdup(optarg);
         break;
       case 'f':
         free(local_file);
@@ -181,7 +190,7 @@ int main(int argc, char *argv[]) {
         free(local_file);
         return 2;
       }
-      if (cfg_read(local_file, &listen_port, &g)) {
+      if (cfg_read(local_file, &listen_port, &pid_file, &g)) {
         /* If the local one didn't exist, set to 0 so we open
            global one */
         free(local_file);
@@ -191,7 +200,7 @@ int main(int argc, char *argv[]) {
       }
     }
   } else if (local_file) {
-    if (cfg_read(local_file, &listen_port, &g)) {
+    if (cfg_read(local_file, &listen_port, &pid_file, &g)) {
       /* This is fatal! */
       fprintf(stderr, "%s: Couldn't read configuration from %s: %s\n",
               progname, local_file, strerror(errno));
@@ -209,7 +218,7 @@ int main(int argc, char *argv[]) {
     /* Not fatal if it doesn't exist */
     global_file = x_sprintf("%s/%s", SYSCONFDIR, GLOBAL_CONFIG_FILENAME);
     debug("Global config file: %s", global_file);
-    cfg_read(global_file, &listen_port, &g);
+    cfg_read(global_file, &listen_port, &pid_file, &g);
     config_file = x_strdup(global_file);
     free(global_file);
   } else {
@@ -226,6 +235,12 @@ int main(int argc, char *argv[]) {
   if (cmd_listen_port) {
     free(listen_port);
     listen_port = cmd_listen_port;
+  }
+
+  /* -p overrides pid file */
+  if (cmd_pid_file) {
+    free(pid_file);
+    pid_file = cmd_pid_file;
   }
 
   /* Set signal handlers */
@@ -276,6 +291,18 @@ int main(int argc, char *argv[]) {
   /* Open a connection to syslog if we're in the background */
   if (in_background)
     openlog(PACKAGE, LOG_PID, LOG_USER);
+
+  if (pid_file) {
+    FILE *pidfile;
+
+    pidfile = fopen(pid_file, "w");
+    if (pidfile) { 
+      fprintf(pidfile, "%d\n", getpid());
+      fclose(pidfile);
+    } else {
+      syscall_fail("fopen", pid_file, 0);
+    }
+  }
   
   /* Main loop! */
   while (!stop_poll) {
@@ -288,6 +315,10 @@ int main(int argc, char *argv[]) {
 
     if (!ns && !nt)
       break;
+  }
+
+  if (pid_file) {
+    unlink(pid_file);
   }
 
   /* Free up stuff */
@@ -304,6 +335,7 @@ int main(int argc, char *argv[]) {
   if (!inetd_mode && !no_daemon)
     closelog();
   free(listen_port);
+  free(pid_file);
   free(config_file);
 
 #ifdef DEBUG_MEMORY
@@ -323,20 +355,22 @@ static void _sig_term(int sig) {
 static void _sig_hup(int sig) {
   struct ircconnclass *oldclasses, *c;
   struct globalvars newglobals;
-  char *new_listen_port;
+  char *new_listen_port, *new_pid_file;
 
   debug("Received signal %d to reload from %s", sig, config_file);
   new_listen_port = x_strdup(DEFAULT_LISTEN_PORT);
+  new_pid_file = (DEFAULT_PID_FILE ? x_strdup(DEFAULT_PID_FILE) : 0);
   oldclasses = connclasses;
   connclasses = 0;
 
-  if (cfg_read(config_file, &new_listen_port, &newglobals)) {
+  if (cfg_read(config_file, &new_listen_port, &new_pid_file, &newglobals)) {
     /* Config file reload failed */
     error("Reload of configuration file %s failed", config_file);
     ircnet_flush_connclasses(&connclasses);
 
     connclasses = oldclasses;
     free(new_listen_port);
+    free(new_pid_file);
     return;
   }
 
@@ -357,6 +391,11 @@ static void _sig_hup(int sig) {
     }
   }
 
+  /* Change the pid file variable (don't bother rewriting it) */
+  free(pid_file);
+  pid_file = new_pid_file;
+  new_pid_file = 0;
+  
   /* Match everything back up to the old stuff */
   c = connclasses;
   while (c) {
@@ -464,6 +503,7 @@ static int _print_help(void) {
   fprintf(stderr, "  -I, --inetd             Being run from inetd "
                                             "(implies -D)\n");
   fprintf(stderr, "  -P, --listen-port=PORT  Port to listen for clients on\n");
+  fprintf(stderr, "  -p, --pid-file=FILE     Write PID to this file\n");
   fprintf(stderr, "  -f, --config-file=FILE  Use this file instead of the "
                                             "default\n\n");
 
