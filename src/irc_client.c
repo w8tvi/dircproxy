@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.66 2000/11/02 16:36:15 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.67 2000/11/06 17:00:47 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -441,6 +441,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
           free(str);
 
           /* Handle CTCP */
+          str = x_strdup(msg.params[1]);
           s = list;
           while (s) {
             struct ctcpmessage cmsg;
@@ -473,7 +474,8 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
                 }
               }
               
-            } else if (!strcmp(cmsg.cmd, "DCC")) {
+            } else if (!strcmp(cmsg.cmd, "DCC")
+                       && p->conn_class->dcc_proxy_outgoing) {
               struct sockaddr_in vis_addr;
               int len;
 
@@ -484,56 +486,91 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
                 syscall_fail("getsockname", "", 0);
 
               } else if ((cmsg.numparams >= 4)
-                         && !irc_strcasecmp(cmsg.params[0], "CHAT")) {
-                char *tmp, *oldmsg, *ptr, *dccmsg;
+                         && (!irc_strcasecmp(cmsg.params[0], "CHAT")
+                             || !irc_strcasecmp(cmsg.params[0], "SEND"))) {
                 struct in_addr l_addr, r_addr;
-                short l_port, r_port;
+                int l_port, r_port, t_port;
+                char *tmp, *ptr, *dccmsg;
                 char *rest = 0;
                 int type = 0;
 
                 /* Find out what type of DCC request this is */
-                if (!irc_strcasecmp(cmsg.params[0], "CHAT"))
+                if (!irc_strcasecmp(cmsg.params[0], "CHAT")) {
                   type = DCC_CHAT;
+                } else if (!irc_strcasecmp(cmsg.params[0], "SEND")) {
+                  if (p->conn_class->dcc_send_fast) {
+                    type = DCC_SEND_FAST;
+                  } else {
+                    type = DCC_SEND_SIMPLE;
+                  }
+                }
 
+                /* Check whether there's a tunnel port */
+                t_port = 0;
+                if (p->conn_class->dcc_tunnel_outgoing)
+                  t_port = dns_portfromserv(p->conn_class->dcc_tunnel_outgoing);
+                
                 /* Eww, host order, how the hell does this even work
                    between machines of a different byte order? */
-                r_addr.s_addr = strtoul(cmsg.params[2], (char **)NULL, 10);
-                r_port = atoi(cmsg.params[3]);
+                if (!t_port) {
+                  r_addr.s_addr = strtoul(cmsg.params[2], (char **)NULL, 10);
+                  r_port = atoi(cmsg.params[3]);
+                } else {
+                  r_addr.s_addr = INADDR_LOOPBACK;
+                  r_port = ntohs(t_port);
+                }
                 l_addr.s_addr = ntohl(vis_addr.sin_addr.s_addr);
                 if (cmsg.numparams >= 5)
                   rest = cmsg.paramstarts[4];
 
+                /* Strip out this CTCP from the message, replacing it in
+                   a moment with dccmsg */
+                tmp = x_sprintf("\001%s\001", unquoted);
+                ptr = strstr(str, tmp);
+ 
                 /* Set up a dcc proxy */
-                if (!dccnet_new(type, 0, &l_port, r_addr, r_port)) {
+                if (ptr && !dccnet_new(type, p->conn_class->dcc_proxy_timeout,
+                                       p->conn_class->dcc_proxy_ports,
+                                       p->conn_class->dcc_proxy_ports_sz,
+                                       &l_port, r_addr, r_port)) {
                   dccmsg = x_sprintf("\001DCC %s %s %lu %u%s%s\001",
                                      cmsg.params[0], cmsg.params[1],
                                      l_addr.s_addr, l_port,
                                      (rest ? " " : ""), (rest ? rest : ""));
-                } else {
+
+                  if (p->conn_class->log_events & IRC_LOG_CTCP)
+                    irclog_notice(p, msg.params[0], p->servername,
+                                  "Sent DCC %s Request to %s", cmsg.params[0],
+                                  msg.params[0]);
+
+                } else if (ptr) {
                   dccmsg = x_strdup("");
-                  net_send(p->client_sock,
-                           ":%s NOTICE %s :\001DCC REJECT %s %s "
-                           "(%s: unable to proxy)\r\n",
-                           msg.params[0], p->nickname,
-                           cmsg.params[0], cmsg.params[1], PACKAGE);
+                  if (p->conn_class->dcc_proxy_sendreject) {
+                    net_send(p->client_sock,
+                             ":%s NOTICE %s :\001DCC REJECT %s %s "
+                             "(%s: unable to proxy)\r\n",
+                             msg.params[0], p->nickname,
+                             cmsg.params[0], cmsg.params[1], PACKAGE);
+                    debug("<- ':%s NOTICE %s :\001DCC REJECT %s %s "
+                          "(%s: unable to proxy)\001'", msg.params[0],
+                          p->nickname, cmsg.params[0], cmsg.params[1], PACKAGE);
+                  }
                 }
 
-                /* Strip out the CTCP message */
-                oldmsg = x_strdup(msg.params[1]);
-                tmp = x_sprintf("\001%s\001", unquoted);
-                /* We're guaranteed that tmp is in oldmsg! */
-                ptr = strstr(oldmsg, tmp);
-                *ptr = 0;
-                ptr += strlen(tmp);
+                /* Cut out the old CTCP and replace with dccmsg */
+                if (ptr) {
+                  char *oldstr;
 
-                if (strlen(oldmsg) || strlen(dccmsg) || strlen(ptr))
-                  net_send(p->server_sock, ":%s PRIVMSG %s :%s%s%s\r\n",
-                           (msg.src.orig ? msg.src.orig : p->nickname),
-                           msg.params[0], oldmsg, dccmsg, ptr);
+                  *ptr = 0;
+                  ptr += strlen(tmp);
 
-                squelch = 1;
-                free(oldmsg);
-                free(dccmsg);
+                  oldstr = str;
+                  str = x_sprintf("%s%s%s", oldstr, dccmsg, ptr);
+
+                  free(oldstr);
+                  free(dccmsg);
+                }
+
                 free(tmp);
 
               } else {
@@ -553,6 +590,14 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
             ircprot_freectcp(&cmsg);
             free(unquoted);
           }
+
+          /* Send str */
+          if (strlen(str))
+            net_send(p->server_sock, ":%s PRIVMSG %s :%s\r\n",
+                     (msg.src.orig ? msg.src.orig : p->nickname),
+                     msg.params[0], str);
+          squelch = 1;
+          free(str);
         }
 
         if (p->conn_class->idle_maxtime)
@@ -1552,7 +1597,7 @@ int ircclient_send_numeric(struct ircproxy *p, short numeric,
   ret = net_send(p->client_sock, ":%s %03d %s %s\r\n",
                  (p->servername ? p->servername : PACKAGE), numeric,
                  (p->nickname ? p->nickname : "*"), msg);
-  debug("<- :%s %03d %s %s", (p->servername ? p->servername : PACKAGE),
+  debug("<- ':%s %03d %s %s'", (p->servername ? p->servername : PACKAGE),
         numeric, (p->nickname ? p->nickname : "*"), msg);
 
   free(msg);
@@ -1571,7 +1616,7 @@ int ircclient_send_notice(struct ircproxy *p, const char *format, ...) {
 
   ret = net_send(p->client_sock, ":%s %s %s :%s\r\n", PACKAGE, "NOTICE",
                  (p->nickname ? p->nickname : "AUTH"), msg);
-  debug("<- :%s %s %s :%s", PACKAGE, "NOTICE",
+  debug("<- ':%s %s %s :%s'", PACKAGE, "NOTICE",
         (p->nickname ? p->nickname : "AUTH"), msg);
 
   free(msg);
@@ -1592,8 +1637,8 @@ int ircclient_send_channotice(struct ircproxy *p, const char *channel,
   ret = net_send(p->client_sock, ":%s %s %s :%s\r\n",
                  (p->servername ? p->servername : PACKAGE), "NOTICE",
                  channel, msg);
-  debug("<- :%s %s %s :%s", (p->servername ? p->servername : PACKAGE), "NOTICE",
-        channel, msg);
+  debug("<- ':%s %s %s :%s'", (p->servername ? p->servername : PACKAGE),
+        "NOTICE", channel, msg);
 
   free(msg);
   return ret;

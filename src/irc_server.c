@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.42 2000/11/02 16:48:52 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.43 2000/11/06 17:00:47 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -148,6 +148,8 @@ static void _ircserver_connect2(struct ircproxy *p, void *data,
     debug("DNS failure, retrying");
     timer_new((void *)p, "server_recon", p->conn_class->server_retry,
               TIMER_FUNCTION(_ircserver_reconnect), (void *)0);
+    free(p->serverpassword);
+    p->serverpassword = 0;
     return;
   }
 
@@ -227,6 +229,10 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
     net_close(p->server_sock);
     timer_new((void *)p, "server_recon", p->conn_class->server_retry,
               TIMER_FUNCTION(_ircserver_reconnect), (void *)0);
+
+    free(p->serverpassword);
+    p->serverpassword = 0;
+
   } else {
     p->server_status |= IRC_SERVER_CREATED;
     net_hook(p->server_sock, SOCK_CONNECTING, (void *)p,
@@ -289,8 +295,11 @@ static void _ircserver_connected2(struct ircproxy *p, void *data,
     p->hostname = x_strdup(name);
 
   username = ircprot_sanitize_username(p->username);
-  if (p->serverpassword)
+  if (p->serverpassword) {
     ircserver_send_peercmd(p, "PASS", ":%s", p->serverpassword);
+    free(p->serverpassword);
+    p->serverpassword = 0;
+  }
   ircserver_send_peercmd(p, "NICK", ":%s", p->nickname);
   ircserver_send_peercmd(p, "USER", "%s 0 * :%s", username, p->realname);
   p->server_status |= IRC_SERVER_INTRODUCED;
@@ -375,6 +384,13 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
   if (ircprot_parsemsg(str, &msg) == -1)
     return -1;
 
+  /* Check source */
+  if (!msg.src.orig) {
+    msg.src.orig = x_strdup(p->servername);
+    msg.src.fullname = x_strdup(p->servername);
+    msg.src.name = x_strdup(p->servername);
+  }
+  
   /* 437 is bizarre, it either means Nickname is juped or Channel is juped */
   if (!irc_strcasecmp(msg.cmd, "437")) {
     if (msg.numparams >= 2) {
@@ -664,11 +680,11 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     /* Reply to pings for the client */
     if (msg.numparams == 1) {
       net_sendurgent(p->server_sock, "PONG :%s\r\n", msg.params[0]);
-      debug("=> PONG :%s", msg.params[0]);
+      debug("=> 'PONG :%s'", msg.params[0]);
     } else if (msg.numparams >= 2) {
       net_sendurgent(p->server_sock, "PONG %s :%s\r\n",
                      msg.params[0], msg.params[1]);
-      debug("=> PONG %s :%s", msg.params[0], msg.params[1]);
+      debug("=> 'PONG %s :%s'", msg.params[0], msg.params[1]);
     }
 
     /* but let it see them */
@@ -705,8 +721,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       if (msg.numparams >= 1) {
         if (p->conn_class->log_events & IRC_LOG_NICK)
           irclog_notice(p, 0, p->servername, "%s changed nickname to %s",
-                        (msg.src.fullname ? msg.src.fullname : p->servername),
-                        msg.params[0]);
+                        msg.src.fullname, msg.params[0]);
       }
       squelch = 0;
     }
@@ -749,8 +764,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
         if (p->conn_class->log_events & IRC_LOG_MODE)
           irclog_notice(p, c->name, p->servername, "%s changed mode: %s",
-                        (msg.src.fullname ? msg.src.fullname : p->servername),
-                        msg.paramstarts[1]);
+                        msg.src.fullname, msg.paramstarts[1]);
       }
 
       squelch = 0;
@@ -805,8 +819,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       if (msg.numparams >= 1) {
         if (p->conn_class->log_events & IRC_LOG_JOIN)
           irclog_notice(p, msg.params[0], p->servername,
-                        "%s joined the channel",
-                        (msg.src.fullname ? msg.src.fullname : p->servername));
+                        "%s joined the channel", msg.src.fullname);
       }
       squelch = 0;
     }
@@ -831,8 +844,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       if (msg.numparams >= 1) {
         if (p->conn_class->log_events & IRC_LOG_PART)
           irclog_notice(p, msg.params[0], p->servername,
-                        "%s left the channel",
-                        (msg.src.fullname ? msg.src.fullname : p->servername));
+                        "%s left the channel", msg.src.fullname);
       }
       squelch = 0;
     }
@@ -845,14 +857,11 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
         if (p->conn_class->log_events & IRC_LOG_KICK) {
           if (msg.numparams >= 3) {
             irclog_notice(p, msg.params[0], p->servername,
-                          "Kicked off by %s: %s",
-                          (msg.src.fullname ? msg.src.fullname : p->servername),
+                          "Kicked off by %s: %s", msg.src.fullname,
                           msg.params[2]);
           } else {
             irclog_notice(p, msg.params[0], p->servername,
-                          "Kicked off by %s",
-                          (msg.src.fullname
-                           ? msg.src.fullname : p->servername));
+                          "Kicked off by %s", msg.src.fullname);
           }
         }
 
@@ -878,13 +887,11 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
           if (msg.numparams >= 3) {
             irclog_notice(p, msg.params[0], p->servername,
                           "%s kicked off by %s: %s", msg.params[1],
-                          (msg.src.fullname ? msg.src.fullname : p->servername),
-                          msg.params[2]);
+                          msg.src.fullname, msg.params[2]);
           } else {
             irclog_notice(p, msg.params[0], p->servername,
                           "%s kicked off by %s", msg.params[1],
-                          (msg.src.fullname
-                           ? msg.src.fullname : p->servername));
+                          msg.src.fullname);
           }
         }
       }
@@ -895,11 +902,10 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     if (p->conn_class->log_events & IRC_LOG_QUIT) {
       if (msg.numparams >= 1) {
         irclog_notice(p, 0, p->servername, "%s quit from IRC: %s",
-                      (msg.src.fullname ? msg.src.fullname : p->servername),
-                      msg.params[0]);
+                      msg.src.fullname, msg.params[0]);
       } else {
         irclog_notice(p, 0, p->servername, "%s quit from IRC",
-                      (msg.src.fullname ? msg.src.fullname : p->servername));
+                      msg.src.fullname);
       }
     }
 
@@ -918,12 +924,12 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       /* Privmsgs get logged */
       if (str && strlen(str)) {
         if (p->conn_class->log_events & IRC_LOG_TEXT)
-          irclog_msg(p, msg.params[0],
-                     (msg.src.orig ? msg.src.orig : p->servername), "%s", str);
+          irclog_msg(p, msg.params[0], msg.src.orig, "%s", str);
       }
       free(str);
 
       /* Handle CTCP */
+      str = x_strdup(msg.params[1]);
       s = list;
       while (s) {
         struct ctcpmessage cmsg;
@@ -943,70 +949,104 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       
         if (!strcmp(cmsg.cmd, "ACTION")) {
           if (p->conn_class->log_events & IRC_LOG_ACTION)
-            irclog_ctcp(p, msg.params[0],
-                        (msg.src.orig ? msg.src.orig : p->servername),
-                        "%s", cmsg.orig);
+            irclog_ctcp(p, msg.params[0], msg.src.orig, "%s", cmsg.orig);
 
-        } else if (!strcmp(cmsg.cmd, "DCC")) {
+        } else if (!strcmp(cmsg.cmd, "DCC")
+                   && p->conn_class->dcc_proxy_incoming) {
           struct sockaddr_in vis_addr;
           int len;
 
           /* We need our local address to do anything DCC related */
           len = sizeof(struct sockaddr_in);
-          if (getsockname(p->server_sock, (struct sockaddr *)&vis_addr, &len)) {
+          if (getsockname(p->client_sock, (struct sockaddr *)&vis_addr, &len)) {
             syscall_fail("getsockname", "", 0);
 
           } else if ((cmsg.numparams >= 4)
-                     && !irc_strcasecmp(cmsg.params[0], "CHAT")) {
-            char *tmp, *oldmsg, *ptr, *dccmsg;
+                     && (!irc_strcasecmp(cmsg.params[0], "CHAT")
+                        || !irc_strcasecmp(cmsg.params[0], "SEND"))) {
             struct in_addr l_addr, r_addr;
-            short l_port, r_port;
+            int l_port, r_port, t_port;
+            char *tmp, *ptr, *dccmsg;
             char *rest = 0;
             int type = 0;
 
             /* Find out what type of DCC request this is */
-            if (!irc_strcasecmp(cmsg.params[0], "CHAT"))
+            if (!irc_strcasecmp(cmsg.params[0], "CHAT")) {
               type = DCC_CHAT;
+            } else if (!irc_strcasecmp(cmsg.params[0], "SEND")) {
+              if (p->conn_class->dcc_send_fast) {
+                type = DCC_SEND_FAST;
+              } else {
+                type = DCC_SEND_SIMPLE;
+              }
+            }
+
+            /* Check whether there's a tunnel port */
+            t_port = 0;
+            if (p->conn_class->dcc_tunnel_incoming)
+              t_port = dns_portfromserv(p->conn_class->dcc_tunnel_incoming);
 
             /* Eww, host order, how the hell does this even work
                between machines of a different byte order? */
-            r_addr.s_addr = strtoul(cmsg.params[2], (char **)NULL, 10);
-            r_port = atoi(cmsg.params[3]);
+            if (!t_port) {
+              r_addr.s_addr = strtoul(cmsg.params[2], (char **)NULL, 10);
+              r_port = atoi(cmsg.params[3]);
+            } else {
+              r_addr.s_addr = INADDR_LOOPBACK;
+              r_port = ntohs(t_port);
+            }
             l_addr.s_addr = ntohl(vis_addr.sin_addr.s_addr);
             if (cmsg.numparams >= 5)
               rest = cmsg.paramstarts[4];
 
+            /* Strip out this CTCP from the message, replacing it in
+               a moment with dccmsg */
+            tmp = x_sprintf("\001%s\001", unquoted);
+            ptr = strstr(str, tmp);
+
             /* Set up a dcc proxy */
-            if (!dccnet_new(type, 0, &l_port, r_addr, r_port)) {
+            if (ptr && (p->client_status == IRC_CLIENT_ACTIVE)
+                && !dccnet_new(type, p->conn_class->dcc_proxy_timeout,
+                               p->conn_class->dcc_proxy_ports,
+                               p->conn_class->dcc_proxy_ports_sz,
+                               &l_port, r_addr, r_port)) {
               dccmsg = x_sprintf("\001DCC %s %s %lu %u%s%s\001",
                                  cmsg.params[0], cmsg.params[1],
                                  l_addr.s_addr, l_port,
                                  (rest ? " " : ""), (rest ? rest : ""));
-            } else {
+
+              if (p->conn_class->log_events & IRC_LOG_CTCP)
+                irclog_notice(p, msg.params[0], p->servername,
+                              "DCC %s Request from %s", cmsg.params[0],
+                              msg.src.fullname);
+
+            } else if (ptr) {
               dccmsg = x_strdup("");
-              net_send(p->server_sock,
-                       ":%s NOTICE %s :\001DCC REJECT %s %s "
-                       "(%s: unable to proxy)\r\n", p->nickname,
-                       (msg.src.name ? msg.src.name : p->servername),
-                       cmsg.params[0], cmsg.params[1], PACKAGE);
+              if (p->conn_class->dcc_proxy_sendreject) {
+                net_send(p->server_sock,
+                         ":%s NOTICE %s :\001DCC REJECT %s %s "
+                         "(%s: unable to proxy)\001\r\n", p->nickname,
+                         msg.src.name, cmsg.params[0], cmsg.params[1], PACKAGE);
+                debug("-> ':%s NOTICE %s :\001DCC REJECT %s %s "
+                      "(%s: unable to proxy)\001'", p->nickname,
+                      msg.src.name, cmsg.params[0], cmsg.params[1], PACKAGE);
+              }
             }
 
-            /* Strip out the CTCP message */
-            oldmsg = x_strdup(msg.params[1]);
-            tmp = x_sprintf("\001%s\001", unquoted);
-            /* We're guaranteed that tmp is in oldmsg! */
-            ptr = strstr(oldmsg, tmp);
-            *ptr = 0;
-            ptr += strlen(tmp);
+            /* Cut out the old CTCP and replace with dccmsg */
+            if (ptr) {
+              char *oldstr;
 
-            if (strlen(oldmsg) || strlen(dccmsg) || strlen(ptr))
-              net_send(p->client_sock, ":%s PRIVMSG %s :%s%s%s\r\n",
-                       (msg.src.orig ? msg.src.orig : p->servername),
-                       msg.params[0], oldmsg, dccmsg, ptr);
+              *ptr = 0;
+              ptr += strlen(tmp);
 
-            squelch = 1;
-            free(oldmsg);
-            free(dccmsg);
+              oldstr = str;
+              str = x_sprintf("%s%s%s", oldstr, dccmsg, ptr);
+
+              free(oldstr);
+              free(dccmsg);
+            }
+
             free(tmp);
 
           } else {
@@ -1019,13 +1059,19 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
           /* Unknown CTCP */
           if (p->conn_class->log_events & IRC_LOG_CTCP)
             irclog_notice(p, msg.params[0], p->servername, "CTCP %s from %s",
-                          cmsg.cmd, (msg.src.fullname
-                                     ? msg.src.fullname : p->servername));
+                          cmsg.cmd, msg.src.fullname);
         }
 
         ircprot_freectcp(&cmsg);
         free(unquoted);
       }
+
+      /* Send str */
+      if (strlen(str))
+        net_send(p->client_sock, ":%s PRIVMSG %s :%s\r\n",
+                 msg.src.orig, msg.params[0], str);
+      squelch = 1;
+      free(str);
     }
 
   } else if (!irc_strcasecmp(msg.cmd, "NOTICE")) {
@@ -1037,9 +1083,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
       if (str && strlen(str)) {
         if (p->conn_class->log_events & IRC_LOG_TEXT)
-          irclog_notice(p, msg.params[0],
-                        (msg.src.orig ? msg.src.orig : p->servername),
-                        "%s", str);
+          irclog_notice(p, msg.params[0], msg.src.orig, "%s", str);
       }
       free(str);
 
@@ -1064,14 +1108,11 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
             if (cmsg.numparams >= 1) {
               irclog_notice(p, msg.params[0], p->servername,
                             "CTCP %s reply from %s: %s", cmsg.cmd,
-                            (msg.src.fullname
-                             ? msg.src.fullname : p->servername),
-                            cmsg.paramstarts[0]);
+                            msg.src.fullname, cmsg.paramstarts[0]);
             } else {
               irclog_notice(p, msg.params[0], p->servername,
                             "CTCP %s reply from %s",
-                            cmsg.cmd, (msg.src.fullname
-                                       ? msg.src.fullname : p->servername));
+                            cmsg.cmd, msg.src.fullname);
             }
           }
 
@@ -1182,7 +1223,7 @@ static void _ircserver_ping(struct ircproxy *p, void *data) {
   if (IS_SERVER_READY(p)) {
     debug("Pinging the server");
     net_sendurgent(p->server_sock, "PING :%s\r\n", p->servername);
-    debug("=> PING :%s", p->servername);
+    debug("=> 'PING :%s'", p->servername);
   }
 
   timer_new((void *)p, "server_ping",
@@ -1263,7 +1304,7 @@ int ircserver_send_command(struct ircproxy *p, const char *command,
   }
 
   ret = net_send(p->server_sock, "%s%s %s\r\n", prefix, command, msg);
-  debug("-> %s%s %s", prefix, command, msg);
+  debug("-> '%s%s %s'", prefix, command, msg);
 
   free(prefix);
   free(msg);
@@ -1282,7 +1323,7 @@ int ircserver_send_peercmd(struct ircproxy *p, const char *command,
   va_end(ap);
 
   ret = net_send(p->server_sock, "%s %s\r\n", command, msg);
-  debug("-> %s %s", command, msg);
+  debug("-> '%s %s'", command, msg);
 
   free(msg);
   return ret;
