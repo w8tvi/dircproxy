@@ -5,7 +5,7 @@
  * timers.c
  *  - Scheduling events
  * --
- * @(#) $Id: timers.c,v 1.1 2000/05/13 02:14:26 keybuk Exp $
+ * @(#) $Id: timers.c,v 1.2 2000/05/13 04:41:55 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -67,8 +67,7 @@ char *timer_new(struct ircproxy *p, const char *id, unsigned long interval,
   t = (struct timer *)malloc(sizeof(struct timer));
   t->proxy = p;
   if (id) {
-    t->id = (char *)malloc(strlen(id) + 1);
-    strcpy(t->id, id);
+    t->id = strdup(id);
   } else {
     t->id = x_sprintf("timer%lu", nexttimer++);
   }

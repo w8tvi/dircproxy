@@ -6,7 +6,7 @@
  *  - IRC protocol message parsing
  *  - IRC x!y@z parsing
  * --
- * @(#) $Id: irc_prot.c,v 1.1 2000/05/13 02:13:56 keybuk Exp $
+ * @(#) $Id: irc_prot.c,v 1.2 2000/05/13 04:41:55 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -32,8 +32,7 @@ int ircprot_parsemsg(const char *message, struct ircmessage *msg) {
   char *start, *ptr;
 
   /* Copy the original message as well */
-  ptr = start = msg->orig = (char *)malloc(strlen(message) + 1);
-  strcpy(msg->orig, message);
+  ptr = start = msg->orig = strdup(message);
 
   /* Begins with a prefix? */
   if (*ptr == ':') {
@@ -126,22 +125,19 @@ static int _ircprot_parse_prefix(char *prefix, struct ircsource *source) {
       source->username[ptr - str] = 0;
       str = ptr + 1;
 
-      source->hostname = (char *)malloc(strlen(str) + 1);
-      strcpy(source->hostname, str);
+      source->hostname = strdup(str);
     }
   } else {
     source->type = IRC_EITHER;
     source->username = source->hostname = 0;
-    source->name = (char *)malloc(strlen(str) + 1);
-    strcpy(source->name, str);
+    source->name = strdup(str);
   }
 
   if (source->name && source->username && source->hostname) {
     source->fullname = x_sprintf("%s (%s@%s)", source->name,
                                  source->username, source->hostname);
   } else {
-    source->fullname = (char *)malloc(strlen(source->name) + 1);
-    strcpy(source->fullname, source->name);
+    source->fullname = strdup(source->name);
   }
 
   return source->type;
@@ -176,8 +172,7 @@ static int _ircprot_get_params(char *message, char ***params) {
 
   while (*ptr) {
     if (*ptr == ':') {
-      (*params)[param] = (char *)malloc(strlen(ptr));
-      strcpy((*params)[param], ptr + 1);
+      (*params)[param] = strdup(ptr + 1);
       break;
     } else {
       while (*ptr && (*ptr != ' ')) ptr++;
@@ -238,8 +233,7 @@ void ircprot_stripctcp(char *msg) {
 char *ircprot_sanitize_username(const char *str) {
   char *ret, *out, *in;
 
-  out = in = ret = (char *)malloc(strlen(str) + 1);
-  strcpy(ret, str);
+  out = in = ret = strdup(str);
 
   while (*in) {
     if ((*in >= 'A') && (*in <= 'Z')) {
@@ -256,7 +250,7 @@ char *ircprot_sanitize_username(const char *str) {
 
   if (!strlen(ret)) {
      free(ret);
-     ret = x_sprintf("user");
+     ret = strdup("user");
   } 
 
   return ret;

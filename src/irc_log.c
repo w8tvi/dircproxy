@@ -5,7 +5,7 @@
  * irc_log.c
  *  - Handling of log files
  * --
- * @(#) $Id: irc_log.c,v 1.2 2000/05/13 04:23:46 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.3 2000/05/13 04:41:55 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -263,8 +263,7 @@ char *irclog_read(struct logfile *log) {
     tmp = buff + strlen(buff);
     while ((tmp >= buff) && (*tmp <= 32)) *(tmp--) = 0;
 
-    tmp = (char *)malloc(strlen(buff) + 1);
-    strcpy(tmp, buff);
+    tmp = strdup(buff);
 
     return tmp;
   }

@@ -5,7 +5,7 @@
  * irc_string.c
  *  - Case conversion functions for IRC protocol
  * --
- * @(#) $Id: irc_string.c,v 1.1 2000/05/13 02:13:57 keybuk Exp $
+ * @(#) $Id: irc_string.c,v 1.2 2000/05/13 04:41:55 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -77,13 +77,8 @@ int irc_strcasecmp(const char *s1, const char *s2) {
   char *news1, *news2;
   int ret;
 
-  news1 = (char *)malloc(strlen(s1) + 1);
-  strcpy(news1, s1);
-  irc_strlwr(news1);
-
-  news2 = (char *)malloc(strlen(s2) + 1);
-  strcpy(news2, s2);
-  irc_strlwr(news2);
+  news1 = irc_strlwr(strdup(s1));
+  news2 = irc_strlwr(strdup(s2));
 
   ret = strcmp(news1, news2);
 
@@ -98,13 +93,8 @@ int irc_strcasematch(const char *str, const char *mask) {
   char *newstr, *newmask;
   int ret;
 
-  newstr = (char *)malloc(strlen(str) + 1);
-  strcpy(newstr, str);
-  irc_strlwr(newstr);
-
-  newmask = (char *)malloc(strlen(mask) + 1);
-  strcpy(newmask, mask);
-  irc_strlwr(newmask);
+  newstr = irc_strlwr(strdup(str));
+  newmask = irc_strlwr(strdup(mask));
 
   ret = strmatch(newstr, newmask);
 
