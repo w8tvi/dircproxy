@@ -2,7 +2,7 @@
 .\" Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.38 2002/08/17 19:40:38 scott Exp $
+.\" @(#) $Id: dircproxy.1,v 1.39 2002/08/17 21:39:05 scott Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -97,7 +97,7 @@ The possible keywords and their meanings are as follows (note that the
 configuration file is not case-sensitive):
 
 .PP
-.B LOCAL OPTIONS
+.B GLOBAL OPTIONS
 .PP
 These options may not be placed inside a connection class as they affect
 the operation of the entire \fBdircproxy\fR server.
@@ -134,11 +134,16 @@ Maximum amount of time (in seconds) to wait for a reply from a DNS
 server.  If the time exceeds this then the lookup is cancelled.
 
 .PP
-.B GLOBAL OPTIONS
+.B LOCAL OPTIONS
 .PP
 These options may be placed in a connection class, or outside of one.  If
 they are outside then they only affect those connection classes defined
 afterwards.
+
+.PP
+.B SERVER OPTIONS
+.PP
+Options affecting the connection to the IRC server.
 
 .TP
 .B server_port
@@ -216,6 +221,11 @@ you can create connection classes with no '\fBserver\fR' lines.
  yes = Automatically connect to the first server
  no = Wait for a /DIRCPROXY JUMP from the client
 
+.PP
+.B CHANNEL OPTIONS
+.PP
+Options affecting channels you join.
+
 .TP
 .B channel_rejoin
 If we are kicked off a channel, how many seconds do we wait before
@@ -240,6 +250,11 @@ rejoin those channels when you attach again?
  yes = Rejoin the channels \fBdircproxy\fR automatically left
  no = Leave permanently on detach
 
+.PP
+.B IDLE OPTIONS
+.PP
+Options affecting idle times on IRC.
+
 .TP
 .B idle_maxtime
 Set this to the maximum amount of time you want to appear idle for
@@ -248,6 +263,12 @@ time if it reaches this limit (in seconds).
 
  0 = Don't reset idle time
 
+.PP
+.B DISCONNECTiON OPTIONS
+.PP
+Options affecting when \fBdircproxy\fR disconnects you.
+
+.TP
 .TP
 .B disconnect_existing_user
 If, when you connect to \fBdircproxy\fR, another client is already using
@@ -267,6 +288,11 @@ it to close your server connection as well, then set this.
 
  yes = Close session on disconnection
  no = Stay connected to server until reattachment
+
+.PP
+.B MODE OPTIONS
+.PP
+Options affecting user modes set by the IRC server.
 
 .TP
 .B initial_modes
@@ -292,12 +318,22 @@ and the next server in the list will be tried.
 
 Set to "" to not refuse any modes.
 
+.PP
+.B ADDRESS OPTIONS
+.PP
+Options affecting your address on IRC.
+
 .TP
 .B local_address
 Local hostname to use when connecting to an IRC server.  This provides
 the same functionality as the ircII -H parameter.
 
  none = Do not bind any specific hostname
+
+.PP
+.B MESSAGE OPTIONS
+.PP
+Options affecting messages sent or set by \fBdircproxy\fR on behalf of you.
 
 .TP
 .B away_message
@@ -342,6 +378,11 @@ detached (ie "*_away" adds "_away" to the end of your nickname);
  
  none = Leave nickname as it is
 
+.PP
+.B NICKNAME OPTIONS
+.PP
+Options affecting your nickname
+
 .TP
 .B nick_keep
 Whether \fBdircproxy\fR should attempt to keep the nickname you last set
@@ -352,6 +393,11 @@ until a client connects again.
  yes = try to keep my nickname while I'm disconnected
  no = if it changes, leave it
 
+.PP
+.B CTCP OPTIONS
+.PP
+Options affecting CTCP replies
+
 .TP
 .B ctcp_replies
 Whether \fBdircproxy\fR should reply to the standard set of CTCP messages
@@ -360,345 +406,61 @@ while the client is detached.
  yes = reply to ctcp messages while client is detached
  no = nothing but silence
 
-.TP
-.B chan_log_enabled
-Whether logging of channel text to files should take place.  If this
-is 'yes', then you'll be able to recall channel text when you rejoin
-and see what you missed.
-
- yes = Channel text is logged to files
- no = Channel text is NOT logged to files
- 
-.TP
-.B chan_log_always
-Channel text will always be logged while you are offline, so when you
-come back you can see what you missed.  You can also, if you wish, log
-channel text while online, so if you're only away a short time you can
-get an idea of any context etc.
-
-This only applies if '\fBchan_log_enabled\fR' is 'yes'.
-
- yes = Log channel text while offline and online
- no = Log channel text only while offline
+.PP
+.B LOGGING OPTIONS
+.PP
+These options affect both the internal logging inside \fBdircproxy\fR so
+messages can be recalled to you when you return from being disconnected,
+and general logging for your own personal use.
 
 .TP
-.B chan_log_maxsize
-To preserve your harddisk space, you can limit the size of a channel
-log file.  Once the log file reaches this number of lines, every line
-added will result in a line removed from the top.  If you know you are
-never going to want all that logged information, this might be a good
-setting for you.
+.B log_timestamp
+Log messages can have a timestamp added to the front to let you know
+exactly when a message was logged.  The format of this timestamp depends
+on the setting of '\fBlog_relativetime\fR'.
 
-This only applies if '\fBchan_log_enabled\fR' is 'yes'.
-
- 0 = No limit to log files
+ yes = Include a timestamp in all log messages
+ no = Do not include a timestamp
 
 .TP
-.B chan_log_recall
-Number of lines from each channel log file to automatically recall
-to your IRC client when you attach.  If this is low, you may not get
-much useful information, if this is high, it may take a long time for
-all the information to arrive.
-
-This only applies if '\fBchan_log_enabled\fR' is 'yes'.
-
- -1 = Recall the whole log (not recommended if chan_log_always is yes)
- 0 = Don't automatically recall anything
-
-.TP
-.B chan_log_timestamp
-Channel text can have a timestamp added to the front to let you know
-exactly when a message was logged.  These timestamps are displayed when
-you recall the log files, or when automatially dumped.
-
-This applies to ordinary channel logs if '\fBchan_log_enabled\fR' is 'yes'
-and also to the permanent copy if '\fBchan_log_copydir\fR' is set to something
-other than 'none'.
-
- yes = Include timestamp
- no = Do not include timestamp
-
-.TP
-.B chan_log_relativetime
-If '\fBchan_log_timestamp\fR' is 'yes' then you also have the option of
-using intelligent relative timestamps.  If you do, the timestamp shown
-when log file information is recalled depends on how old that line is,
-making sure it displays enough information (including date if necessary).
-Otherwise \fBdircproxy\fR will just tell you the time in HH:MM format which
-may not be as useful.
-
-This does mean that the time itself won't be displayed in the log files
-themselves, a timestamp is in place instead.  This may cause problems
-if you're doing things with the log files yourself.
-
- yes = Do fancy relative timestamping
- no = Do normal timestamping
-
-.TP
-.B chan_log_copydir
-As well as \fBdircproxy\fR's own log files, it can also keep a permanent
-copy somewhere for your use.  \fBdircproxy\fR will append all channel text
-seen to this file, but will not use it itself.
-
-If you do define it, it'll add to each log as you use it.  If you
-start with "~/" then it will use a directory under your home directory.
-
-This is done regardless of the '\fBchan_log_enabled\fR'
-and '\fBchan_log_always\fR' options, although if those are off then you won't
-get that text recalled to your client, despite it being in this file.
-The timestamping options do apply however.
-
- none = Do not make a permanent copy
-
-.TP
-.B chan_log_program
-Program to pipe channel text into.  If given, \fBdircproxy\fR will run this
-program for each log file entry giving the full source information as
-the first argument, the destination as the second and the text as a
-single line on standard input.
-
-The program can be anywhere in your $PATH, or you can start it with
-"~/" if its in a directory under your home directory.
-
-This is done regardless of the '\fBchan_log_enabled\fR'
-and '\fBchan_log_always\fR' options.
-
- none = Do not pipe log messages to a program
-
-.TP
-.B other_log_enabled
-Whether logging of server  messages to files should take
-place.  If this is 'yes', then you'll be able to recall server
-messages when you rejoin and see what you missed.
-
- yes = Server messages are logged to files
- no = Server messages are NOT logged to files
-
-.TP
-.B other_log_always
-Server messages will always be logged while you are offline,
-so when you come back you can see what you missed.  You can also, if you
-wish, log these messages while online, so if you're only away a short
-time you can get an idea of any context etc.
-
-This only applies if '\fBother_log_enabled\fR' is 'yes'.
-
- yes = Log server messages while offline and online
- no = Log server messages only while offline
-
-.TP
-.B other_log_maxsize
-To preserve your harddisk space, you can limit the size of the
-server message log file.  Once the log file reaches this number
-of lines, every line added will result in a line removed from the top.
-If you know you are never going to want all that logged information,
-this might be a good setting for you.
-
-This only applies if '\fBother_log_enabled\fR' is 'yes'.
-
- 0 = No limit to log file
-
-.TP
-.B other_log_recall
-Number of lines from the server message log file to automatically
-recall to your IRC client when you attach.  If this is low, you may not
-get much useful information, if this is high, it may take a long time for
-all the information to arrive.
-
-This only applies if '\fBother_log_enabled\fR' is 'yes'.
-
- -1 = Recall the whole log (not recommended if other_log_always is yes)
- 0 = Don't automatically recall anything
-
-.TP
-.B other_log_timestamp
-Server messages can have a timestamp added to the front to
-let you know exactly when a message was logged.  These timestamps are
-displayed when you recall the log files, or when automatially dumped.
-
-This applies to the server message log if '\fBother_log_enabled\fR'
-is 'yes' and also the permanet copy if '\fBother_log_copydir\fR' is set to
-something other than 'none'.
-
- yes = Include timestamp
- no = Do not include timestamp
-
-.TP
-.B other_log_relativetime
-If '\fBother_log_timestamp\fR' is 'yes' then you also have the option of
-using intelligent relative timestamps.  If you do, the timestamp shown
-when log file information is recalled depends on how old that line is,
-making sure it displays enough information (including date if necessary).
-Otherwise \fBdircproxy\fR will just tell you the time in HH:MM format which
-may not be as useful.
-
-This does mean that the time itself won't be displayed in the log files
-themselves, a timestamp is in place instead.  This may cause problems
-if you're doing things with the log files yourself.
-
- yes = Do fancy relative timestamping
- no = Do normal timestamping
-
-.TP
-.B other_log_copydir
-As well as \fBdircproxy\fR's own log file, it can keep a permanent copy
-somewhere for your use.  \fBdircproxy\fR will append all server
-messages seen to this file, but will not use it itself.
-
-If you do define it, it'll add to the log as it uses it.  If you start
-with "~/" then it will use a directory under your home directory.
-
-This is done regardless of the '\fBother_log_enabled\fR'
-and '\fBother_log_always\fR' options, although if those are off then won't
-get that text recalled to your client, despite it being in this file.
-The timestamping options do apply however.
-
- none = Do not make a permanent copy
-
-.TP
-.B other_log_program
-Program to pipe server messages into.  If given, \fBdircproxy\fR
-will run this program for each log file entry giving the full source
-information as the first argument, the destination as the second
-and the text as a single line on standard input.
-
-The program can be anywhere in your $PATH, or you can start it with
-"~/" if its in a directory under your home directory.
-
-This is done regardless of the '\fBother_log_enabled\fR'
-and '\fBother_log_always\fR' options.
-
- none = Do not pipe log messages to a program
-
-.TP
-.B private_log_enabled
-Whether logging of private messages to files should take
-place.  If this is 'yes', then you'll be able to recall server and
-private messages when you rejoin and see what you missed.
-
- yes = Private messages are logged to files
- no = Private messages are NOT logged to files
-
-.TP
-.B private_log_always
-Private messages will always be logged while you are offline,
-so when you come back you can see what you missed.  You can also, if you
-wish, log these messages while online, so if you're only away a short
-time you can get an idea of any context etc.
-
-This only applies if '\fBprivate_log_enabled\fR' is 'yes'.
-
- yes = Log private messages while offline and online
- no = Log private messages only while offline
-
-.TP
-.B private_log_maxsize
-To preserve your harddisk space, you can limit the size of the
-private message log file.  Once the log file reaches this number
-of lines, every line added will result in a line removed from the top.
-If you know you are never going to want all that logged information,
-this might be a good setting for you.
-
-This only applies if '\fBprivate_log_enabled\fR' is 'yes'.
-
- 0 = No limit to log file
-
-.TP
-.B private_log_recall
-Number of lines from the private message log file to automatically
-recall to your IRC client when you attach.  If this is low, you may not
-get much useful information, if this is high, it may take a long time for
-all the information to arrive.
-
-This only applies if '\fBprivate_log_enabled\fR' is 'yes'.
-
- -1 = Recall the whole log (not recommended if private_log_always is yes)
- 0 = Don't automatically recall anything
-
-.TP
-.B private_log_timestamp
-Private messages can have a timestamp added to the front to
-let you know exactly when a message was logged.  These timestamps are
-displayed when you recall the log files, or when automatially dumped.
-
-This applies to the private message log if '\fBprivate_log_enabled\fR'
-is 'yes' and also the permanet copy if '\fBprivate_log_copydir\fR' is set to
-something other than 'none'.
-
- yes = Include timestamp
- no = Do not include timestamp
-
-.TP
-.B private_log_relativetime
-If '\fBprivate_log_timestamp\fR' is 'yes' then you also have the option of
-using intelligent relative timestamps.  If you do, the timestamp shown
-when log file information is recalled depends on how old that line is,
-making sure it displays enough information (including date if necessary).
-Otherwise \fBdircproxy\fR will just tell you the time in HH:MM format which
-may not be as useful.
-
-This does mean that the time itself won't be displayed in the log files
-themselves, a timestamp is in place instead.  This may cause problems
-if you're doing things with the log files yourself.
-
- yes = Do fancy relative timestamping
- no = Do normal timestamping
-
-.TP
-.B private_log_copydir
-As well as \fBdircproxy\fR's own log file, it can keep a permanent copy
-somewhere for your use.  \fBdircproxy\fR will append all private
-messages seen to this file, but will not use it itself.
-
-If you do define it, it'll add to the log as it uses it.  If you start
-with "~/" then it will use a directory under your home directory.
-
-This is done regardless of the '\fBprivate_log_enabled\fR'
-and '\fBprivate_log_always\fR' options, although if those are off then won't
-get that text recalled to your client, despite it being in this file.
-The timestamping options do apply however.
-
- none = Do not make a permanent copy
-
-.TP
-.B private_log_program
-Program to pipe private messages into.  If given, \fBdircproxy\fR
-will run this program for each log file entry giving the full source
-information as the first argument, the destination as the second
-and the text as a single line on standard input.
-
-The program can be anywhere in your $PATH, or you can start it with
-"~/" if its in a directory under your home directory.
-
-This is done regardless of the '\fBprivate_log_enabled\fR'
-and '\fBprivate_log_always\fR' options.
-
- none = Do not pipe log messages to a program
+.B log_relativetime
+If '\fBlog_timestamp\fR' is '\fByes\fR' then you have the option of using
+either intelligent relative timestamps, or ordinary fixed timestamps.
+If you choose relative, then the timestamp shown when log information is
+recalled to your client depends on how old that line is, with possible
+date information if it is a really old message.  If you do not choose
+relative then only the time (in HH:MM format) will be logged.
+
+This obviously has no effect on the log files under the directory
+specified by '\fBlog_dir\fR'.
+
+ yes = Use relative timestamps
+ no = Use fixed timestamps
 
 .TP
 .B log_timeoffset
 Difference in minutes from your IRC client to the \fBdircproxy\fR machine.
-So if you're in GMT, but your \fBdircproxy\fR machine is in PST (which is
-8 hours behind), then this would be -(8 * 60) = -480.  Used for log
-file timestamps.
+So if you'\fBre in GMT, but your \fBdircproxy\fR machine is in PST (which
+is 8 hours behind), then this would be -(8 * 60) = -480.  Used to adjust
+log file timestamps so they\fR're in the right time zone for you.
 
  0 = Don't adjust log timestamps.
 
 .TP
 .B log_events
 Events you want \fBdircproxy\fR to log for you.  This is a comma seperated
-list of event names, prefixed with '+' to add the event to the list or '-'
-to remove an event.  You can also specify 'all' to log all events (the
-default) or 'none' to not log anything.
+list of event names, prefixed with '\fB+\fR' to add the event to the
+list or '\fB-\fR' to remove an event.  You can also specify '\fBall\fR'
+to log all events (the default) or '\fBnone\fR' to not log anything.
 
 Example, to just log text and action's:
 
- log_events "none,+text,+action"
+ log_events "\fBnone,+text,+action\fR"
 
 Example, to log everything but server messages:
 
- log_events "all,-server"
- # you don't need to specify 'all'
+ log_events "\fBall,-server\fR"
+ # you don'\fBt need to specify \fR'all'
  log_events -server
 
 The possible events are:
@@ -722,7 +484,7 @@ The possible events are:
  People (including you) being kicked from channels
 
 \fBquit\fR
- People quit''ing from IRC
+ People quit'ing from IRC
 
 \fBnick\fR
  People (including you) changing nickname
@@ -741,6 +503,183 @@ The possible events are:
 
 \fBerror\fR
  Problems and errors \fBdircproxy\fR encounters (recommended!)
+
+.TP
+.B log_dir
+\fBdircproxy\fR keeps it's own internal log files (under /tmp) so it
+can recall information to your client when you reconnect.  It can also
+log messages to files for your own use.
+
+Under this directory a file will be created named after each channel you
+join, a file will be created named after each nickname that sends you
+private messages, or you send, and a final file called "\fBserver\fR"
+will be created containing server events.
+
+This logging is done regardless of the enabled or always settings, which
+only affect the internal logging.  However the log_events settings do
+affect what is logged.
+
+If you start with "\fB~/\fR" then it will use a directory under your
+home directory.
+
+ none = Do not create log files for your own use
+
+.TP
+.B log_program
+Program to pipe log messages into.  If given, \fBdircproxy\fR will run
+this program for each log message giving the full source information as
+the first argument, the destination as the second and the message itself
+as a single line on standard input.
+
+The program can be anywhere in your $PATH, or you can start it with
+"\fB~/\fR" if its in a directory under your home directory.
+
+This logging is done regardless of the enabled or always settings, which
+only affect the internal logging.  However the log_events settings do
+affect what is logged.
+
+ none = Do not pipe log messages to a program
+
+.PP
+.B INTERNAL CHANNEL LOG OPTIONS
+.PP
+Options affecting the internal logging of channel text so it can be
+recalled to your client when you reconnect.  These options only apply
+if the '\fBchan_log_enabled\fR' option is set to '\fByes\fR'.
+
+.TP
+.B chan_log_enabled
+Whether logging of channel text for later recall, so you can see what
+you missed, should take place.
+
+ yes = Channel text is logged for recall
+ no = Channel text is NOT logged for recall
+
+.TP
+.B chan_log_always
+Channel text will always be logged for later recall while you are offline,
+so when you come back you can see what you missed.  You can also, if
+you wish, log channel text while you are online, so if you're only away
+a short time you can get an idea of any context.
+
+ yes = Log channel text for recall while offline and online
+ no = Log channel text for recall only while offline
+
+.TP
+.B chan_log_maxsize
+To preserve your harddisk space, you can limit the size of the internal
+channel log file, which is stored in the /tmp directory.  Once the log
+file reaches this number of lines, every line added will result in a
+line being removed from the top.  If you know you are never going to
+want all that logged information, this might be a good setting for you.
+
+ 0 = No limit to internal log file size
+
+.TP
+.B chan_log_recall
+Number of lines from the bottom of each internal channel log to
+automatically recall to your IRC client when you reconnect.  If this is
+low, you may not get much useful information, if this is high, it may
+take a long time for all the information to arrive.
+
+ -1 = Recall the whole log (not recommended if chan_log_always is yes)
+ 0 = Don't automatically recall anything
+
+.PP
+.B INTERNAL PRIVATE LOG OPTIONS
+.PP
+Options affecting the internal logging of private messages, notices, CTCP
+and DCC events so they can be recalled to your client when you reconnect.
+These options only apply if the '\fBprivate_log_enabled\fR' option is
+set to '\fByes\fR'.
+
+.TP
+.B private_log_enabled
+Whether logging of private messages for later recall, so you can see
+what you missed, should take place.
+
+ yes = Private messages are logged for recall
+ no = Private messages are NOT logged for recall
+
+.TP
+.B private_log_always
+Private messages will always be logged for later recall while you are
+offline, so when you come back you can see what you missed.  You can
+also, if you wish, log private messages while you are online, so if
+you're only away a short time you can get an idea of any context.
+
+ yes = Log private messages for recall while offline and online
+ no = Log private messages for recall only while offline
+
+.TP
+.B private_log_maxsize
+To preserve your harddisk space, you can limit the size of the internal
+private message log file, which is stored in the /tmp directory.  Once the
+log file reaches this number of lines, every line added will result in
+a line being removed from the top.  If you know you are never going to
+want all that logged information, this might be a good setting for you.
+
+ 0 = No limit to internal log file size
+
+.TP
+.B private_log_recall
+Number of lines from the bottom of the internal private message log to
+automatically recall to your IRC client when you reconnect.  If this is
+low, you may not get much useful information, if this is high, it may
+take a long time for all the information to arrive.
+
+ -1 = Recall the whole log (not recommended if private_log_always is yes)
+ 0 = Don't automatically recall anything
+
+.PP
+.B INTERNAL SERVER LOG OPTIONS
+.PP
+Options affecting the internal logging of server messages so they can
+be recalled to your client when you reconnect.  These options only apply
+if the '\fBserver_log_enabled\fR' option is set to '\fByes\fR'.
+
+.TP
+.B server_log_enabled
+Whether logging of server messages for later recall, so you can see what
+you missed, should take place.
+
+ yes = Server messages are logged for recall
+ no = Server messages are NOT logged for recall
+
+.TP
+.B server_log_always
+Server messages will always be logged for later recall while you are
+offline, so when you come back you can see what you missed.  You can also,
+if you wish, log server messages while you are online, so if you're only
+away a short time you can get an idea of any context.
+
+ yes = Log server messages for recall while offline and online
+ no = Log server messages for recall only while offline
+
+.TP
+.B server_log_maxsize
+To preserve your harddisk space, you can limit the size of the internal
+server message log file, which is stored in the /tmp directory.  Once the
+log file reaches this number of lines, every line added will result in
+a line being removed from the top.  If you know you are never going to
+want all that logged information, this might be a good setting for you.
+
+ 0 = No limit to internal log file size
+
+.TP
+.B server_log_recall
+Number of lines from the bottom of the internal server message log to
+automatically recall to your IRC client when you reconnect.  If this is
+low, you may not get much useful information, if this is high, it may
+take a long time for all the information to arrive.
+
+ -1 = Recall the whole log (not recommended if server_log_always is yes)
+ 0 = Don't automatically recall anything
+
+.PP
+.B DCC PROXY OPTIONS
+.PP
+Options affecting proxying and capturing of DCC chat and send requests.
 
 .TP
 .B dcc_proxy_incoming
@@ -857,6 +796,11 @@ This can be a numeric port number, or a service name from /etc/services
 
  none = There is no tunnel.
 
+.PP
+.B ADVANCED OPTIONS
+.PP
+Options for the advanced user.
+
 .TP
 .B switch_user
 If you're running \fBdircproxy\fR as root, it can switch to a different
@@ -881,6 +825,11 @@ Attempting otherwise will generate a warning as \fBdircproxy\fR starts.
 This can be a numeric uid or a username from /etc/passwd.
 
  none = Do not do this.
+
+.PP
+.B MOTD OPTIONS
+.PP
+Options affecting the \fBdircproxy\fR message of the day.
 
 .TP
 .B motd_logo
@@ -908,6 +857,11 @@ not only much information you missed, but how much will be sent to you.
 
  yes = Show the stats
  no = They don't interest me, don't show them.
+
+.PP
+.B COMMAND OPTIONS
+.PP
+Options allowing or disallowing the use of /DIRCPROXY commands.
 
 .TP
 .B allow_persist
