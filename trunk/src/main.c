@@ -9,7 +9,7 @@
  *  - Signal handling
  *  - Debug functions
  * --
- * @(#) $Id: main.c,v 1.42 2000/10/20 11:03:19 keybuk Exp $
+ * @(#) $Id: main.c,v 1.43 2000/10/23 12:29:02 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,7 +62,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.42 2000/10/20 11:03:19 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.43 2000/10/23 12:29:02 keybuk Exp $";
 
 /* The name of the program */
 static char *progname;
@@ -307,14 +307,20 @@ int main(int argc, char *argv[]) {
     nt = timer_poll();
 
     if (!ns && !nt)
-      stop_poll = 1;
+      break;
   }
 
   /* Free up stuff */
   ircnet_flush();
   dns_flush();
   timer_flush();
+
+
+  /* Do a lingering close on all sockets */
+  net_closeall();
   net_flush();
+
+  /* Close down and free up memory */
   if (!inetd_mode && !no_daemon)
     closelog();
   free(listen_port);
@@ -330,7 +336,7 @@ int main(int argc, char *argv[]) {
 /* Signal to stop polling */
 static void sig_term(int sig) {
   debug("Received signal %d to stop", sig);
-  stop_poll = 1;
+  stop();
 }
 
 /* Signal to reload configuration file */
@@ -494,7 +500,11 @@ int syscall_fail(const char *function, const char *arg, const char *message) {
   if (in_background) {
     syslog(LOG_NOTICE, "%s", msg);
   } else {
+#ifdef DEBUG
+    fprintf(stderr, "%c[33;1m%s: %s%c[m\n", 27, progname, msg, 27);
+#else /* DEBUG */
     fprintf(stderr, "%s: %s\n", progname, msg);
+#endif /* DEBUG */
   }
 
   free(msg);
@@ -513,7 +523,11 @@ int error(const char *format, ...) {
   if (in_background) {
     syslog(LOG_ERR, "%s", msg);
   } else {
+#ifdef DEBUG
+    fprintf(stderr, "%c[31;1m%s: %s%c[m\n", 27, progname, msg, 27);
+#else /* DEBUG */
     fprintf(stderr, "%s: %s\n", progname, msg);
+#endif /* DEBUG */
   }
 
   free(msg);
@@ -527,7 +541,11 @@ int debug(const char *format, ...) {
   char *msg;
 
   va_start(ap, format);
+#ifdef DEBUG_MEMORY
+  msg = xx_vsprintf(0, 0, format, ap);
+#else /* DEBUG_MEMORY */
   msg = x_vsprintf(format, ap);
+#endif /* DEBUG_MEMORY */
   va_end(ap);
  
   if (in_background) {
