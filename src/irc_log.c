@@ -5,7 +5,7 @@
  * irc_log.c
  *  - Handling of log files
  * --
- * @(#) $Id: irc_log.c,v 1.16 2000/08/30 13:40:04 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.17 2000/08/30 14:25:59 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -462,7 +462,16 @@ int irclog_autorecall(struct ircproxy *p, const char *to) {
     recall = p->conn_class->chan_log_recall;
   }
 
-  start = (recall > log->nlines ? 0 : log->nlines - recall);
+  /* Don't recall anything */
+  if (!recall)
+    return 0;
+  
+  /* Recall everything */
+  if (recall == -1) {
+    start = 0;
+  } else {
+    start = (recall > log->nlines ? 0 : log->nlines - recall);
+  }
   lines = log->nlines - start;
 
   return _irclog_recall(p, log, start, lines, to, 0);
