@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.27 2000/10/12 15:59:05 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.28 2000/10/12 16:24:14 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -223,6 +223,12 @@
  * 0 = don't do this
  */
 #define DEFAULT_AWAY_MESSAGE "Not available, messages are logged"
+
+/* DEFAULT_QUIT_MESSAGE
+ * QUIT message to use for a normal termination of proxy session.
+ * 0 = dircproxy internal one
+ */
+#define DEFAULT_QUIT_MESSAGE 0
 
 /* DEFAULT_ATTACH_MESSAGE
  * When the client attaches again, it will send this to each channel they

@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.20 2000/10/10 13:08:35 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.21 2000/10/12 16:24:14 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -71,6 +71,8 @@ int cfg_read(const char *filename, char **listen_port) {
                         ? x_strdup(DEFAULT_LOCAL_ADDRESS) : 0);
   def->away_message = (DEFAULT_AWAY_MESSAGE
                        ? x_strdup(DEFAULT_AWAY_MESSAGE) : 0);
+  def->quit_message = (DEFAULT_QUIT_MESSAGE
+                       ? x_strdup(DEFAULT_QUIT_MESSAGE) : 0);
   def->attach_message = (DEFAULT_ATTACH_MESSAGE
                          ? x_strdup(DEFAULT_ATTACH_MESSAGE) : 0);
   def->detach_message = (DEFAULT_DETACH_MESSAGE
@@ -310,7 +312,24 @@ int cfg_read(const char *filename, char **listen_port) {
 
         free((class ? class : def)->away_message);
         (class ? class : def)->away_message = str;
-        
+
+      } else if (!strcasecmp(key, "quit_message")) {
+        /* quit_message none
+           quit_message ""    # same as none
+           quit_message "Gotta restart this thing" */
+        char *str;
+
+        if (_cfg_read_string(&buf, &str))
+          UNMATCHED_QUOTE;
+
+        if (!strcasecmp(str, "none") || !strlen(str)) {
+          free(str);
+          str = 0;
+        }
+
+        free((class ? class : def)->quit_message);
+        (class ? class : def)->quit_message = str;
+
       } else if (!strcasecmp(key, "attach_message")) {
         /* attach_message none
            attach_message ""    # same as none
@@ -623,6 +642,8 @@ int cfg_read(const char *filename, char **listen_port) {
                                 ? x_strdup(def->local_address) : 0);
         class->away_message = (def->away_message
                                ? x_strdup(def->away_message) : 0);
+        class->quit_message = (def->quit_message
+                               ? x_strdup(def->quit_message) : 0);
         class->attach_message = (def->attach_message
                                  ? x_strdup(def->attach_message) : 0);
         class->detach_message = (def->detach_message
@@ -809,6 +830,7 @@ int cfg_read(const char *filename, char **listen_port) {
   free(def->refuse_modes);
   free(def->local_address);
   free(def->away_message);
+  free(def->quit_message);
   free(def->attach_message);
   free(def->detach_message);
   free(def->chan_log_dir);
