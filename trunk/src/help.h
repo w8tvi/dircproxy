@@ -4,7 +4,7 @@
  *
  * help.h
  * --
- * @(#) $Id: help.h,v 1.8 2001/12/21 20:15:55 keybuk Exp $
+ * @(#) $Id: help.h,v 1.9 2002/02/05 10:05:46 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -176,6 +176,14 @@ static char *help_host[] = {
   "disconnect from the current server, and reconnect to it",
   "again with the hostname originally specified in the",
   "local_address config option (if any)",
+  0
+};
+
+/* help status */
+static char *help_status[] = {
+  "/DIRCPROXY STATUS",
+  "displays dircproxy status information, great for bug",
+  "reports!",
   0
 };
 
