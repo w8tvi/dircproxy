@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.63 2002/08/17 21:48:03 scott Exp $
+ * @(#) $Id: irc_server.c,v 1.64 2002/10/17 18:46:01 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -331,8 +331,8 @@ static void _ircserver_connected(struct ircproxy *p, int sock) {
   if (IS_CLIENT_READY(p))
     ircclient_send_notice(p, "Connected to server");
 
-  if (p->conn_class->log_events & IRC_LOG_SERVER)
-    irclog_notice(p, 0, PACKAGE, "Connected to server: %s", p->servername);
+  irclog_log(p, IRC_LOG_SERVER, IRC_LOGFILE_SERVER, PACKAGE,
+             "Connected to server: %s", p->servername);
 
   /* Need to try and look up our local hostname now we have a socket to
      somewhere that will tell us */
@@ -638,14 +638,14 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       if (c) {
         /* No client connected?  Better notify it */
         if (p->client_status != IRC_CLIENT_ACTIVE) {
-          if (p->conn_class->log_events & IRC_LOG_ERROR) {
-            if (msg.numparams >= 3) {
-              irclog_notice(p, 0, PACKAGE, "Couldn't rejoin %s: %s (%s)",
-                            msg.params[1], msg.params[2], msg.cmd);
-            } else {
-              irclog_notice(p, 0, PACKAGE, "Couldn't rejoin %s (%s)",
-                            msg.params[1], msg.cmd);
-            }
+          if (msg.numparams >= 3) {
+            irclog_log(p, IRC_LOG_ERROR, IRC_LOGFILE_SERVER, PACKAGE,
+                       "Couldn't rejoin %s: %s (%s)",
+                       msg.params[1], msg.params[2], msg.cmd);
+          } else {
+            irclog_log(p, IRC_LOG_ERROR, IRC_LOGFILE_SERVER, PACKAGE,
+                       "Couldn't rejoin %s (%s)",
+                       msg.params[1], msg.cmd);
           }
 
           /* Set it to an unjoined channel until the client comes back */
@@ -787,9 +787,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
             ircclient_send_selfcmd(p, "NICK", ":%s", msg.params[0]);
 
           ircclient_nick_changed(p, msg.params[0]);
-          if (p->conn_class->log_events & IRC_LOG_NICK)
-            irclog_notice(p, 0, p->servername,
-                          "You changed your nickname to %s", msg.params[0]);
+          irclog_log(p, IRC_LOG_NICK, IRC_LOGFILE_SERVER, p->servername,
+                     "You changed your nickname to %s", msg.params[0]);
         }
 
         /* Is this as a result of a client NICK command? */
@@ -803,9 +802,9 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     } else {
       /* Someone changing their nickname */
       if (msg.numparams >= 1) {
-        if (p->conn_class->log_events & IRC_LOG_NICK)
-          irclog_notice(p, 0, p->servername, "%s changed nickname to %s",
-                        msg.src.fullname, msg.params[0]);
+        irclog_log(p, IRC_LOG_NICK, IRC_LOGFILE_SERVER, p->servername,
+                   "%s changed nickname to %s",
+                   msg.src.fullname, msg.params[0]);
       }
       squelch = 0;
     }
@@ -818,9 +817,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
         /* Personal mode change */
         int param;
 
-        if (p->conn_class->log_events & IRC_LOG_MODE)
-          irclog_notice(p, 0, p->servername,
-                        "Your mode was changed: %s", msg.paramstarts[1]);
+        irclog_log(p, IRC_LOG_MODE, IRC_LOGFILE_SERVER, p->servername,
+                   "Your mode was changed: %s", msg.paramstarts[1]);
 
         for (param = 1; param < msg.numparams; param++)
           ircclient_change_mode(p, msg.params[param]);
@@ -846,9 +844,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
         /* Channel mode change */
         ircnet_channel_mode(p, c, &msg, 1);
 
-        if (p->conn_class->log_events & IRC_LOG_MODE)
-          irclog_notice(p, c->name, p->servername, "%s changed mode: %s",
-                        msg.src.fullname, msg.paramstarts[1]);
+        irclog_log(p, IRC_LOG_MODE, c->name, p->servername,
+                   "%s changed mode: %s", msg.src.fullname, msg.paramstarts[1]);
       }
 
       squelch = 0;
@@ -860,10 +857,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
       /* Channel topic change */
       c = ircnet_fetchchannel(p, msg.params[0]);
-
-      if (p->conn_class->log_events & IRC_LOG_TOPIC)
-        irclog_notice(p, c->name, p->servername, "%s changed topic: %s",
-                      msg.src.fullname, msg.paramstarts[1]);
+      irclog_log(p, IRC_LOG_TOPIC, c->name, p->servername,
+                 "%s changed topic: %s", msg.src.fullname, msg.paramstarts[1]);
 
       squelch = 0;
     }
@@ -931,15 +926,13 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
           }
         }
 
-        if (p->conn_class->log_events & IRC_LOG_JOIN)
-          irclog_notice(p, msg.params[0], p->servername,
-                        "You joined the channel");
+        irclog_log(p, IRC_LOG_JOIN, msg.params[0], p->servername,
+                   "You joined the channel");
       }
     } else {
       if (msg.numparams >= 1) {
-        if (p->conn_class->log_events & IRC_LOG_JOIN)
-          irclog_notice(p, msg.params[0], p->servername,
-                        "%s joined the channel", msg.src.fullname);
+        irclog_log(p, IRC_LOG_JOIN, msg.params[0], p->servername,
+                   "%s joined the channel", msg.src.fullname);
       }
       squelch = 0;
     }
@@ -950,9 +943,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       if (msg.numparams >= 1) {
         struct ircchannel *c;
 
-        if (p->conn_class->log_events & IRC_LOG_PART)
-          irclog_notice(p, msg.params[0], p->servername,
-                        "You left the channel");
+        irclog_log(p, IRC_LOG_PART, msg.params[0], p->servername,
+                   "You left the channel");
 
         c = ircnet_fetchchannel(p, msg.params[0]);
         /* Ignore server PARTs for unjoined channels */
@@ -962,9 +954,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       }
     } else {
       if (msg.numparams >= 1) {
-        if (p->conn_class->log_events & IRC_LOG_PART)
-          irclog_notice(p, msg.params[0], p->servername,
-                        "%s left the channel", msg.src.fullname);
+        irclog_log(p, IRC_LOG_PART, msg.params[0], p->servername,
+                   "%s left the channel", msg.src.fullname);
       }
       squelch = 0;
     }
@@ -974,15 +965,12 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       if (!irc_strcasecmp(p->nickname, msg.params[1])) {
         /* We got kicked off a channel */
 
-        if (p->conn_class->log_events & IRC_LOG_KICK) {
-          if (msg.numparams >= 3) {
-            irclog_notice(p, msg.params[0], p->servername,
-                          "Kicked off by %s: %s", msg.src.fullname,
-                          msg.params[2]);
-          } else {
-            irclog_notice(p, msg.params[0], p->servername,
-                          "Kicked off by %s", msg.src.fullname);
-          }
+        if (msg.numparams >= 3) {
+          irclog_log(p, IRC_LOG_KICK, msg.params[0], p->servername,
+                     "Kicked off by %s: %s", msg.src.fullname, msg.params[2]);
+        } else {
+          irclog_log(p, IRC_LOG_KICK, msg.params[0], p->servername,
+                     "Kicked off by %s", msg.src.fullname);
         }
 
         /* No client connected?  Lets rejoin it for it */
@@ -1003,30 +991,25 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       } else {
         squelch = 0;
 
-        if (p->conn_class->log_events & IRC_LOG_KICK) {
-          if (msg.numparams >= 3) {
-            irclog_notice(p, msg.params[0], p->servername,
-                          "%s kicked off by %s: %s", msg.params[1],
-                          msg.src.fullname, msg.params[2]);
-          } else {
-            irclog_notice(p, msg.params[0], p->servername,
-                          "%s kicked off by %s", msg.params[1],
-                          msg.src.fullname);
-          }
+        if (msg.numparams >= 3) {
+          irclog_log(p, IRC_LOG_KICK, msg.params[0], p->servername,
+                     "%s kicked off by %s: %s", msg.params[1],
+                     msg.src.fullname, msg.params[2]);
+        } else {
+          irclog_log(p, IRC_LOG_KICK, msg.params[0], p->servername,
+                     "%s kicked off by %s", msg.params[1], msg.src.fullname);
         }
       }
     }
 
   } else if (!irc_strcasecmp(msg.cmd, "QUIT")) {
     /* Somebody left IRC */
-    if (p->conn_class->log_events & IRC_LOG_QUIT) {
-      if (msg.numparams >= 1) {
-        irclog_notice(p, 0, p->servername, "%s quit from IRC: %s",
-                      msg.src.fullname, msg.params[0]);
-      } else {
-        irclog_notice(p, 0, p->servername, "%s quit from IRC",
-                      msg.src.fullname);
-      }
+    if (msg.numparams >= 1) {
+      irclog_log(p, IRC_LOG_QUIT, IRC_LOGFILE_SERVER, p->servername,
+                 "%s quit from IRC: %s", msg.src.fullname, msg.params[0]);
+    } else {
+      irclog_log(p, IRC_LOG_QUIT, IRC_LOGFILE_SERVER, p->servername,
+                 "%s quit from IRC", msg.src.fullname);
     }
 
     squelch = 0;
@@ -1041,16 +1024,20 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     squelch = 0;
 
     if (msg.numparams >= 2) {
+      struct ircchannel *c;
       struct strlist *list, *s;
-      char *str;
+      char *str, *logdest;
 
       ircprot_stripctcp(msg.params[1], &str, &list);
 
+      /* Channel text has to go to the log of the destination, but private
+       * messages go to the log of the source */
+      c = ircnet_fetchchannel(p, msg.params[0]);
+      logdest = (c ? msg.params[0] : msg.src.name);
+
       /* Privmsgs get logged */
-      if (str && strlen(str)) {
-        if (p->conn_class->log_events & IRC_LOG_TEXT)
-          irclog_msg(p, msg.params[0], msg.src.orig, "%s", str);
-      }
+      if (str && strlen(str))
+        irclog_log(p, IRC_LOG_MSG, logdest, msg.src.orig, "%s", str);
       free(str);
 
       /* Handle CTCP */
@@ -1073,8 +1060,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
         }
       
         if (!strcmp(cmsg.cmd, "ACTION")) {
-          if (p->conn_class->log_events & IRC_LOG_ACTION)
-            irclog_ctcp(p, msg.params[0], msg.src.orig, "%s", cmsg.orig);
+          irclog_log(p, IRC_LOG_ACTION, logdest, msg.src.orig,
+                     "%s", cmsg.paramstarts[0]);
 
         } else if (!strcmp(cmsg.cmd, "DCC")
                    && p->conn_class->dcc_proxy_incoming) {
@@ -1203,20 +1190,16 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
               if (capfile) {
                 dccmsg = x_strdup("");
 
-                if (p->conn_class->log_events & IRC_LOG_CTCP)
-                  irclog_notice(p, msg.params[0], p->servername,
-                                "Captured DCC %s from %s into %s",
-                                cmsg.params[0], msg.src.fullname, capfile);
+                irclog_log(p, IRC_LOG_CTCP, logdest, msg.src.orig,
+                           "Captured DCC %s into %s", cmsg.params[0], capfile);
               } else {
                 dccmsg = x_sprintf("\001DCC %s %s %lu %u%s%s\001",
                                    cmsg.params[0], cmsg.params[1],
                                    l_addr.s_addr, l_port,
                                    (rest ? " " : ""), (rest ? rest : ""));
 
-                if (p->conn_class->log_events & IRC_LOG_CTCP)
-                  irclog_notice(p, msg.params[0], p->servername,
-                                "DCC %s Request from %s", cmsg.params[0],
-                                msg.src.fullname);
+                irclog_log(p, IRC_LOG_CTCP, logdest, msg.src.orig,
+                           "Received DCC %s Request", cmsg.params[0]);
               }
 
             } else if (ptr) {
@@ -1262,20 +1245,12 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
                                    msg.src.name);
           }
 
-          if (p->conn_class->log_events & IRC_LOG_CTCP)
-            irclog_notice(p, msg.params[0], p->servername, "CTCP %s from %s",
-                          cmsg.cmd, msg.src.fullname);
-
         } else if (!strcmp(cmsg.cmd, "ECHO")
                   && p->conn_class->ctcp_replies
                   && (p->client_status != IRC_CLIENT_ACTIVE)) {
           if (cmsg.numparams >= 1)
             ircserver_send_command(p, "NOTICE", "%s :\001ECHO %s\001",
                                    msg.src.name, cmsg.paramstarts[0]);
-
-          if (p->conn_class->log_events & IRC_LOG_CTCP)
-            irclog_notice(p, msg.params[0], p->servername, "CTCP %s from %s",
-                          cmsg.cmd, msg.src.fullname);
 
         } else if (!strcmp(cmsg.cmd, "TIME")
                   && p->conn_class->ctcp_replies
@@ -1288,10 +1263,6 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
           ircserver_send_command(p, "NOTICE", "%s :\001TIME %s\001",
                                  msg.src.name, tbuf);
 
-          if (p->conn_class->log_events & IRC_LOG_CTCP)
-            irclog_notice(p, msg.params[0], p->servername, "CTCP %s from %s",
-                          cmsg.cmd, msg.src.fullname);
-
         } else if (!strcmp(cmsg.cmd, "CLIENTINFO")
                   && p->conn_class->ctcp_replies
                   && (p->client_status != IRC_CLIENT_ACTIVE)) {
@@ -1300,20 +1271,12 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
                                  "ACTION DCC VERSION CLIENTINFO USERINFO "
                                  "FINGER PING TIME ECHO");
 
-          if (p->conn_class->log_events & IRC_LOG_CTCP)
-            irclog_notice(p, msg.params[0], p->servername, "CTCP %s from %s",
-                          cmsg.cmd, msg.src.fullname);
-
         } else if (!strcmp(cmsg.cmd, "VERSION")
                   && p->conn_class->ctcp_replies
                   && (p->client_status != IRC_CLIENT_ACTIVE)) {
           ircserver_send_command(p, "NOTICE", "%s :\001VERSION %s %s - %s\001",
                                  msg.src.name, PACKAGE, VERSION,
                                  "http://www.dircproxy.net/");
-
-          if (p->conn_class->log_events & IRC_LOG_CTCP)
-            irclog_notice(p, msg.params[0], p->servername, "CTCP %s from %s",
-                          cmsg.cmd, msg.src.fullname);
 
         } else if (!strcmp(cmsg.cmd, "USERINFO")
                   && p->conn_class->ctcp_replies
@@ -1322,26 +1285,18 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
                                  msg.src.name, PACKAGE, "Saving the world from "
                                  "mutant carrots since 1899!");
 
-          if (p->conn_class->log_events & IRC_LOG_CTCP)
-            irclog_notice(p, msg.params[0], p->servername, "CTCP %s from %s",
-                          cmsg.cmd, msg.src.fullname);
-
         } else if (!strcmp(cmsg.cmd, "FINGER")
                   && p->conn_class->ctcp_replies
                   && (p->client_status != IRC_CLIENT_ACTIVE)) {
           ircserver_send_command(p, "NOTICE", "%s :\001FINGER %s %s\001",
                                  msg.src.name, PACKAGE,
                                  "proxying for unconnected client");
+        }
 
-          if (p->conn_class->log_events & IRC_LOG_CTCP)
-            irclog_notice(p, msg.params[0], p->servername, "CTCP %s from %s",
-                          cmsg.cmd, msg.src.fullname);
-
-        } else {
-          /* Unknown CTCP */
-          if (p->conn_class->log_events & IRC_LOG_CTCP)
-            irclog_notice(p, msg.params[0], p->servername, "CTCP %s from %s",
-                          cmsg.cmd, msg.src.fullname);
+        /* Don't log DCC or ACTION twice :) */
+        if (strcmp(cmsg.cmd, "DCC") && strcmp(cmsg.cmd, "ACTION")) {
+          irclog_log(p, IRC_LOG_CTCP, logdest, msg.src.orig,
+                     "Received CTCP %s", cmsg.params[0]);
         }
 
         ircprot_freectcp(&cmsg);
@@ -1358,15 +1313,19 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
   } else if (!irc_strcasecmp(msg.cmd, "NOTICE")) {
     if (msg.numparams >= 1) {
+      struct ircchannel *c;
       struct strlist *list;
-      char *str;
+      char *str, *logdest;
 
       ircprot_stripctcp(msg.params[1], &str, &list);
+      
+      /* Channel text has to go to the log of the destination, but private
+       * messages go to the log of the source */
+      c = ircnet_fetchchannel(p, msg.params[0]);
+      logdest = (c ? msg.params[0] : msg.src.name);
 
-      if (str && strlen(str)) {
-        if (p->conn_class->log_events & IRC_LOG_TEXT)
-          irclog_notice(p, msg.params[0], msg.src.orig, "%s", str);
-      }
+      if (str && strlen(str))
+        irclog_log(p, IRC_LOG_NOTICE, logdest, msg.src.orig, "%s", str);
       free(str);
 
       if (list) {
@@ -1386,16 +1345,14 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
           if (r == -1)
             continue;
          
-          if (p->conn_class->log_events & IRC_LOG_CTCP) {
-            if (cmsg.numparams >= 1) {
-              irclog_notice(p, msg.params[0], p->servername,
-                            "CTCP %s reply from %s: %s", cmsg.cmd,
-                            msg.src.fullname, cmsg.paramstarts[0]);
-            } else {
-              irclog_notice(p, msg.params[0], p->servername,
-                            "CTCP %s reply from %s",
-                            cmsg.cmd, msg.src.fullname);
-            }
+          if (cmsg.numparams >= 1) {
+            irclog_log(p, IRC_LOG_CTCP, logdest, msg.src.orig,
+                       "Received CTCP %s Reply: %s",
+                       cmsg.cmd, cmsg.paramstarts[0]);
+          } else {
+            irclog_log(p, IRC_LOG_CTCP, logdest, msg.src.orig,
+                       "Received CTCP %s Reply",
+                       cmsg.cmd);
           }
 
           ircprot_freectcp(&cmsg);
@@ -1444,9 +1401,8 @@ static int _ircserver_close(struct ircproxy *p) {
     _ircserver_lost(p);
   }
 
-  if (p->conn_class->log_events & IRC_LOG_SERVER)
-    irclog_notice(p, 0, PACKAGE, "Lost connection to server: %s",
-                  p->servername);
+  irclog_log(p, IRC_LOG_SERVER, IRC_LOGFILE_SERVER, PACKAGE,
+             "Lost connection to server: %s", p->servername);
 
   timer_new((void *)p, "server_recon", p->conn_class->server_retry,
             TIMER_FUNCTION(_ircserver_reconnect), (void *)0);
@@ -1475,9 +1431,8 @@ int ircserver_connectagain(struct ircproxy *p) {
   if (IS_SERVER_READY(p)) {
     if (IS_CLIENT_READY(p)) {
       ircclient_send_notice(p, "Dropped connnection to server");
-      if (p->conn_class->log_events & IRC_LOG_SERVER)
-        irclog_notice(p, 0, PACKAGE,
-                      "Dropped connection to server: %s", p->servername);
+      irclog_log(p, IRC_LOG_SERVER, IRC_LOGFILE_SERVER, PACKAGE,
+                 "Dropped connection to server: %s", p->servername);
       _ircserver_lost(p);
     }
 
