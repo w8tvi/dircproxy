@@ -27,7 +27,7 @@ Release checklist
 17.  do a `cvs tag RELEASE-x_x_x`
 18.  do an `autogen.sh` without any flags
 19.  make dist
-20.  `gpg --armor --comment 'See http://www.dircproxy.net/\
+20.  `gpg --armor --comment 'See http://dircproxy.securiweb.net/\
       download.html for more information' --detach-sign DISTFILE`
 21.  `md5sum DISTFILE > DISTFILE.md5`
 22.  scp dist file, md5 file and asc file to tetris:~ftp/pub/dircproxy/unstable
