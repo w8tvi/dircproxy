@@ -5,7 +5,7 @@
  * irc_server.c
  *  - Handling of servers connected to the proxy
  * --
- * @(#) $Id: irc_server.c,v 1.17 2000/08/29 11:12:31 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.18 2000/08/30 10:53:22 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -346,13 +346,29 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
   } else if (!strcasecmp(msg.cmd, "005")) {
     /* Ignore 005 */
   } else if (!strcasecmp(msg.cmd, "375")) {
-    /* Ignore 375 */
+    /* Ignore 375 unless allow_motd */
+    if (p->allow_motd)
+      squelch = 0;
+
   } else if (!strcasecmp(msg.cmd, "372")) {
-    /* Ignore 372 */
+    /* Ignore 372 unless allow_motd */
+    if (p->allow_motd)
+      squelch = 0;
+
   } else if (!strcasecmp(msg.cmd, "376")) {
-    /* Ignore 376 */
+    /* Ignore 376 unless allow_motd */
+    if (p->allow_motd) {
+      squelch = 0;
+      p->allow_motd = 0;
+    }
+
   } else if (!strcasecmp(msg.cmd, "422")) {
-    /* Ignore 422 */
+    /* Ignore 422 unless allow_motd */
+    if (p->allow_motd) {
+      squelch = 0;
+      p->allow_motd = 0;
+    }
+    
   } else if (!strcasecmp(msg.cmd, "431") || !strcasecmp(msg.cmd, "432")
              || !strcasecmp(msg.cmd, "433") || !strcasecmp(msg.cmd, "436")
              || !strcasecmp(msg.cmd, "438")) {
