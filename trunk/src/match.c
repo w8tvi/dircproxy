@@ -1,5 +1,5 @@
 /* dircproxy
- * Copyright (C) 2001 Scott James Remnant <scott@netsplit.com>.
+ * Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.
  * All Rights Reserved.
  *
  * match.c
@@ -9,7 +9,7 @@
  * its a lot smaller than anyone elses that I know of, which worries
  * me slightly :) - But it seems to work
  * --
- * @(#) $Id: match.c,v 1.5 2001/01/11 15:29:21 keybuk Exp $
+ * @(#) $Id: match.c,v 1.6 2001/12/21 20:15:55 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
