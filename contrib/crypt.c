@@ -32,8 +32,10 @@ int main() {
 
     enc = crypt(pass, salt);
     printf("\nPassword encrypted is: %s\n", enc);
+    return 0;
   } else {
     printf("\nNo password received.\n");
+    return 1;
   }
 }
 
