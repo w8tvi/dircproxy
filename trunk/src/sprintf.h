@@ -4,7 +4,7 @@
  *
  * sprintf.h
  * --
- * @(#) $Id: sprintf.h,v 1.1 2000/05/13 02:13:56 keybuk Exp $
+ * @(#) $Id: sprintf.h,v 1.2 2000/05/13 05:25:04 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -20,5 +20,6 @@
 /* functions */
 extern char *x_sprintf(const char *, ...);
 extern char *x_vsprintf(const char *, va_list);
+extern char *x_strdup(const char *);
 
 #endif /* __DIRCPROXY_SPRINTF_H */

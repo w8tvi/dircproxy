@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.5 2000/05/13 05:12:52 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.6 2000/05/13 05:25:04 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -198,7 +198,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
       /* ircII sends an empty parameter to mark back *grr* */
       if ((msg.numparams >= 1) && strlen(msg.params[0])) {
         free(p->awaymessage);
-        p->awaymessage = strdup(msg.params[0]);
+        p->awaymessage = x_strdup(msg.params[0]);
       } else {
         free(p->awaymessage);
         p->awaymessage = 0;
@@ -209,7 +209,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
       if (msg.numparams >= 2) {
         char *str;
 
-        str = strdup(msg.params[1]);
+        str = x_strdup(msg.params[1]);
         ircprot_stripctcp(str);
         if (strlen(str)) {
           struct ircchannel *c;
@@ -230,7 +230,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
       if (msg.numparams >= 2) {
         char *str;
 
-        str = strdup(msg.params[1]);
+        str = x_strdup(msg.params[1]);
         ircprot_stripctcp(str);
         if (strlen(str)) {
           struct ircchannel *c;
@@ -285,13 +285,13 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
 
   if (!connclasses) {
     connclasses = (struct ircconnclass *)malloc(sizeof(struct ircconnclass));
-    connclasses->password = strdup(TODO_CFG_PASS);
+    connclasses->password = x_strdup(TODO_CFG_PASS);
     connclasses->servers = (struct strlist *)malloc(sizeof(struct strlist));
-    connclasses->servers->str = strdup(TODO_CFG_SERVER);
+    connclasses->servers->str = x_strdup(TODO_CFG_SERVER);
     connclasses->servers->next = 0;
     connclasses->awaymessage = (DEFAULT_DETACH_AWAY
-                                ? strdup(DEFAULT_DETACH_AWAY) : 0);
-    connclasses->bind = (TODO_CFG_BINDHOST ? strdup(TODO_CFG_BINDHOST) : 0);
+                                ? x_strdup(DEFAULT_DETACH_AWAY) : 0);
+    connclasses->bind = (TODO_CFG_BINDHOST ? x_strdup(TODO_CFG_BINDHOST) : 0);
     connclasses->next_server = connclasses->servers;
     connclasses->masklist = 0;
     connclasses->next = 0;
@@ -368,7 +368,7 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
 int ircclient_change_nick(struct ircproxy *p, const char *newnick) {
   free(p->nickname);
 
-  p->nickname = strdup(newnick);
+  p->nickname = x_strdup(newnick);
   p->client_status |= IRC_CLIENT_GOTNICK;
 
   return 0;
@@ -409,7 +409,7 @@ int ircclient_generate_nick(struct ircproxy *p, const char *tried) {
 
     if (c < tried) {
       free(nick);
-      nick = strdup(FALLBACK_NICKNAME);
+      nick = x_strdup(FALLBACK_NICKNAME);
     }
   }
 
@@ -426,10 +426,10 @@ static int _ircclient_got_details(struct ircproxy *p, const char *newusername,
   int mode;
 
   if (!p->username)
-    p->username = strdup(newusername);
+    p->username = x_strdup(newusername);
 
   if (!p->realname)
-    p->realname = strdup(newrealname);
+    p->realname = x_strdup(newrealname);
 
   /* RFC2812 states that the second parameter to USER is a numeric stating
      what default modes to set.  This disagrees with RFC1459.  We follow
@@ -452,7 +452,7 @@ int ircclient_change_mode(struct ircproxy *p, const char *change) {
   char *ptr, *str;
   int add = 1;
 
-  ptr = str = strdup(change);
+  ptr = str = x_strdup(change);
 
   while (*ptr) {
     switch (*ptr) {

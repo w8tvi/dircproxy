@@ -5,7 +5,7 @@
  * sprintf.c
  *  - various ways of doing allocating sprintf() functions to void b/o
  * --
- * @(#) $Id: sprintf.c,v 1.1 2000/05/13 02:13:56 keybuk Exp $
+ * @(#) $Id: sprintf.c,v 1.2 2000/05/13 05:25:04 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -22,6 +22,7 @@
 /* With memory debugging, we want to see our own mallocs take place */
 #ifdef MEM_DEBUG
 #undef HAVE_VASPRINTF
+#undef HAVE_STRDUP
 #endif
 
 /* The sprintf() version is just a wrapper around whatever vsprintf() we
@@ -75,3 +76,24 @@ char *x_vsprintf(const char *format, va_list ap) {
 #   error "Your system must have vasprintf() or vsnprintf()"
 # endif /* JAVE_VSNPRINTF */
 #endif /* HAVE_VASPRINTF */
+
+#ifdef HAVE_STRDUP
+
+/* Wrap around strdup() */
+char *x_strdup(const char *s) {
+  return strdup(s);
+}
+
+#else /* HAVE_STRDUP */
+
+/* Do the malloc and strcpy() ourselves so we don't annoy memdebug.c */
+char *x_strdup(const char *s) {
+  char *ret;
+
+  ret = (char *)malloc(strlen(s) + 1);
+  strcpy(ret, s);
+
+  return ret;
+}
+
+#endif /* HAVE_STRDUP */

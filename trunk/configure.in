@@ -34,11 +34,11 @@ AC_ARG_ENABLE(debug, [  --enable-debug          turn on debugging [default=no]],
 	CFLAGS="-g -Wall $CFLAGS"
 	AC_DEFINE(DEBUG)
 	AC_DEFINE(DEBUG_MEMORY)
-	AC_CHECK_FUNCS(vsnprintf)
+	AC_CHECK_FUNCS(strdup vsnprintf)
 else
-	AC_CHECK_FUNCS(vasprintf vsnprintf)
+	AC_CHECK_FUNCS(strdup vasprintf vsnprintf)
 fi,
-AC_CHECK_FUNCS(vasprintf vsnprintf)
+AC_CHECK_FUNCS(strdup vasprintf vsnprintf)
 )
 
 dnl Output the Makefiles.

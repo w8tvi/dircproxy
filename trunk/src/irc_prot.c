@@ -6,7 +6,7 @@
  *  - IRC protocol message parsing
  *  - IRC x!y@z parsing
  * --
- * @(#) $Id: irc_prot.c,v 1.3 2000/05/13 05:12:52 keybuk Exp $
+ * @(#) $Id: irc_prot.c,v 1.4 2000/05/13 05:25:04 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -32,7 +32,7 @@ int ircprot_parsemsg(const char *message, struct ircmessage *msg) {
   char *start, *ptr;
 
   /* Copy the original message as well */
-  ptr = start = msg->orig = strdup(message);
+  ptr = start = msg->orig = x_strdup(message);
 
   /* Begins with a prefix? */
   if (*ptr == ':') {
@@ -125,19 +125,19 @@ static int _ircprot_parse_prefix(char *prefix, struct ircsource *source) {
       source->username[ptr - str] = 0;
       str = ptr + 1;
 
-      source->hostname = strdup(str);
+      source->hostname = x_strdup(str);
     }
   } else {
     source->type = IRC_EITHER;
     source->username = source->hostname = 0;
-    source->name = strdup(str);
+    source->name = x_strdup(str);
   }
 
   if (source->name && source->username && source->hostname) {
     source->fullname = x_sprintf("%s (%s@%s)", source->name,
                                  source->username, source->hostname);
   } else {
-    source->fullname = strdup(source->name);
+    source->fullname = x_strdup(source->name);
   }
 
   return source->type;
@@ -172,7 +172,7 @@ static int _ircprot_get_params(char *message, char ***params) {
 
   while (*ptr) {
     if (*ptr == ':') {
-      (*params)[param] = strdup(ptr + 1);
+      (*params)[param] = x_strdup(ptr + 1);
       break;
     } else {
       while (*ptr && (*ptr != ' ')) ptr++;
@@ -233,7 +233,7 @@ void ircprot_stripctcp(char *msg) {
 char *ircprot_sanitize_username(const char *str) {
   char *ret, *out, *in;
 
-  out = in = ret = strdup(str);
+  out = in = ret = x_strdup(str);
 
   while (*in) {
     if ((*in >= 'A') && (*in <= 'Z')) {
@@ -250,7 +250,7 @@ char *ircprot_sanitize_username(const char *str) {
 
   if (!strlen(ret)) {
      free(ret);
-     ret = strdup(FALLBACK_USERNAME);
+     ret = x_strdup(FALLBACK_USERNAME);
   } 
 
   return ret;

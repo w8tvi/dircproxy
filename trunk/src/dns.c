@@ -5,7 +5,7 @@
  * dns.c
  *  - Some simple functions to do DNS lookups etc
  * --
- * @(#) $Id: dns.c,v 1.2 2000/05/13 04:41:55 keybuk Exp $
+ * @(#) $Id: dns.c,v 1.3 2000/05/13 05:25:04 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -33,7 +33,7 @@ int dns_addrfromhost(const char *name, struct in_addr *result, char **canon) {
   if (info) {
     result->s_addr = *((unsigned long *) info->h_addr);
     if (canon)
-      *canon = strdup(info->h_name);
+      *canon = x_strdup(info->h_name);
   } else {
     return -1;
   }
@@ -48,9 +48,9 @@ char *dns_hostfromaddr(struct in_addr addr) {
 
   info = gethostbyaddr((char *)&addr, sizeof(struct in_addr), AF_INET);
   if (info) {
-    str = strdup(info->h_name);
+    str = x_strdup(info->h_name);
   } else {
-    str = strdup(inet_ntoa(addr));
+    str = x_strdup(inet_ntoa(addr));
   }
 
   return str;
@@ -71,7 +71,7 @@ char *dns_servfromport(short port) {
 
   entry = getservbyport(port, "tcp");
   if (entry) {
-    str = strdup(entry->s_name);
+    str = x_strdup(entry->s_name);
   } else {
     str = x_sprintf("%d", port);
   }
@@ -90,7 +90,7 @@ int dns_filladdr(const char *name, const char *defaultport, int allowcolon,
   if (defaultport)
     result->sin_port = dns_portfromserv(defaultport);
 
-  addr = strdup(name);
+  addr = x_strdup(name);
 
   if (allowcolon) {
     port = strchr(addr, ':');
