@@ -10,7 +10,7 @@
  *  - functions to retrieve data from buffers up to delimiters (newlines?)
  *  - main poll()/select() function
  * --
- * @(#) $Id: net.c,v 1.11 2001/01/11 15:29:21 keybuk Exp $
+ * @(#) $Id: net.c,v 1.12 2001/07/12 14:43:33 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -412,9 +412,15 @@ static int _net_buffer(struct sockinfo *s, int buff, int mode,
     struct sockbuff *b;
 
     b = (struct sockbuff *)malloc(sizeof(struct sockbuff));
+    if (!b)
+      return -1;
     memset(b, 0, sizeof(struct sockbuff));
     b->mode = SB_OUT;
     b->data = malloc(len);
+    if (!b->data) {
+      free(b);
+      return -1;
+    }
     memcpy(b->data, data, len);
     b->len = len;
 
@@ -442,6 +448,8 @@ static int _net_buffer(struct sockinfo *s, int buff, int mode,
   /* Check whether we can just add to the existing buffer */
   if ((mode == SM_RAW) && *l && ((*l)->mode == mode)) {
     (*l)->data = realloc((*l)->data, (*l)->len + len);
+    if (!(*l)->data)
+      return -1;
     memcpy((*l)->data + (*l)->len, data, len);
     (*l)->len += len;
     (*l)->linelen += len;
@@ -451,9 +459,15 @@ static int _net_buffer(struct sockinfo *s, int buff, int mode,
 
     /* Allocate new buffer */
     b = (struct sockbuff *)malloc(sizeof(struct sockbuff));
+    if (!b)
+      return 1;
     memset(b, 0, sizeof(struct sockbuff));
     b->mode = mode;
     b->data = malloc(len);
+    if (!b->data) {
+      free(b);
+      return -1;
+    }
     memcpy(b->data, data, len);
     b->len = len;
     b->linelen = len;
@@ -577,6 +591,8 @@ static int _net_unbuffer(struct sockinfo *s, int buff, void *data, int len) {
 
     /* Yes, shift it all up */
     tmp = malloc(b->len);
+    if (!tmp)
+      return -1;
     memcpy(tmp, b->data + len, b->len);
     free(b->data);
     b->data = tmp;
