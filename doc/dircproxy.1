@@ -2,7 +2,7 @@
 .\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.11 2000/09/27 16:45:32 keybuk Exp $
+.\" @(#) $Id: dircproxy.1,v 1.12 2000/09/28 10:34:38 keybuk Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -149,6 +149,14 @@ attempting * to rejoin.
 
 -1 = Don't rejoin
 0 = Immediately
+
+.TP
+.B idle_maxtime
+Set this to the maximum amount of time you want to appear idle for
+while on IRC, if you set this then dircproxy will reset your idle
+time if it reaches this limit (in seconds).
+
+0 = Don't reset idle time
 
 .TP
 .B disconnect_existing_user

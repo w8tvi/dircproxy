@@ -89,6 +89,16 @@
 #channel_rejoin 15
 
 
+# idle_maxtime
+#     Set this to the maximum amount of time you want to appear idle for
+#     while on IRC, if you set this then dircproxy will reset your idle
+#     time if it reaches this limit (in seconds).
+#
+#     0 = Don't reset idle time
+#
+#idle_maxtime 0
+
+
 # disconnect_existing_user
 #     If, when you connect to dircproxy, another client is already using
 #     your connection class (ie, if you forgot to close that one), then
