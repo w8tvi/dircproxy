@@ -1,6 +1,15 @@
 NEWS about changes for existing users.
 --------------------------------------
 
+Version 0.99.0 - Tue Dec 26 17:55:00 BST 2000
+
+	* New 'nick_keep' config directive.  The nickname code has been
+	  reworked to accomodate this, as such if the connecting client
+	  has a different nickname to dircproxy, the connecting client is
+	  now corrected (not dircproxy, as it used to be).
+
+	* New 'ctcp_replies' config directive.
+
 Version 0.8.4 - Thu Dec  7 17:35:00 BST 2000
 
 	* New 'initial_modes' config directive.

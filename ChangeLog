@@ -1,3 +1,111 @@
+2000-12-26 17:34  Scott James Remnant <scott@netsplit.com>
+
+	* TODO, configure.in: CVS version now 0.99.0, time to freeze it.
+
+2000-12-26 17:33  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_server.c: Fixed it so it only replies when the client
+	isn't connected (oops)
+
+2000-12-26 17:26  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxyrc, doc/dircproxy.1, src/cfgfile.c,
+	src/dircproxy.h, src/irc_client.c, src/irc_net.h, src/irc_server.c:
+	Added support for CTCP replies while the client is detached.
+
+2000-12-26 16:07  Scott James Remnant <scott@netsplit.com>
+
+	* src/: irc_client.c, irc_net.c, irc_server.c, irc_server.h,
+	main.c: Completely replaced ircserver_send_command() with
+	ircserver_send_peercmd() as we never really should prefix stuff.
+
+2000-12-22 13:24  Scott James Remnant <scott@netsplit.com>
+
+	* src/dcc_net.c: Do a connect() before a listen() so that they've
+	both got a chance of binding to the same port.
+
+2000-12-21 13:27  Scott James Remnant <scott@netsplit.com>
+
+	* TODO, src/irc_client.c, src/irc_client.h, src/irc_net.c,
+	src/irc_server.c, src/irc_string.h: * Changed the way all the NICK
+	code works, so it keeps it inline with what   the client AND server
+	think the nick is.
+	
+	* Use peercmd everywhere now, its safer
+	
+	* Adjusted the detach autowash order, so it works properly without
+	errors
+	
+	* Use new net_close syntax everywhere
+	
+	* New dcc stuff
+
+2000-12-21 13:24  Scott James Remnant <scott@netsplit.com>
+
+	* src/: dcc_net.c, dcc_net.h: Added notification to dcc's, so if
+	they timeout we can send a NOTICE back to the user who initiated
+	it.
+	
+	* Also bind the outgoing connect port, it doesn't matter if this
+	doesn't   work (like if there's only one port available) but if it
+	does work it'll   help people behind firewalls.
+	
+	* Updated to use new net_close syntax
+
+2000-12-21 13:22  Scott James Remnant <scott@netsplit.com>
+
+	* src/: dcc_chat.c, dcc_send.c: Updated to new net_close syntax
+
+2000-12-21 13:21  Scott James Remnant <scott@netsplit.com>
+
+	* src/: net.c, net.h: Made net_close explicitly set the socket to
+	-1 (changed to take a pointer) and also made sure no read events
+	occur if the socket is already closed
+
+2000-12-21 13:21  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxyrc, doc/dircproxy.1, src/cfgfile.c,
+	src/dircproxy.h, src/irc_net.h: Added new 'nick_keep' configuration
+	option and the associated variables etc.
+
+2000-12-11 21:50  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: Updated
+
+2000-12-10 14:36  Scott James Remnant <scott@netsplit.com>
+
+	* contrib/Makefile.am: Oops, inadvertently set the spec file to be
+	installed into the share directory, when it shouldn't get installed
+	at all.
+
+2000-12-10 03:06  Scott James Remnant <scott@netsplit.com>
+
+	* RELEASING, TODO, contrib/Makefile.am, contrib/dircproxy.spec:
+	Added dircproxy.spec provided by Hollis R Blanchard
+	<hollis+@andrew.cmu.edu>
+
+2000-12-08 14:29  Scott James Remnant <scott@netsplit.com>
+
+	* RELEASING: Another new step in releasing dircproxy, e-mail
+	nidd@debian.org to inform him of any changes that could affect his
+	debian package.  I need a secretary *laughs* :o)
+
+2000-12-07 18:27  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_log.c: Lowercase the filename used for log files
+
+2000-12-07 18:06  Scott James Remnant <scott@netsplit.com>
+
+	* RELEASING: Updated slightly
+
+2000-12-07 18:05  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in: CVS version now 0.8.5
+
+2000-12-07 17:42  Scott James Remnant <scott@netsplit.com>
+
+	* ChangeLog, NEWS, TODO: Version 0.8.4 released.
+
 2000-12-07 17:21  Scott James Remnant <scott@netsplit.com>
 
 	* src/dcc_send.c: Got rid of the extraneous debug stuff that's not
@@ -2360,10 +2468,9 @@
 
 2000-05-13 02:13  Scott James Remnant <scott@netsplit.com>
 
-	* autogen.sh, src/match.h, src/stringex.h, src/irc_string.h,
-	src/stringex.c: Imported version 0.5.2 into the CVS tree.  Its in a
-	CLEAN state that requires autoconf and automake (run autogen.sh) to
-	build.
+	* autogen.sh, src/match.h, src/stringex.h, src/stringex.c: Imported
+	version 0.5.2 into the CVS tree.  Its in a CLEAN state that
+	requires autoconf and automake (run autogen.sh) to build.
         
 
 2000-05-13 02:13  Scott James Remnant <scott@netsplit.com>
@@ -2373,8 +2480,9 @@
 	src/Makefile.am, src/dircproxy.h, src/dns.c, src/dns.h, src/sock.c,
 	src/irc_prot.c, src/main.c, src/match.c, src/sock.h, src/sprintf.c,
 	src/sprintf.h, src/irc_string.c, src/irc_net.c, src/memdebug.h,
-	src/irc_prot.h, src/irc_log.c, src/irc_log.h, src/irc_net.h,
-	src/irc_client.c, src/irc_client.h, src/irc_server.h,
-	src/memdebug.c, src/irc_server.c, src/timers.c, src/timers.h,
-	src/getopt.c, src/getopt.h, src/getopt1.c: Initial revision
+	src/irc_prot.h, src/irc_string.h, src/irc_log.c, src/irc_log.h,
+	src/irc_net.h, src/irc_client.c, src/irc_client.h,
+	src/irc_server.h, src/memdebug.c, src/irc_server.c, src/timers.c,
+	src/timers.h, src/getopt.c, src/getopt.h, src/getopt1.c: Initial
+	revision
 
