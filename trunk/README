@@ -35,9 +35,6 @@ easy shortcuts for the /DIRCPROXY commands.
 
 See the file INSTALL for building and installation instructions.
 
-There is NO config file at the moment!  Please edit src/dircproxy.h to
-configure server etc.
-
 
 I have personally got this compiling on the following architectures:
 
