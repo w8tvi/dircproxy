@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.8 2000/05/24 17:45:30 keybuk Exp $
+ * @(#) $Id: main.c,v 1.9 2000/05/24 21:06:41 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.8 2000/05/24 17:45:30 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.9 2000/05/24 21:06:41 keybuk Exp $";
 
 /* The name of the program */
 char *progname;
@@ -184,6 +184,7 @@ int main(int argc, char *argv[]) {
 
   /* Set signal handlers */
   signal(SIGTERM, sig_term);
+  signal(SIGINT, sig_term);
 #ifdef DEBUG
   signal(SIGUSR1, sig_usr);
   signal(SIGUSR2, sig_usr);
