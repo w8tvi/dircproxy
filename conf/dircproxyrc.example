@@ -57,7 +57,7 @@
 #     -1 = Don't rejoin
 #      0 = Immediately
 #
-#channel_rejoin 5
+#channel_rejoin 15
 
 # log_autorecall
 #     How many lines of log off the bottom do we give to the client when it
