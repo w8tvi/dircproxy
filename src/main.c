@@ -4,8 +4,12 @@
  *
  * main.c
  *  - Program main loop
+ *  - Command line handling
+ *  - Initialisation and shutdown
+ *  - Signal handling
+ *  - Debug functions
  * --
- * @(#) $Id: main.c,v 1.37 2000/10/12 16:02:15 keybuk Exp $
+ * @(#) $Id: main.c,v 1.38 2000/10/13 12:23:51 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -57,7 +61,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.37 2000/10/12 16:02:15 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.38 2000/10/13 12:23:51 keybuk Exp $";
 
 /* The name of the program */
 static char *progname;
