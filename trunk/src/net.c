@@ -10,7 +10,7 @@
  *  - functions to retrieve data from buffers up to delimiters (newlines?)
  *  - main poll()/select() function
  * --
- * @(#) $Id: net.c,v 1.9 2000/12/21 13:21:48 keybuk Exp $
+ * @(#) $Id: net.c,v 1.10 2000/12/27 18:04:35 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -794,7 +794,7 @@ int net_poll(void) {
         /* If we can read from the socket, suck in all the data there is to
            keep the buffer size on the IRC server down.
            This can result in the call of the error function. */
-        if (!s->closed && can_read) {
+        if (can_read) {
           char buff[NET_BLOCK_SIZE];
           int br, rr;
 
@@ -820,7 +820,7 @@ int net_poll(void) {
               _net_freebuffers(s->out_buff);
               s->out_buff = 0;
 
-              if (s->error_func) {
+              if (!s->closed && s->error_func) {
                 s->error_func(s->info, s->sock, baderror);
               } else {
                 s->closed = 1;
@@ -834,7 +834,7 @@ int net_poll(void) {
             _net_freebuffers(s->out_buff);
             s->out_buff = 0;
 
-            if (s->error_func) {
+            if (!s->closed && s->error_func) {
               s->error_func(s->info, s->sock, 0);
             } else {
               s->closed = 1;
