@@ -3,9 +3,15 @@
  * All Rights Reserved.
  *
  * dns.c
- *  - Some simple functions to do DNS lookups etc
+ *  - non-blocking DNS lookups using callbacks
+ *  - wrappers around /etc/services lookup functions
+ *
+ * The non-blocking stuff is a little complex, but it means that the main
+ * loop can continue while waiting for DNS requests to complete.  Completion
+ * of a DNS request is notified by the child death signal, so it will
+ * interrupt the main loop to continue where you left off.
  * --
- * @(#) $Id: dns.c,v 1.5 2000/10/12 16:00:39 keybuk Exp $
+ * @(#) $Id: dns.c,v 1.6 2000/10/13 12:31:03 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
