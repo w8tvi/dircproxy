@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.31 2000/09/01 12:07:59 keybuk Exp $
+ * @(#) $Id: main.c,v 1.32 2000/09/18 10:06:35 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.31 2000/09/01 12:07:59 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.32 2000/09/18 10:06:35 keybuk Exp $";
 
 /* The name of the program */
 static char *progname;
@@ -155,12 +155,19 @@ int main(int argc, char *argv[]) {
 
   /* If no -f was specified use the home directory */
   if (!local_file && !inetd_mode) {
+    struct stat statinfo;
     struct passwd *pw;
 
     pw = getpwuid(geteuid());
     if (pw && pw->pw_dir) {
       local_file = x_sprintf("%s/%s", pw->pw_dir, USER_CONFIG_FILENAME);
       debug("Local config file: %s", local_file);
+      if (!stat(local_file, &statinfo) && (statinfo.st_mode & 0077)) {
+        fprintf(stderr, "%s: Permissions of %s must be 0700 or "
+                        "more restrictive\n", progname, local_file);
+        free(local_file);
+        return 2;
+      }
       if (cfg_read(local_file, &listen_port)) {
         /* If the local one didn't exist, set to 0 so we open
            global one */
