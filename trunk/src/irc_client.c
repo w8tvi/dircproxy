@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.76 2000/12/26 16:07:39 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.77 2000/12/26 17:26:29 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -143,7 +143,7 @@ static int _ircclient_detach(struct ircproxy *p, const char *message) {
     debug("Killing proxy");
 
     if (message) {
-      commander_send_command(p, "QUIT", ":%s", message);
+      ircserver_send_command(p, "QUIT", ":%s", message);
     } else if (p->conn_class && p->conn_class->quit_message) {
       ircserver_send_command(p, "QUIT", ":%s", p->conn_class->quit_message);
     } else {

@@ -314,6 +314,19 @@
 #nick_keep yes
 
 
+# CTCP OPTIONS
+#     Options affecting CTCP replies
+
+# ctcp_replies
+#     Whether dircproxy should reply to the standard set of CTCP messages
+#     while the client is detached.
+#
+#     yes = reply to ctcp messages while client is detached
+#     no = nothing but silence
+#
+#ctcp_replies yes
+
+
 # CHANNEL LOG OPTIONS
 #     Options affecting logging of channel text.
 

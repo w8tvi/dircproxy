@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.34 2000/12/21 13:21:05 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.35 2000/12/26 17:26:29 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -95,6 +95,7 @@ int cfg_read(const char *filename, char **listen_port,
   def->detach_nickname = (DEFAULT_DETACH_NICKNAME
                           ? x_strdup(DEFAULT_DETACH_NICKNAME) : 0);
   def->nick_keep = DEFAULT_NICK_KEEP;
+  def->ctcp_replies = DEFAULT_CTCP_REPLIES;
   def->chan_log_enabled = DEFAULT_CHAN_LOG_ENABLED;
   def->chan_log_always = DEFAULT_CHAN_LOG_ALWAYS;
   def->chan_log_maxsize = DEFAULT_CHAN_LOG_MAXSIZE;
@@ -471,6 +472,11 @@ int cfg_read(const char *filename, char **listen_port,
         /* nick_keep yes
            nick_keep no */
         _cfg_read_bool(&buf, &(class ? class : def)->nick_keep);
+
+      } else if (!strcasecmp(key, "ctcp_replies")) {
+        /* ctcp_replies yes
+           ctcp_replies no */
+        _cfg_read_bool(&buf, &(class ? class : def)->ctcp_replies);
 
       } else if (!strcasecmp(key, "chan_log_enabled")) {
         /* chan_log_enabled yes
