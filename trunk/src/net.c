@@ -10,7 +10,7 @@
  *  - functions to retrieve data from buffers up to delimiters (newlines?)
  *  - main poll()/select() function
  * --
- * @(#) $Id: net.c,v 1.7 2000/11/20 12:42:06 keybuk Exp $
+ * @(#) $Id: net.c,v 1.8 2000/11/28 12:12:28 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -727,11 +727,7 @@ int net_poll(void) {
 #endif /* HAVE_POLL */
       syscall_fail(func, 0, 0);
       return -1;
-    } else {
-      return ns;
     }
-  } else if (!nr) {
-    return ns;
   }
 
   /* Check for activity */
