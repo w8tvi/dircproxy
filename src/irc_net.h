@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.45 2002/01/31 13:55:04 scott Exp $
+ * @(#) $Id: irc_net.h,v 1.46 2002/02/06 10:07:42 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -125,6 +125,8 @@ struct ircconnclass {
   int allow_jump_new;
   int allow_host;
   int allow_die;
+  int allow_users;
+  int allow_kill;
 
   char *password;
   struct strlist *servers, *next_server;

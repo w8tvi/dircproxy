@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.40 2002/01/31 13:55:04 scott Exp $
+ * @(#) $Id: cfgfile.c,v 1.41 2002/02/06 10:07:42 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -37,7 +37,7 @@ static int _cfg_read_pair(char **, long **);
                                 filename); valid = 0; break; }
 
 /* Read a config file */
-int cfg_read(const char *filename, char **listen_port,
+int cfg_read(const char *filename, char **listen_port, char **pid_file,
              struct globalvars *globals) {
   struct ircconnclass defaults, *def, *class;
   int valid;
@@ -144,6 +144,8 @@ int cfg_read(const char *filename, char **listen_port,
   def->allow_jump_new = DEFAULT_ALLOW_JUMP_NEW;
   def->allow_host = DEFAULT_ALLOW_HOST;
   def->allow_die = DEFAULT_ALLOW_DIE;
+  def->allow_users = DEFAULT_ALLOW_USERS;
+  def->allow_kill = DEFAULT_ALLOW_KILL;
 
   while (valid) {
     char buff[512], *buf;
@@ -207,6 +209,44 @@ int cfg_read(const char *filename, char **listen_port,
         if (listen_port) {
           free(*listen_port);
           *listen_port = str;
+        }
+
+      } else if (!class && !strcasecmp(key, "pid_file")) {
+        /* pid_file none
+           pid_file ""   # same as none
+           pid_file "/file"
+           pid_file "~/file"
+         
+           ( cannot go in a connection {} ) */
+        char *str;
+
+        if (_cfg_read_string(&buf, &str))
+          UNMATCHED_QUOTE;
+
+        if (!strcasecmp(str, "none") || !strlen(str)) {
+          free(str);
+          str = 0;
+
+        } else if (!strncmp(str, "~/", 2)) {
+          char *home;
+
+          home = getenv("HOME");
+          if (home) {
+            char *tmp;
+
+            tmp = x_sprintf("%s%s", home, str + 1);
+            free(str);
+            str = tmp;
+          } else {
+            /* Best we can do */
+            *str = '.';
+          }
+        }
+
+        /* Make sure the silly programmer supplied the pointer! */
+        if (pid_file) {
+          free(*pid_file);
+          *pid_file = str;
         }
 
       } else if (!class && !strcasecmp(key, "client_timeout")) {
@@ -1053,6 +1093,16 @@ int cfg_read(const char *filename, char **listen_port,
         /* allow_die yes
            allow_die no */
         _cfg_read_bool(&buf, &(class ? class : def)->allow_die);
+
+      } else if (!strcasecmp(key, "allow_users")) {
+        /* allow_users yes
+           allow_users no */
+        _cfg_read_bool(&buf, &(class ? class : def)->allow_users);
+
+      } else if (!strcasecmp(key, "allow_kill")) {
+        /* allow_kill yes
+           allow_kill no */
+        _cfg_read_bool(&buf, &(class ? class : def)->allow_kill);
 
       } else if (!class && !strcasecmp(key, "connection")) {
         /* connection {

@@ -4,7 +4,7 @@
  *
  * cfgfile.h
  * --
- * @(#) $Id: cfgfile.h,v 1.5 2001/12/21 20:15:55 keybuk Exp $
+ * @(#) $Id: cfgfile.h,v 1.6 2002/02/06 10:07:42 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -15,6 +15,6 @@
 #define __DIRCPROXY_CFGFILE_H
 
 /* functions */
-extern int cfg_read(const char *, char **, struct globalvars *);
+extern int cfg_read(const char *, char **, char **, struct globalvars *);
 
 #endif /* __DIRCPROXY_CFGFILE_H */
