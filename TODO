@@ -6,28 +6,38 @@ New features for 0.8.0:
 	  more generic so it can be used for dcc_send.c and dcc_fserve.c
 	  etc.
 
-	* Support for channels with keys, not quite sure how to do this.
-	  Can either ask the server nicely if it knows the key, could watch
-	  the /join's from the client, or could store channel_key in the
-	  config file
+        * Support for channels with keys by requesting MODE when we
+	  join and watching channel mode changes.
 
-	* /DIRCPROXY DIE
+	  Need a way of squelching this mode command, it'd have to be a bit
+	  more fancy than the usual squelch_mode - maybe a strlist?
+
+	* Maybe have send queues, and make sock_send() just add to one of
+	  those, actually sending the data whenever the socket becomes
+	  available for write()ing.  Would remove the "dircproxy busy,
+	  ping timeout" problem that can happen.
 
 
     IDENT
 
-	* Include some kind of miniature identd daemon to answer queries
-	  for dircproxy.
+        * Miniature identd daemon that answers queries for dircproxy.  Basic
+	  design, should see if it knows a certain port combo and if so
+	  return the user it knows, otherwise run the inbuilt inetd.
 
-	    ident_username "scott"
+	  Talk to it using some kind of pipe
+
+        * You can then specify which ident to show for a connection
+	  class or dircproxy:
+
+	    local_username "scott"
 
 	  Which can be changed with
 	  
-	    /DIRCPROXY IDENT username
+	    /DIRCPROXY USER username
 
 	  depending on how this is set
 
-	    allow_ident YES/no
+	    allow_user YES/no
 
 	  Again, will result in reconnection to server if changed
 
@@ -123,17 +133,12 @@ Would be nice:
 	  kernel uses this week.  Figure out how its done and see if its
 	  feasible.
 
-	* mIRC like File server
-
 	* "User lists" - hostmask based enabling banning/ignoring/auto-op
 	  etc etc.
 
-	* Maybe have send queues, and make sock_send() just add to one of
-	  those, actually sending the data whenever the socket becomes
-	  available for write()ing.  Would remove the "dircproxy busy,
-	  ping timeout" problem that can happen.
+	* mIRC DCC RESUME stuff (how does it work etc?)
+
+	* mIRC like File server
 
 	* XDCC stuff (possibly tying in with the file server above)
-
-	* mIRC DCC RESUME stuff
 
