@@ -8,7 +8,7 @@
  *  - socket data buffering
  *  - recv() function that gets data up to delimeters (newlines?)
  * --
- * @(#) $Id: sock.c,v 1.1 2000/05/13 02:13:53 keybuk Exp $
+ * @(#) $Id: sock.c,v 1.2 2000/05/13 04:07:57 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -44,6 +44,7 @@ struct ircbuffer {
 static struct ircbuffer *_sock_fetchbuffer(int);
 static int _sock_createbuffer(int, const char *, size_t);
 static int _sock_deletebuffer(int);
+static int _sock_flag(int, int, int);
 
 /* Buffers */
 static struct ircbuffer *sockbuffers = 0;
@@ -65,8 +66,13 @@ int sock_make(void) {
     return -1;
   }
 
-  if (fcntl(sock, F_SETFL, O_NONBLOCK)) {
+  if ((param = fcntl(sock, F_GETFL, 0)) == -1) {
     DEBUG_SYSCALL_FAIL("fcntl[nonblock]");
+    close(sock);
+    return -1;
+  }
+
+  if (_sock_flag(sock, O_NONBLOCK, 1)) {
     close(sock);
     return -1;
   }
@@ -93,10 +99,21 @@ int sock_send(int sock, const char *message, ...) {
   msg = x_vsprintf(message, ap);
   va_end(ap);
 
+  /* Make the socket non-blocking for this */
+  if (_sock_flag(sock, O_NONBLOCK, 0))
+    return -1;
+
   if (send(sock, msg, strlen(msg), 0) == -1) {
     if (errno != EPIPE)
       DEBUG_SYSCALL_FAIL("send");
     ret = -1;
+  }
+
+  /* Make the socket blocking again.  If this don't work, we're in trouble */
+  if (_sock_flag(sock, O_NONBLOCK, 1)) {
+    close(sock);
+    sock = -1;
+    return -1;
   }
 
   free(msg);
@@ -319,4 +336,27 @@ static int _sock_deletebuffer(int sock) {
   }
 
   return ret;
+}
+
+/* Set a flag on a socket on/off */
+static int _sock_flag(int sock, int flag, int on) {
+  int flags;
+
+  if ((flags = fcntl(sock, F_GETFL)) == -1) {
+    DEBUG_SYSCALL_FAIL("fcntl[GETFL]");
+    return -1;
+  }
+
+  if (on) {
+    flags |= flag;
+  } else {
+    flags &= ~(flag);
+  }
+
+  if (fcntl(sock, F_SETFL, flags)) {
+    DEBUG_SYSCALL_FAIL("fcntl[SETFL]");
+    return -1;
+  }
+
+  return 0;
 }
