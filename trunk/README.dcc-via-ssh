@@ -87,11 +87,12 @@ Configure it as you normally would, except for the following two
 options which need to be set as shown.
 
 	dcc_proxy_ports 57100
-	dcc_proxy_tunnelport 57110
+	dcc_tunnel_outgoing 57110
 
 This tells dircproxy to listen for DCC connections on port 57100,
-which is pointed to by a tunnel, and to make DCC connections through
-a tunnel on port 57110.
+which is pointed to by a tunnel, and that all outgoing DCCs from you
+(which require a connection to you) should be sent through the tunnel
+on port 57110.
 
 This dircproxy is probably best run as a daemon (i.e. normally).
 
@@ -107,16 +108,20 @@ untouched, only add a connection class, which should look like this.
 		password "encpass"
 		server "localhost:57010:pass"
 
-		channel_rejoin 0
 		disconnect_on_detach yes
+
 		dcc_proxy_ports 57100
-		dcc_proxy_tunnelport 57110
+		dcc_tunnel_incoming 57110
 	}
 
 Replace "encpass" with an encrypted password that should match
 that you configure the IRC client with, and replace "pass" with
 the unencrypted version of whatever you set the password to on the
 dircproxy outside the firewall.
+
+This tells dircproxy that incoming DCC requests to you (which require
+you to connect to the remote server) should be sent through the tunnel
+on port 57110.
 
 You can run this dircproxy as a daemon or from inetd, whichever
 suits you best.
@@ -129,12 +134,24 @@ Connect your IRC client to the dircproxy inside the firewall.
 This will then connect through the tunnels to the dircproxy outside
 the firewall which will connect to the IRC server for you.
 
-When you disconnect your IRC client, the dircproxy inside will
-disconnect to.  If you so desire, you can close the tunnels again
-until you run the client again (leaving dircproxy running on the
-machine outside).
+When you detach your IRC client, the dircproxy inside the firewall
+will disconnect from the one on the outside.  This means you can
+also exit the ssh session running the tunnels (thereby closing them).
+When you want to reconnect, just start up the tunnels and dircproxy
+again before you do (having left the one outside well alone).  This
+means that if you are using your desktop, you can still switch it off
+over night etc without worrying about loosing your IRC link.
 
-So if you do use your desktop, you can still switch it off.
+Small note: Because you can only use one listening port, you will only
+be able to have one queued DCC request at a time.  Others will be
+rejected until the outstanding request either times out or is
+accepted by you.
+
+Another worthy note is that when using tunnels, you will see two sets
+of messages from dircproxy informing you of its connections to remote
+peers.  The first set is the link between the two proxies being
+established, the second set is the link being established to the
+remote peer itself.  This is normal and nothing to worry about.
 
 
 Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
