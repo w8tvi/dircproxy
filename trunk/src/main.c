@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.22 2000/08/25 09:38:23 keybuk Exp $
+ * @(#) $Id: main.c,v 1.23 2000/08/25 09:42:00 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.22 2000/08/25 09:38:23 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.23 2000/08/25 09:42:00 keybuk Exp $";
 
 /* The name of the program */
 char *progname;
@@ -337,7 +337,8 @@ static int _print_help(void) {
 }
 
 /* Called when a system call fails.  Print it to stderr or syslog */
-int syscall_fail(const char *function, const char *arg, const char *message) {>   char *msg;
+int syscall_fail(const char *function, const char *arg, const char *message) {
+  char *msg;
 
   msg = x_sprintf("%s(%s) failed: %s", function, (arg ? arg : ""),
                   (message ? message : strerror(errno)));
