@@ -1,6 +1,10 @@
 NEWS about changes for existing users.
 --------------------------------------
 
+Version 0.7.3 - Wed Sep 27 17:55:00 BST 2000
+
+	* New config file option - "disconnect_on_detach"
+
 Version 0.7.2 - Mon Sep 25 13:13:00 BST 2000
 
 	* If you use a .dircproxyrc in your home directory, this must

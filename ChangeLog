@@ -1,3 +1,76 @@
+2000-09-27 16:45  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxyrc, doc/dircproxy.1, src/irc_client.c,
+	src/irc_net.h, src/irc_server.c: Changed the way that stoned server
+	checking works.  Instead of measuring times between PINGs from
+	server, do our own PINGs and measure time between the PONGs we get
+	back.
+
+2000-09-27 16:11  Scott James Remnant <scott@netsplit.com>
+
+	* src/memdebug.c: Heh, that pesky memory leak turned out to be in
+	memdebug.c itself, forgot to free ms->file
+
+2000-09-27 12:11  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: More stuff
+
+2000-09-26 15:10  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxyrc: Spaced out a bit more for legibility
+
+2000-09-26 15:07  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: More stuff for 0.8 - its gonna be a big release
+
+2000-09-26 13:24  Scott James Remnant <scott@netsplit.com>
+
+	* RFC1413: Added the ident RFC, because 0.8 will have its own
+	miniature identd daemon with it.
+
+2000-09-26 12:13  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: TODO changes
+
+2000-09-26 11:52  Scott James Remnant <scott@netsplit.com>
+
+	* src/main.c: Forced QUITs (as apposed to user quits) generate
+	different error messages
+
+2000-09-26 11:51  Scott James Remnant <scott@netsplit.com>
+
+	* src/: irc_client.c, irc_net.c, irc_server.c: Added a few more
+	QUIT messages, to make sure we never leave the server with "EOF
+	from client" if we can help it.  Each message is *slightly*
+	different to aid debugging.
+
+2000-09-26 11:45  Scott James Remnant <scott@netsplit.com>
+
+	* src/: irc_client.c, main.c: Finally found the course of the
+	"missing QUIT message" problem.  Turned out to be me closing the
+	client socket before the server socket (which automatically closes
+	the server socket - thus the GETFL error too).
+
+2000-09-26 11:31  Scott James Remnant <scott@netsplit.com>
+
+	* src/cfgfile.c: Forgot to change a line to enable the config file
+	directive
+
+2000-09-26 10:58  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxyrc, doc/dircproxy.1, src/cfgfile.c,
+	src/dircproxy.h, src/irc_client.c, src/irc_net.h: New config file
+	option that sets die_on_close to 1 if set to yes.  Basically means
+	that you can use dircproxy without its detachable bit now.
+
+2000-09-25 12:24  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in: CVS version now 0.7.3.
+
+2000-09-25 12:16  Scott James Remnant <scott@netsplit.com>
+
+	* ChangeLog, NEWS, TODO: Version 0.7.2 released.
+
 2000-09-18 10:07  Scott James Remnant <scott@netsplit.com>
 
 	* src/main.c: listen_port problem should return 3 [ port error ]
