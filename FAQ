@@ -527,6 +527,10 @@ Answers
 
      If your IRC client machine has two or more interfaces, set it
      to the address that dircproxy will be able to connect to it on.
+
+     Please note, if your IRC client has a "Detect from Server"
+     setting, this may not work as intended in dircproxy.  It is
+     better to set it manually.
      
  5.3  What's "DCC over ssh" and how do I use it?
 
