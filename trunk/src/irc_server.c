@@ -5,7 +5,7 @@
  * irc_server.c
  *  - Handling of servers connected to the proxy
  * --
- * @(#) $Id: irc_server.c,v 1.10 2000/05/24 20:58:57 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.11 2000/05/25 18:15:11 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -253,7 +253,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
   /* 437 is bizarre, it either means Nickname is juped or Channel is juped */
   if (!strcasecmp(msg.cmd, "437")) {
     if (msg.numparams >= 2) {
-      if (!irc_strcasecmp(p->nickname, msg.params[0])) {
+      if (!irc_strcasecmp(p->nickname, msg.params[1])) {
         /* Our nickname is Juped - make it a 433 */
         free(msg.cmd);
         msg.cmd = x_strdup("433");
