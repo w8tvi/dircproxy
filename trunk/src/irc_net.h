@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.32 2000/10/20 11:03:18 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.33 2000/10/20 12:44:13 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -69,6 +69,7 @@ struct ircconnclass {
   char *chan_log_program;
   int chan_log_always;
   int chan_log_timestamp;
+  int chan_log_relativetime;
   long chan_log_maxsize;
   long chan_log_recall;
 
@@ -77,8 +78,11 @@ struct ircconnclass {
   char *other_log_program;
   int other_log_always;
   int other_log_timestamp;
+  int other_log_relativetime;
   long other_log_maxsize;
   long other_log_recall;
+
+  long time_offset;
 
   int motd_logo;
   char *motd_file;

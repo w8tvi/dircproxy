@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.34 2000/10/20 11:03:18 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.35 2000/10/20 12:44:13 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -297,6 +297,13 @@
  */
 #define DEFAULT_CHAN_LOG_TIMESTAMP 0
 
+/* DEFAULT_CHAN_LOG_RELATIVETIME
+ * Do fancy relative-time timestamping.
+ *  1 = Yes
+ *  0 = No
+ */
+#define DEFAULT_CHAN_LOG_RELATIVETIME 1
+
 /* DEFAULT_CHAN_LOG_MAXSIZE
  * Maximum number of lines a log file should be.  Once they reach this size,
  * dircproxy will roll the log removing lines from the front.
@@ -346,6 +353,13 @@
  */
 #define DEFAULT_OTHER_LOG_TIMESTAMP 0
 
+/* DEFAULT_OTHER_LOG_RELATIVETIME
+ * Do fancy relative-time timestamping.
+ *  1 = Yes
+ *  0 = No
+ */
+#define DEFAULT_OTHER_LOG_RELATIVETIME 1
+
 /* DEFAULT_OTHER_LOG_MAXSIZE
  * Maximum number of lines a log file should be.  Once they reach this size,
  * dircproxy will roll the log removing lines from the front.
@@ -361,6 +375,12 @@
  *  0 = Don't recall any
  */
 #define DEFAULT_OTHER_LOG_RECALL -1
+
+/* DEFAULT_TIME_OFFSET
+ * Different in minutes from the IRC client to the dircproxy machine.
+ *  0 = No difference
+ */
+#define DEFAULT_TIME_OFFSET 0
 
 /* DEFAULT_MOTD_LOGO
  * Display a nice dircproxy logo in the message of the day.  This logo is
