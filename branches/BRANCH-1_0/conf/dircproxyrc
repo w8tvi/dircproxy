@@ -253,9 +253,14 @@
 #     attempts to set one of these, then the connection to it will be dropped
 #     and the next server in the list will be tried.
 #
+#     A good setting for many people would be "+r", as most servers use that
+#     to mean your connection is restricted.  Don't set it to this if you're
+#     on DALnet however, DALnet uses +r to indicate you have registered
+#     with NickServ (gee, thanks guys!).
+#
 #     Set to "" to not refuse any modes.
 #
-#refuse_modes "r"
+#refuse_modes ""
 
 
 # ADDRESS OPTIONS
