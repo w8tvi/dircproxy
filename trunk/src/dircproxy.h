@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.6 2000/05/24 17:39:35 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.7 2000/05/24 21:29:46 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -114,7 +114,7 @@
  * -1 = Don't rejoin
  *  0 = Immediately
  */
-#define DEFAULT_CHANNEL_REJOIN 5
+#define DEFAULT_CHANNEL_REJOIN 15
 
 /* DEFAULT_LOG_AUTORECALL
  * How many lines of log off the bottom do we give to the client when it
