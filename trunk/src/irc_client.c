@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.27 2000/08/30 10:54:53 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.28 2000/08/30 11:37:08 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -644,7 +644,7 @@ int ircclient_welcome(struct ircproxy *p) {
     free(ver);
   }
   if (p->conn_class->motd_stats) {
-    if (p->other_log.open && p->other_log.nlines) {
+    if (p->other_log.filename) {
       char *s;
 
       if (p->conn_class->other_log_recall == -1) {
@@ -672,7 +672,7 @@ int ircclient_welcome(struct ircproxy *p) {
         if (c->inactive) {
           ircclient_send_numeric(p, 372, ":-   %s %s", c->name,
                                  "(forcefully removed)");
-        } else if (c->log.open && c->log.nlines) {
+        } else if (c->log.filename) {
           char *s;
 
           if (p->conn_class->chan_log_recall == -1) {
@@ -708,12 +708,9 @@ int ircclient_welcome(struct ircproxy *p) {
     ircclient_send_selfcmd(p, "MODE", "%s +%s", p->nickname, p->modes);
 
   /* Recall other log file */
-  if (p->other_log.open) {
-    irclog_autorecall(p, p->nickname);
-
-    if (!p->conn_class->other_log_always)
-      irclog_close(p, p->nickname);
-  }
+  irclog_autorecall(p, p->nickname);
+  if (!p->conn_class->other_log_always)
+    irclog_close(p, p->nickname);
 
   if (p->awaymessage) {
     /* Ack.  There's no reason for a client to expect AWAY from a server,
