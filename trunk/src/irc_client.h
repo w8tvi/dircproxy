@@ -1,9 +1,11 @@
 /* dircproxy
  * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
+ * Copyright (C) 2004 Francois Harvey <fharvey@securiweb.net> and
+ *                    Mike Taylor <bear@code-bear.com>.
  *
  * irc_client.h
  * --
- * @(#) $Id: irc_client.h,v 1.7 2002/12/29 21:30:12 scott Exp $
+ * @(#) $Id: irc_client.h,v 1.8 2004/02/15 00:56:18 bear Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -15,6 +17,62 @@
 
 /* required includes */
 #include "irc_net.h"
+#include "help.h"
+
+static char * client_commands[] = {
+  "DIE",
+  "DETACH",
+  "HELP",
+  "HOST",
+  "JUMP",
+  "KILL",
+  "RECALL",
+  "RELOAD",
+  "MOTD",
+  "PERSIST",
+  "QUIT",
+  "USERS",
+  "SERVERS",
+  "STATUS"
+};
+
+#define I_HELP_INDEX     0
+#define I_HELP_INDEX_END 1
+#define I_HELP_DIE       2
+#define I_HELP_DETACH    3
+#define I_HELP_HOST      4
+#define I_HELP_JUMP      5
+#define I_HELP_JUMP_NEW  6
+#define I_HELP_KILL      7
+#define I_HELP_HELP      8
+#define I_HELP_RECALL    9
+#define I_HELP_RELOAD    10
+#define I_HELP_MOTD      11
+#define I_HELP_PERSIST   12
+#define I_HELP_QUIT      13
+#define I_HELP_USERS     14
+#define I_HELP_SERVERS   15
+#define I_HELP_STATUS    16
+
+static char ** command_help[] = {
+  help_index,
+  help_index_end,
+  help_die,
+  help_detach,
+  help_host,
+  help_jump,
+  help_jump_new,
+  help_kill,
+  help_help,
+  help_recall,
+  help_reload,
+  help_motd,
+  help_persist,
+  help_quit,
+  help_users,
+  help_servers,
+  help_status
+};
 
 /* functions */
 extern int ircclient_connected(struct ircproxy *);
