@@ -528,7 +528,7 @@
 # MISC LOG OPTIONS
 #     Options affecting both channel and server/private message logs
 
-# time_offset
+# log_timeoffset
 #     Differenice in minutes from your IRC client to the dircproxy machine.
 #     So if you're in GMT, but your dircproxy machine is in PST (which is
 #     8 hours behind), then this would be -(8 * 60) = -480.  Used for log
@@ -536,7 +536,36 @@
 #
 #      0 = Don't adjust log timestamps.
 #
-#time_offset 0
+#log_timeoffset 0
+
+# log_events
+#     Events you want dircproxy to log for you.  This is a comma seperated
+#     list of event names, prefixed with '+' to add the event to the list or
+#     '-' to remove an event.  You can also specify 'all' to log all events
+#     (the default) or 'none' to not log anything.
+#
+#     Example, to just log text and action's:
+#         log_events "none,+text,+action"
+#
+#     Example, to log everything but server messages:
+#         log_events "all,-server"
+#         log_events -server        # you don't need to specify 'all'
+#
+#     The possible events are:
+#       text      Channel text and private messages
+#       action    CTCP ACTION events (/me) sent to you or channels
+#       ctcp      Whether to record whether a CTCP was sent to you
+#       join      People (including you) joining channels
+#       part      People (including you) leaving channels
+#       kick      People (including you) being kicked from channels
+#       quit      People quit'ing from IRC
+#       nick      People (including you) changing nickname
+#       mode      Changes in channel modes or your own personal mode
+#       client    You detaching and attaching
+#       server    Connections and disconnections from servers
+#       error     Problems and errors dircproxy encounters (recommended!)
+#
+#log_events all
 
 
 # MOTD OPTIONS

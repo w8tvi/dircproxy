@@ -7,7 +7,7 @@
  *  - Handling of log programs
  *  - Recalling from log files
  * --
- * @(#) $Id: irc_log.c,v 1.26 2000/10/30 13:44:55 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.27 2000/10/31 13:11:19 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -532,8 +532,8 @@ static int _irclog_writetext(struct ircproxy *p, struct logfile *log,
     time_t now;
 
     time(&now);
-    if (p->conn_class->time_offset)
-      now -= (p->conn_class->time_offset * 60);
+    if (p->conn_class->log_timeoffset)
+      now -= (p->conn_class->log_timeoffset * 60);
 
     if (log->relativetime) {
       _irclog_write(log, "@%lu %s %s", now, from, text);

@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.29 2000/10/30 13:44:55 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.30 2000/10/31 13:11:19 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -111,7 +111,8 @@ int cfg_read(const char *filename, char **listen_port,
                             ? x_strdup(DEFAULT_OTHER_LOG_COPYDIR) : 0);
   def->other_log_program = (DEFAULT_OTHER_LOG_PROGRAM
                             ? x_strdup(DEFAULT_OTHER_LOG_PROGRAM) : 0);
-  def->time_offset = DEFAULT_TIME_OFFSET;
+  def->log_timeoffset = DEFAULT_LOG_TIMEOFFSET;
+  def->log_events = DEFAULT_LOG_EVENTS;
   def->motd_logo = DEFAULT_MOTD_LOGO;
   def->motd_file = (DEFAULT_MOTD_FILE ? x_strdup(DEFAULT_MOTD_FILE) : 0);
   def->motd_stats = DEFAULT_MOTD_STATS;
@@ -615,11 +616,103 @@ int cfg_read(const char *filename, char **listen_port,
         free((class ? class : def)->other_log_program);
         (class ? class : def)->other_log_program = str;
 
-      } else if (!strcasecmp(key, "time_offset")) {
-        /* time_offset 0
-           time_offset -60
-           time_offset +60 */
-        _cfg_read_numeric(&buf, &(class ? class : def)->time_offset);
+      } else if (!strcasecmp(key, "log_timeoffset")) {
+        /* log_timeoffset 0
+           log_timeoffset -60
+           log_timeoffset +60 */
+        _cfg_read_numeric(&buf, &(class ? class : def)->log_timeoffset);
+
+      } else if (!strcasecmp(key, "log_events")) {
+        /* log_events none
+           log_events all
+           log_events none,+text
+           log_events all,-quit */
+        char *str, *orig;
+
+        if (_cfg_read_string(&buf, &str))
+          UNMATCHED_QUOTE;
+
+        orig = str;
+        while (str && strlen(str)) {
+          char *ptr;
+
+          ptr = strchr(str, ',');
+          if (ptr)
+            *(ptr++) = 0;
+          str += strspn(str, WS);
+
+          if (strlen(str) && !strcasecmp(str, "all")) {
+            (class ? class : def)->log_events = 0xffff;
+          } else if (strlen(str) && !strcasecmp(str, "none")) {
+            (class ? class : def)->log_events = 0x0000;
+          } else if (strlen(str)) {
+            int add = 1;
+
+            if (*str == '-') {
+              add = 0;
+              str++;
+            } else if (*str == '+') {
+              add = 1;
+              str++;
+            }
+
+            if (strlen(str)) {
+              int flag = 0;
+
+              if (!strcasecmp(str, "text")) {
+                flag = IRC_LOG_TEXT;
+              } else if (!strcasecmp(str, "action")) {
+                flag = IRC_LOG_ACTION;
+              } else if (!strcasecmp(str, "ctcp")) {
+                flag = IRC_LOG_CTCP;
+              } else if (!strcasecmp(str, "join")) {
+                flag = IRC_LOG_JOIN;
+              } else if (!strcasecmp(str, "part")) {
+                flag = IRC_LOG_PART;
+              } else if (!strcasecmp(str, "kick")) {
+                flag = IRC_LOG_KICK;
+              } else if (!strcasecmp(str, "quit")) {
+                flag = IRC_LOG_QUIT;
+              } else if (!strcasecmp(str, "nick")) {
+                flag = IRC_LOG_NICK;
+              } else if (!strcasecmp(str, "mode")) {
+                flag = IRC_LOG_MODE;
+              } else if (!strcasecmp(str, "client")) {
+                flag = IRC_LOG_CLIENT;
+              } else if (!strcasecmp(str, "server")) {
+                flag = IRC_LOG_SERVER;
+              } else if (!strcasecmp(str, "error")) {
+                flag = IRC_LOG_ERROR;
+              } else {
+                error("Unknown event name '%s' in 'log_events' "
+                      "at line %ld of %s", str, line, filename);
+                valid = 0;
+                break;
+              }
+
+              if (add) {
+                (class ? class : def)->log_events |= flag;
+              } else {
+                (class ? class : def)->log_events &= ~flag;
+              }
+            } else {
+              error("Missing event name in 'log_events' at line %ld of %s",
+                    line, filename);
+              valid = 0;
+              break;
+            }
+          } else {
+            error("Missing event name in 'log_events' at line %ld of %s",
+                  line, filename);
+            valid = 0;
+            break;
+          }
+
+          str = ptr;
+        }
+        free(orig);
+        if (!valid)
+          break;
 
       } else if (!strcasecmp(key, "motd_logo")) {
         /* motd_logo yes
@@ -826,21 +919,30 @@ int cfg_read(const char *filename, char **listen_port,
           ptr = strchr(str, ',');
           if (ptr)
             *(ptr++) = 0;
+          str += strspn(str, WS);
 
-          s = (struct strlist *)malloc(sizeof(struct strlist));
-          s->str = x_strdup(str);
-          s->next = 0;
+          if (strlen(str)) {
+            s = (struct strlist *)malloc(sizeof(struct strlist));
+            s->str = x_strdup(str);
+            s->next = 0;
 
-          if (class->channels) {
-            struct strlist *ss;
+            if (class->channels) {
+              struct strlist *ss;
 
-            ss = class->channels;
-            while (ss->next)
-              ss = ss->next;
+              ss = class->channels;
+              while (ss->next)
+                ss = ss->next;
 
-            ss->next = s;
+              ss->next = s;
+            } else {
+              class->channels = s;
+            }
           } else {
-            class->channels = s;
+            error("Missing channel name in 'join' at line %ld of %s",
+                  line, filename);
+            valid = 0;
+            free(orig);
+            break;
           }
 
           str = ptr;

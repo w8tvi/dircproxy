@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.62 2000/10/30 13:44:55 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.63 2000/10/31 13:11:19 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -148,7 +148,8 @@ static int _ircclient_detach(struct ircproxy *p, const char *message) {
 
   } else {
     debug("Detaching proxy");
-    if (p->client_status == IRC_CLIENT_ACTIVE)
+    if ((p->client_status == IRC_CLIENT_ACTIVE)
+        && (p->conn_class->log_events & IRC_LOG_CLIENT))
       irclog_notice(p, 0, PACKAGE, "You disconnected");
 
     /* Change Nickname */
@@ -412,24 +413,69 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
       } else if (!irc_strcasecmp(msg.cmd, "PRIVMSG")) {
         /* Privmsgs from us get logged */
         if (msg.numparams >= 2) {
+          struct strlist *list;
           char *str;
 
-          str = x_strdup(msg.params[1]);
-          ircprot_stripctcp(str);
-          if (strlen(str)) {
-            struct ircchannel *c;
+          ircprot_stripctcp(msg.params[1], &str, &list);
 
-            c = ircnet_fetchchannel(p, msg.params[0]);
-            if (c) {
-              char *tmp;
+          if (str && strlen(str)) {
+            if (p->conn_class->log_events & IRC_LOG_TEXT) {
+              struct ircchannel *c;
 
-              tmp = x_sprintf("%s!%s@%s", p->nickname, p->username,
-                              p->hostname);
-              irclog_msg(p, msg.params[0], tmp, "%s", str);
-              free(tmp);
+              c = ircnet_fetchchannel(p, msg.params[0]);
+              if (c) {
+                char *tmp;
+
+                tmp = x_sprintf("%s!%s@%s", p->nickname, p->username,
+                                p->hostname);
+                irclog_msg(p, msg.params[0], tmp, "%s", str);
+                free(tmp);
+              }
             }
           }
           free(str);
+
+          if (list) {
+            struct strlist *s;
+
+            s = list;
+            while (s) {
+              struct ctcpmessage cmsg;
+              struct strlist *n;
+              int r;
+
+              n = s->next;
+              r = ircprot_parsectcp(s->str, &cmsg);
+              free(s->str);
+              free(s);
+              s = n;
+              if (r == -1)
+                continue;
+
+              if (!strcmp(cmsg.cmd, "ACTION")) {
+                if (p->conn_class->log_events & IRC_LOG_ACTION) {
+                  struct ircchannel *c;
+
+                  c = ircnet_fetchchannel(p, msg.params[0]);
+                  if (c) {
+                    char *tmp;
+
+                    tmp = x_sprintf("%s!%s@%s", p->nickname, p->username,
+                                    p->hostname);
+                    irclog_msg(p, msg.params[0], tmp, "%c%s%c",
+                               0x01, cmsg.orig, 0x01);
+                    free(tmp);
+                  }
+                }
+              } else {
+                if (p->conn_class->log_events & IRC_LOG_CTCP)
+                  irclog_notice(p, msg.params[0], p->servername,
+                                "Sent CTCP %s to %s", cmsg.cmd, msg.params[0]);
+              }
+
+              ircprot_freectcp(&cmsg);
+            }
+          }
         }
 
         if (p->conn_class->idle_maxtime)
@@ -441,19 +487,21 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
         if (msg.numparams >= 2) {
           char *str;
 
-          str = x_strdup(msg.params[1]);
-          ircprot_stripctcp(str);
-          if (strlen(str)) {
-            struct ircchannel *c;
+          ircprot_stripctcp(msg.params[1], &str, 0);
 
-            c = ircnet_fetchchannel(p, msg.params[0]);
-            if (c) {
-              char *tmp;
+          if (str && strlen(str)) {
+            if (p->conn_class->log_events & IRC_LOG_TEXT) {
+              struct ircchannel *c;
 
-              tmp = x_sprintf("%s!%s@%s", p->nickname, p->username,
-                              p->hostname);
-              irclog_notice(p, msg.params[0], tmp, "%s", str);
-              free(tmp);
+              c = ircnet_fetchchannel(p, msg.params[0]);
+              if (c) {
+                char *tmp;
+
+                tmp = x_sprintf("%s!%s@%s", p->nickname, p->username,
+                                p->hostname);
+                irclog_notice(p, msg.params[0], tmp, "%s", str);
+                free(tmp);
+              }
             }
           }
           free(str);
@@ -1383,7 +1431,8 @@ int ircclient_welcome(struct ircproxy *p) {
       irclog_close(p, p->nickname);
   }
 
-  irclog_notice(p, 0, PACKAGE, "You connected");
+  if (p->conn_class->log_events & IRC_LOG_CLIENT)
+    irclog_notice(p, 0, PACKAGE, "You connected");
   ircnet_announce_status(p);
 
   p->client_status |= IRC_CLIENT_SENTWELCOME;

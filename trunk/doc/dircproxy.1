@@ -2,7 +2,7 @@
 .\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.26 2000/10/30 13:44:10 keybuk Exp $
+.\" @(#) $Id: dircproxy.1,v 1.27 2000/10/31 13:11:19 keybuk Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -519,13 +519,68 @@ and '\fBother_log_always\fR' options.
  none = Do not pipe log messages to a program
 
 .TP
-.B time_offset
+.B log_timeoffset
 Difference in minutes from your IRC client to the \fBdircproxy\fR machine.
 So if you're in GMT, but your \fBdircproxy\fR machine is in PST (which is
 8 hours behind), then this would be -(8 * 60) = -480.  Used for log
 file timestamps.
 
  0 = Don't adjust log timestamps.
+
+.TP
+.B log_events
+Events you want dircproxy to log for you.  This is a comma seperated
+list of event names, prefixed with '+' to add the event to the list or '-'
+to remove an event.  You can also specify 'all' to log all events (the
+default) or 'none' to not log anything.
+
+Example, to just log text and action's:
+
+ log_events "none,+text,+action"
+
+Example, to log everything but server messages:
+
+ log_events "all,-server"
+ # you don't need to specify 'all'
+ log_events -server
+
+The possible events are:
+
+\fBtext\fR
+ Channel text and private messages
+
+\fBaction\fR
+ CTCP ACTION events (/me) sent to you or channels
+
+\fBctcp\fR
+ Whether to record whether a CTCP was sent to you
+
+\fBjoin\fR
+ People (including you) joining channels
+
+\fBpart\fR
+ People (including you) leaving channels
+
+\fBkick\fR
+ People (including you) being kicked from channels
+
+\fBquit\fR
+ People quit''ing from IRC
+
+\fBnick\fR
+ People (including you) changing nickname
+
+\fBmode\fR
+ Changes in channel modes or your own personal mode
+
+\fBclient\fR
+ You detaching and attaching
+
+\fBserver\fR
+ Connections and disconnections from servers
+
+\fBerror\fR
+ Problems and errors dircproxy encounters (recommended!)
 
 .TP
 .B motd_logo
