@@ -2,7 +2,7 @@
 .\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.27 2000/10/31 13:11:19 keybuk Exp $
+.\" @(#) $Id: dircproxy.1,v 1.28 2000/11/10 15:03:24 keybuk Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -299,7 +299,7 @@ start this with "/ME " then it will be sent as an ACTION CTCP message
 
  none = Do not announce detachment
 
-.TB
+.TP
 .B detach_nickname
 Nickname to change to automatically after you detach, to indicate you
 are away for example.  If this contains a '*' character, then that
@@ -581,6 +581,146 @@ The possible events are:
 
 \fBerror\fR
  Problems and errors dircproxy encounters (recommended!)
+
+.TP
+.B dcc_proxy_incoming
+Whether \fBdircproxy\fR should proxy DCC chat and send requests sent
+\fBto\fR you by others on IRC.
+
+ yes = Proxy incoming requests.
+ no = Do not proxy incoming requests.
+
+.TP
+.B dcc_proxy_outgoing
+Whether \fBdircproxy\fR should proxy DCC chat and send requests sent
+\fBby\fR you to others on IRC.
+
+ yes = Proxy outgoing requests.
+ no = Do not proxy outgoing requests.
+
+.TP
+.B dcc_proxy_ports
+Ports that \fBdircproxy\fR can use to listen for DCC connections on.
+This is for when you're behind a firewall that only allows certain
+ports through, or when doing DCC-via-ssh.
+
+It is a comma seperated list of port numbers or ranges of ports,
+for example '57100-57199,57400,57500,57600-57800'
+
+ any = Use any port given to us by the kernel.
+
+.TP
+.B dcc_proxy_timeout
+Maxmimum amount of time (in seconds) to allow for both sides of
+a DCC proxy to be connected.
+
+.TP
+.B dcc_proxy_sendreject
+Whether to send a physical REJECT message via CTCP back to the
+source of the request in event of failure.
+
+ yes = Send reject CTCP message back.
+ no = Do not send any message back.
+
+.TP
+.B dcc_send_fast
+Whether to ignore the "acknowledgment" packets from the client and
+just send the file to them as fast as possible.  There should be no
+real danger in doing this.
+
+ yes = Send as fast as possible.
+ no = Wait for each packet to be acknowledged.
+
+.TP
+.B dcc_capture_directory
+\fBdircproxy\fR can capture files sent via DCC and store them on the
+server.  Especially useful while you are detached, whether it
+does it while attached or not depends on '\fBdcc_capture_always\fR'.
+This is the directory to store those captured files in.
+
+If start with "~/" then it will use a directory under your home
+directory.
+
+ none = Do not capture files.
+
+.TP
+.B dcc_capture_always
+If we're capturing DCC send's, should we do it while the client
+is connected as well?  If 'yes', then the client will never see
+the file, it'll be just stored on the server with a notice sent
+to the client telling them where.
+
+ yes = Capture even when a client is connected.
+ no = Capture only when client detached.
+
+.TP
+.B dcc_capture_withnick
+Whether to start the filename of the captured file with the
+nickname of the sender, so you know who it came from.
+
+ yes = Start with nickname.
+ no = Do not alter the filename.
+
+.TP
+.B dcc_capture_maxsize
+Maximum size (in kilobytes) that a captured file can be.  If
+a captured file is larger than this, or becomes larger than
+this, then the capture will be aborted and the file removed
+from the disk.  Prevents people from filling your disk up while
+you're detached with a massive file.
+
+ 0 = No limit to file size.
+
+.TP
+.B dcc_tunnel_incoming
+Port of a local ssh tunnel leading to another \fBdircproxy\fR client that
+we should use for incoming DCC requests.  This should not be set
+if '\fBdcc_tunnel_outgoing\fR' is set.
+
+See the README.dcc-via-ssh file included with the \fBdircproxy\fR
+distribution for more information.
+
+This can be a numeric port number, or a service name from /etc/services
+
+ none = There is no tunnel.
+
+.TP
+.B dcc_tunnel_outgoing
+Port of a local ssh tunnel leading to another \fBdircproxy\fR client that
+we should use for outgoing DCC requests.  This should not be set
+if '\fBdcc_tunnel_incoming\fR' is set.
+
+See the README.dcc-via-ssh file included with the \fBdircproxy\fR
+distribution for more information.
+
+This can be a numeric port number, or a service name from /etc/services
+
+ none = There is no tunnel.
+
+.TP
+.B switch_user
+If you're running dircproxy as root, it can switch to a different
+"effective user id" to create the server connection.  This means
+that your system ident daemon (and therefore IRC, if it queries it)
+will see your server connection as the user you put here, instead of
+root.
+
+This is most useful if you are sysadmin running a dircproxy server
+for multiple people and want them to all appear as different usernames
+without using a hacked identd.  Because dircproxy is still running as
+root, it will have those privileges for all operations, including the
+.BR bind (2)
+for the '\fBlocal_address\fR' config option if you're using Secure
+Linux patches.
+
+This can only be used if your system supports
+.BR seteuid (2)
+and if you are running dircproxy as the root user, and not just setuid.
+Attempting otherwise will generate a warning as dircproxy starts.
+
+This can be a numeric uid or a username from /etc/passwd.
+
+ none = Do not do this.
 
 .TP
 .B motd_logo
