@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.12 2000/08/30 10:41:21 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.13 2000/08/30 14:03:31 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -317,7 +317,7 @@ int cfg_read(const char *filename, char **listen_port) {
         _cfg_read_bool(&buf,
                        &(class ? class->chan_log_always : chan_log_always));
 
-      } else if (!strcasecmp(key, "chan_log_timestamp`")) {
+      } else if (!strcasecmp(key, "chan_log_timestamp")) {
         /* chan_log_timestamp yes
            chan_log_timestamp no */
         _cfg_read_bool(&buf,
@@ -381,7 +381,7 @@ int cfg_read(const char *filename, char **listen_port) {
         _cfg_read_bool(&buf,
                        &(class ? class->other_log_always : other_log_always));
 
-      } else if (!strcasecmp(key, "other_log_timestamp`")) {
+      } else if (!strcasecmp(key, "other_log_timestamp")) {
         /* other_log_timestamp yes
            other_log_timestamp no */
         _cfg_read_bool(&buf,
