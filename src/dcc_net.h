@@ -4,7 +4,7 @@
  *
  * dcc_net.h
  * --
- * @(#) $Id: dcc_net.h,v 1.2 2000/11/06 16:56:29 keybuk Exp $
+ * @(#) $Id: dcc_net.h,v 1.3 2000/11/10 15:06:20 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -37,6 +37,11 @@ struct dccproxy {
   /* DCC SEND only */
   u_int32_t bytes_sent, bytes_ackd;
 
+  /* DCC SEND (Capture) only */
+  char *cap_filename;
+  FILE *cap_file;
+  u_int32_t bytes_max;
+
   struct dccproxy *next;
 };
 
@@ -58,10 +63,11 @@ struct dccproxy {
 #define DCC_SENDEE_LISTENING 0x01
 #define DCC_SENDEE_CONNECTED 0x02
 #define DCC_SENDEE_ACTIVE    0x02
+#define DCC_SENDEE_CREATED   0x03
 
 /* functions */
 extern int dccnet_new(int, long, int *, size_t, int *,
-                      struct in_addr, int);
+                      struct in_addr, int, const char *, long);
 extern int dccnet_expunge_proxies(void);
 extern void dccnet_flush(void);
 
