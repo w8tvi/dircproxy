@@ -7,7 +7,7 @@
  *  - Handling of log programs
  *  - Recalling from log files
  * --
- * @(#) $Id: irc_log.c,v 1.33 2001/07/12 14:36:49 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.34 2001/07/12 14:37:52 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -405,6 +405,10 @@ static int _irclog_write(struct logfile *log, const char *format, ...) {
       syscall_fail("fopen", log->filename, 0);
       return -1;
     }
+
+    /* Make sure it's got the right permissions */
+    if (chmod(log->filename, 0600))
+      syscall_fail("chmod", log->filename, 0);
 
     /* Eat from the start */
     while ((log->nlines >= log->maxlines) && (l = _irclog_read(log->file))) {
