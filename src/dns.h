@@ -4,7 +4,7 @@
  *
  * dns.h
  * --
- * @(#) $Id: dns.h,v 1.3 2000/10/23 12:03:08 keybuk Exp $
+ * @(#) $Id: dns.h,v 1.4 2000/11/06 16:57:43 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -38,7 +38,7 @@ extern int dns_filladdr(void *, const char *, const char *, int,
                         void (*)(void *, void *,
                                  struct in_addr *, const char *),
                         void *);
-extern short dns_portfromserv(const char *);
-extern char *dns_servfromport(short);
+extern int dns_portfromserv(const char *);
+extern char *dns_servfromport(int);
 
 #endif /* __DIRCPROXY_DNS_H */

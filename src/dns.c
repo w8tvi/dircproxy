@@ -11,7 +11,7 @@
  * of a DNS request is notified by the child death signal, so it will
  * interrupt the main loop to continue where you left off.
  * --
- * @(#) $Id: dns.c,v 1.9 2000/10/23 12:03:08 keybuk Exp $
+ * @(#) $Id: dns.c,v 1.10 2000/11/06 16:57:43 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -104,11 +104,20 @@ static int _dns_startrequest(void *boundto,
                              void *data, struct in_addr *addr, const char *name)
 {
   struct dnschild *child;
-  int p[2];
+  int p[2], wp[2];
 
   /* Pipe where the result will be placed on success */
   if (pipe(p)) {
-    syscall_fail("pipe", 0, 0);
+    syscall_fail("pipe", "p", 0);
+    function(boundto, data, 0, 0);
+    return -1;
+  }
+
+  /* Pipe to indicate the child can go */
+  if (pipe(wp)) {
+    close(p[0]);
+    close(p[1]);
+    syscall_fail("pipe", "wp", 0);
     function(boundto, data, 0, 0);
     return -1;
   }
@@ -138,17 +147,28 @@ static int _dns_startrequest(void *boundto,
     /* Parent */
     debug("New DNS process started, pid %d", child->pid);
     close(p[1]);
+    close(wp[0]);
+
+    /* Send go signal */
+    write(wp[1], "go", 2);
+    close(wp[1]);
     return 0;
 
   } else {
     struct dnsresult result;
+    char gobuf[2];
 
     close(p[0]);
+    close(wp[1]);
     
     /* Use ALARM to do timeouts */
     signal(SIGALRM, SIG_DFL);
     alarm(g.dns_timeout);
 
+    /* Wait for a go signal */
+    read(wp[0], gobuf, 2);
+    close(wp[0]);
+    
     /* Do the lookup */
     result = _dns_lookup(name, addr);
     if (result.success) {
@@ -332,7 +352,7 @@ int dns_filladdr(void *boundto, const char *name,
 }
 
 /* Returns a network port number for a port as a string */
-short dns_portfromserv(const char *serv) {
+int dns_portfromserv(const char *serv) {
   struct servent *entry;
 
   entry = getservbyname(serv, "tcp");
@@ -340,7 +360,7 @@ short dns_portfromserv(const char *serv) {
 }
 
 /* Returns a service name for a network port number */
-char *dns_servfromport(short port) {
+char *dns_servfromport(int port) {
   struct servent *entry;
   char *str;
 
