@@ -1,0 +1,188 @@
+New features for 0.8.0:
+
+	* DCC proxying.  Essential feature really.  Intercept DCC requests,
+	  making listen sockets and connect sockets, forwarding data
+	  between them, changing the addresses that gets sent.
+
+	    dcc_proxy_incoming YES/no
+	    dcc_proxy_outgoing YES/no
+
+          Silently reject, or physically reject?
+
+            dcc_proxy_sendreject YES/no
+
+	  Ports we should allocate to listen on, this should be a range
+	  that the client can connect to.
+
+	    dcc_proxy_ports port,port-port
+
+          No ssh proxying, its too complicated to maintain ssh connections
+
+        * DCC send capturing, instead of proxying them, it stores the files
+	  locally.
+
+	    dcc_capture_directory none/"path"
+	    dcc_capture_always yes/NO
+	    dcc_capture_withnick YES/no
+
+        * setuid() support for when dircproxy is running as root.  This is
+	  also gonna have many forms
+
+            switch_user NONE/"nobody"
+	    switch_user_afterconnect yes/NO
+
+          This will fork() and dedicate the proxy unless already dedicated,
+	  then setuid() it.
+
+	* Leave channels when user detaches, and rejoin when attached.
+
+	    channel_leave_on_detach yes/NO
+	    channel_rejoin_on_attach YES/no
+
+	  If not rejoin, literally parts and removes record, if rejoin then
+	  it just sets it inactive and maybe a new flag to rejoin.
+
+	* Might be nice to use that new flag to rejoin bad channels, so
+	  the user can see the attempt and deal with it themselves,
+	  instead of saying "Couldn't rejoin xx"
+
+	* Announce attachment and detachment to channels the user is on.
+	  If this starts with /me then an action is sent, otherwise a
+	  notice is sent.
+
+	    announce_detach "/me vanishes into the fog"
+	    announce_attach "/me returns from the abyss"
+
+	* To remove idle times send empty PRIVMSGs to the server while
+	  away
+
+            idle_maxtime 300
+	    
+	* There are some modes we shoud refuse to accept from a server
+	  (results in disconnection and cycling)
+
+	    server_refusemodes "r"
+    
+	* Initial channels to join on first connection would be nice,
+	  could be probably done by seeding the channels list.
+
+	    join #lush
+	    join #foo
+
+	  This should be connection {} only I think
+
+        * Restrictions on /dircproxy commands
+
+	    allow_persist YES/no
+
+        * New /dircproxy commands to show the server list and jump to
+	  any server in the list, or a new one to be added to the list
+
+	    /DIRCPROXY SERVERS
+	    /DIRCPROXY < JUMP | CONNECT > < num | server[:[port][:[pass]]] >
+
+          These are enabled/disabled using
+
+	    allow_jump YES/no
+
+	  And jumping to a different server using
+
+	    allow_jump_new YES/no
+
+        * Have an option whether to automatically connect to a server
+	  upon first connection.  If "no" then a notice is sent telling
+	  them to specify a server to connect to.  This is only there if
+	  allow_jump is yes.
+
+	    server_autoconnect YES/no
+
+        * If "server_auto_connect" is "no", and "allow_jump_new" is "yes"
+	  then connection classes can have no "server" lines
+
+        * Another new /dircproxy command, to change the host they
+	  bind() to, ie changes local_address on the fly.
+
+            /DIRCPROXY HOST hostname
+
+	  Which of course can be enabled/disabled
+
+	    allow_host YES/no
+
+	  Changing hosts will result in disconnection from server and
+	  reconnection to it again.
+
+	* Include some kind of miniature identd daemon to answer queries
+	  for dircproxy.
+
+	    ident_username "scott"
+
+	  Which can be changed with
+	  
+	    /DIRCPROXY IDENT username
+
+	  depending on how this is set
+
+	    allow_ident YES/no
+
+	  Again, will result in reconnection to server if changed
+
+        * /DIRCPROXY needs to be documented in README, along with a number
+	  of scripts for IRC clients in contrib
+
+	* mIRC color stripping, when detached and when not detached
+
+	  filter_color yes/NO
+	  filter_color_always yes/NO
+
+        * Beep removal, when detached and when not detached
+
+	  filter_beep yes/NO
+	  filter_beep_always yes/NO
+
+        * CTCP removal can be customised
+
+	  filter_ctcp YES/no
+	  filter_ctcp_always yes/NO
+
+	  This won't affect DCC's, which will be grabbed before CTCP
+	  filtering
+
+	* Also some CTCPs can be replied to if so desired (done before
+	  CTCP filtering)
+
+	  ctcp_ping_reply yes/NO
+	  ctcp_finger_reply NONE/"message"
+	  ctcp_version_reply NONE/"message"
+
+	* Internal timeout timers for authentication and connection
+
+	    client_authtimeout seconds
+	    client_connecttimeout seconds
+
+	  The latter only applying if server_auto_connect is no.
+
+	* Log messages can be passed to an external program
+
+	    chan_log_program NONE/"path"
+	    other_log_program NONE/"path"
+
+	  This will be done using traditional fork() and pipe()s.  They
+	  will still go in the files.
+	
+	* Perhaps a perl script in contrib that takes them in, filters them
+	  and mails them to an address?
+
+	* Proxy message of the day file, after logo, before stats
+
+	    motd_file none/"path"
+
+
+Would be nice:
+
+	* Multiple listen ports if I can think of a good reason to
+	  have them.
+
+	* Transparent proxying using ipchains/ipfwadm or whatever the
+	  kernel uses this week.  Figure out how its done and see if its
+	  feasible.
+
