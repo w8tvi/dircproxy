@@ -4,7 +4,7 @@
  *
  * help.h
  * --
- * @(#) $Id: help.h,v 1.4 2000/10/13 13:24:36 keybuk Exp $
+ * @(#) $Id: help.h,v 1.5 2000/10/16 10:42:39 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -91,9 +91,15 @@ static char *help_recall[] = {
 /* help persist */
 static char *help_persist[] = {
   "/DIRCPROXY PERSIST",
-  "for use if running dircproxy under inetd.  Creates a new",
-  "listening socket, and links your current proxied session",
-  "to it so you can reconnect later",
+  "for use if running dircproxy under inetd or if you have",
+  "disconnect_on_detach set to yes in the config file.",
+  "Tells dircproxy you want it to persist with its server",
+  "connect and allow you to reattach later.  It will tell",
+  "you which hostname and port you should use to reconnect",
+  "(may not be the same as the one you originally connected",
+  "to)",
+  "",
+  "This command has no effect for normal proxy sessions",
   0
 };
 
