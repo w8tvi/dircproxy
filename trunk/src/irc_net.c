@@ -5,7 +5,7 @@
  * irc_net.c
  *  - Polling of sockets and acting on any data
  * --
- * @(#) $Id: irc_net.c,v 1.6 2000/05/24 20:48:58 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.7 2000/05/24 20:53:10 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -284,8 +284,17 @@ int ircnet_addchannel(struct ircproxy *p, const char *name) {
     ircclient_send_channotice(p, c->name, "(warning) Unable to log channel: %s",
                               c->name);
 
-  c->next = p->channels;
-  p->channels = c;
+  if (p->channels) {
+    struct ircchannel *cc;
+
+    cc = p->channels;
+    while (cc->next)
+      cc = cc->next;
+
+    cc->next = c;
+  } else {
+    p->channels = c;
+  }
 
   return 0;
 }
