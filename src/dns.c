@@ -1,6 +1,5 @@
 /* dircproxy
- * Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.
- * All Rights Reserved.
+ * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
  *
  * dns.c
  *  - non-blocking DNS lookups using callbacks
@@ -11,7 +10,7 @@
  * of a DNS request is notified by the child death signal, so it will
  * interrupt the main loop to continue where you left off.
  * --
- * @(#) $Id: dns.c,v 1.14 2001/12/21 20:15:55 keybuk Exp $
+ * @(#) $Id: dns.c,v 1.14.4.1 2002/12/29 21:33:37 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the

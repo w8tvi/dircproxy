@@ -1,10 +1,9 @@
 /* dircproxy
- * Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.
- * All Rights Reserved.
+ * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
  *
  * cfgfile.h
  * --
- * @(#) $Id: cfgfile.h,v 1.6 2002/02/06 10:07:42 scott Exp $
+ * @(#) $Id: cfgfile.h,v 1.6.4.1 2002/12/29 21:33:37 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the

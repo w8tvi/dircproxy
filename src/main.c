@@ -1,6 +1,5 @@
 /* dircproxy
- * Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.
- * All Rights Reserved.
+ * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
  *
  * main.c
  *  - Program main loop
@@ -9,7 +8,7 @@
  *  - Signal handling
  *  - Debug functions
  * --
- * @(#) $Id: main.c,v 1.52.2.1 2002/09/09 12:27:10 scott Exp $
+ * @(#) $Id: main.c,v 1.52.2.2 2002/12/29 21:33:38 scott Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,7 +63,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.52.2.1 2002/09/09 12:27:10 scott Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.52.2.2 2002/12/29 21:33:38 scott Exp $";
 
 /* The name of the program */
 static char *progname;

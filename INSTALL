@@ -157,5 +157,4 @@ Or on systems that have the 'env' program, you can do it like this:
      env CPPFLAGS=-I/usr/local/include LDFLAGS=-s ./configure
 
 
-Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.
-All Rights Reserved.
+Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.

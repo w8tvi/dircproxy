@@ -14,5 +14,4 @@ privmsg-log.pl	other_log_program to log private messages to files named after
 		the nickname of the sender (rather than all to the same file)
 
 
-Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.
-All Rights Reserved.
+Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.

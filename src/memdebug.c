@@ -1,6 +1,5 @@
 /* dircproxy
- * Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.
- * All Rights Reserved.
+ * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
  *
  * memdebug.c
  *  - wrappers to memory allocation functions
@@ -12,7 +11,7 @@
  * get accidentally overrun.  This is purely debug, you should
  * NEVER use this in a real program.
  * --
- * @(#) $Id: memdebug.c,v 1.8 2001/12/21 20:15:55 keybuk Exp $
+ * @(#) $Id: memdebug.c,v 1.8.4.1 2002/12/29 21:33:39 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
