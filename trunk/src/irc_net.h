@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.47 2002/08/17 19:40:39 scott Exp $
+ * @(#) $Id: irc_net.h,v 1.48 2002/08/17 19:52:06 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -35,8 +35,6 @@ struct logfile {
   unsigned long nlines, maxlines;
 
   int always;
-  int timestamp;
-  int relativetime;
 };
 
 /* a description of an authorised connction */
@@ -105,6 +103,8 @@ struct ircconnclass {
 
   long log_timeoffset;
   int log_events;
+  int log_timestamp;
+  int log_relativetime;
 
   int dcc_proxy_incoming;
   int dcc_proxy_outgoing;

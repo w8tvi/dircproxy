@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.42 2002/08/17 19:40:38 scott Exp $
+ * @(#) $Id: cfgfile.c,v 1.43 2002/08/17 19:52:05 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -101,8 +101,6 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
   def->chan_log_always = DEFAULT_CHAN_LOG_ALWAYS;
   def->chan_log_maxsize = DEFAULT_CHAN_LOG_MAXSIZE;
   def->chan_log_recall = DEFAULT_CHAN_LOG_RECALL;
-  def->chan_log_timestamp = DEFAULT_CHAN_LOG_TIMESTAMP;
-  def->chan_log_relativetime = DEFAULT_CHAN_LOG_RELATIVETIME;
   def->chan_log_copydir = (DEFAULT_CHAN_LOG_COPYDIR
                            ? x_strdup(DEFAULT_CHAN_LOG_COPYDIR) : 0);
   def->chan_log_program = (DEFAULT_CHAN_LOG_PROGRAM
@@ -111,8 +109,6 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
   def->other_log_always = DEFAULT_OTHER_LOG_ALWAYS;
   def->other_log_maxsize = DEFAULT_OTHER_LOG_MAXSIZE;
   def->other_log_recall = DEFAULT_OTHER_LOG_RECALL;
-  def->other_log_timestamp = DEFAULT_OTHER_LOG_TIMESTAMP;
-  def->other_log_relativetime = DEFAULT_OTHER_LOG_RELATIVETIME;
   def->other_log_copydir = (DEFAULT_OTHER_LOG_COPYDIR
                             ? x_strdup(DEFAULT_OTHER_LOG_COPYDIR) : 0);
   def->other_log_program = (DEFAULT_OTHER_LOG_PROGRAM
@@ -121,12 +117,12 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
   def->private_log_always = DEFAULT_PRIVATE_LOG_ALWAYS;
   def->private_log_maxsize = DEFAULT_PRIVATE_LOG_MAXSIZE;
   def->private_log_recall = DEFAULT_PRIVATE_LOG_RECALL;
-  def->private_log_timestamp = DEFAULT_PRIVATE_LOG_TIMESTAMP;
-  def->private_log_relativetime = DEFAULT_PRIVATE_LOG_RELATIVETIME;
   def->private_log_copydir = (DEFAULT_PRIVATE_LOG_COPYDIR
                               ? x_strdup(DEFAULT_PRIVATE_LOG_COPYDIR) : 0);
   def->private_log_program = (DEFAULT_PRIVATE_LOG_PROGRAM
                               ? x_strdup(DEFAULT_PRIVATE_LOG_PROGRAM) : 0);
+  def->log_timestamp = DEFAULT_LOG_TIMESTAMP;
+  def->log_relativetime = DEFAULT_LOG_RELATIVETIME;
   def->log_timeoffset = DEFAULT_LOG_TIMEOFFSET;
   def->log_events = DEFAULT_LOG_EVENTS;
   def->dcc_proxy_incoming = DEFAULT_DCC_PROXY_INCOMING;
@@ -556,14 +552,14 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
         _cfg_read_numeric(&buf, &(class ? class : def)->chan_log_recall);
 
       } else if (!strcasecmp(key, "chan_log_timestamp")) {
-        /* chan_log_timestamp yes
-           chan_log_timestamp no */
-        _cfg_read_bool(&buf, &(class ? class : def)->chan_log_timestamp);
+        error("Deprecated key '%s' at line %ld of %s, replace with "
+              "'log_timestamp'", key, line, filename);
+        _cfg_read_bool(&buf, &(class ? class : def)->log_timestamp);
 
       } else if (!strcasecmp(key, "chan_log_relativetime")) {
-        /* chan_log_relativetime yes
-           chan_log_relativetime no */
-        _cfg_read_bool(&buf, &(class ? class : def)->chan_log_relativetime);
+        error("Deprecated key '%s' at line %ld of %s, replace with "
+              "'log_relativetime'", key, line, filename);
+        _cfg_read_bool(&buf, &(class ? class : def)->log_relativetime);
 
       } else if (!strcasecmp(key, "chan_log_copydir")) {
         /* chan_log_copydir none
@@ -653,14 +649,14 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
         _cfg_read_numeric(&buf, &(class ? class : def)->other_log_recall);
 
       } else if (!strcasecmp(key, "other_log_timestamp")) {
-        /* other_log_timestamp yes
-           other_log_timestamp no */
-        _cfg_read_bool(&buf, &(class ? class : def)->other_log_timestamp);
+        error("Deprecated key '%s' at line %ld of %s, replace with "
+              "'log_timestamp'", key, line, filename);
+        _cfg_read_bool(&buf, &(class ? class : def)->log_timestamp);
 
       } else if (!strcasecmp(key, "other_log_relativetime")) {
-        /* other_log_relativetime yes
-           other_log_relativetime no */
-        _cfg_read_bool(&buf, &(class ? class : def)->other_log_relativetime);
+        error("Deprecated key '%s' at line %ld of %s, replace with "
+              "'log_relativetime'", key, line, filename);
+        _cfg_read_bool(&buf, &(class ? class : def)->log_relativetime);
 
       } else if (!strcasecmp(key, "other_log_copydir")) {
         /* other_log_copydir none
@@ -750,14 +746,14 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
         _cfg_read_numeric(&buf, &(class ? class : def)->private_log_recall);
 
       } else if (!strcasecmp(key, "private_log_timestamp")) {
-        /* private_log_timestamp yes
-           private_log_timestamp no */
-        _cfg_read_bool(&buf, &(class ? class : def)->private_log_timestamp);
+        error("Deprecated key '%s' at line %ld of %s, replace with "
+              "'log_timestamp'", key, line, filename);
+        _cfg_read_bool(&buf, &(class ? class : def)->log_timestamp);
 
       } else if (!strcasecmp(key, "private_log_relativetime")) {
-        /* private_log_relativetime yes
-           private_log_relativetime no */
-        _cfg_read_bool(&buf, &(class ? class : def)->private_log_relativetime);
+        error("Deprecated key '%s' at line %ld of %s, replace with "
+              "'log_relativetime'", key, line, filename);
+        _cfg_read_bool(&buf, &(class ? class : def)->log_relativetime);
 
       } else if (!strcasecmp(key, "private_log_copydir")) {
         /* private_log_copydir none
@@ -824,6 +820,16 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
 
         free((class ? class : def)->private_log_program);
         (class ? class : def)->private_log_program = str;
+
+      } else if (!strcasecmp(key, "log_timestamp")) {
+        /* log_timestamp yes
+           log_timestamp no */
+        _cfg_read_bool(&buf, &(class ? class : def)->log_timestamp);
+
+      } else if (!strcasecmp(key, "log_relativetime")) {
+        /* log_relativetime yes
+           log_relativetime no */
+        _cfg_read_bool(&buf, &(class ? class : def)->log_relativetime);
 
       } else if (!strcasecmp(key, "log_timeoffset")) {
         /* log_timeoffset 0
