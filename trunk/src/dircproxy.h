@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.7 2000/05/24 21:29:46 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.8 2000/08/16 15:41:11 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -50,7 +50,7 @@
  * Filename of the global configuration file.  This file is for when you
  * want to run a site with lots of dircproxy's.  It goes under SYSCONFDIR
  */
-#define GLOBAL_CONFIG_FILENAME "dircproxy.conf"
+#define GLOBAL_CONFIG_FILENAME "dircproxyrc"
 
 /* USER_CONFIG_FILENAME
  * Loaded from the user running dircproxy's home directory.  This file is
