@@ -1,66 +1,73 @@
 Stuff to do/fix in 0.7.x:
 
-	* Nothing yet
+	* Explicitly PING the server every server_pingtimeout / 2 to ensure
+	  we do get PONGs back.
 
 
 Stuff for 0.8.0 and future development:
 
-	* DCC proxing.  Essential feature really.  Intercept DCC requests,
+	* DCC proxying.  Essential feature really.  Intercept DCC requests,
 	  making listen sockets and connect sockets, forwarding data
-	  between them, changing the addresses that get sent.
+	  between them, changing the addresses that gets sent.
 
 	    dcc_proxy_incoming YES/no
 	    dcc_proxy_outgoing YES/no
 
           Silently reject, or physically reject?
 
-            dcc_proxy_reject_if_detched YES/no
+            dcc_proxy_sendreject YES/no
 
 	  Ports we should allocate to listen on, this should be a range
 	  that the client can connect to.
 
-	    dcc_proxy_listen_ports port,port-port
+	    dcc_proxy_ports port,port-port
 
           No ssh proxying, its too complicated to maintain ssh connections
 
         * DCC send capturing, instead of proxying them, it stores the files
 	  locally.
 
-	    dcc_capture_sends_always yes/NO
-	    dcc_capture_sends yes/NO
+	    dcc_capture_directory none/"path"
+	    dcc_capture_always yes/NO
+	    dcc_capture_withnick YES/no
 
         * setuid() support for when dircproxy is running as root.  This is
 	  also gonna have many forms
 
-            switch_user "nobody" (none)
-	    switch_user_after_connect yes/NO
+            switch_user NONE/"nobody"
+	    switch_user_afterconnect yes/NO
 
-          This inherently forks() and dedicates the proxy if not already
-	  dedicated.
+          This will fork() and dedicate the proxy unless already dedicated,
+	  then setuid() it.
 
 	* Leave channels when user detaches, and rejoin when attached.
 
-	    channel_part_on_detach yes/NO
+	    channel_leave_on_detach yes/NO
 	    channel_rejoin_on_attach YES/no
 
 	  If not rejoin, literally parts and removes record, if rejoin then
 	  it just sets it inactive and maybe a new flag to rejoin.
 
-	* Announce attachment and detachment to channels the user is on
-	  using a /ME
+	* Might be nice to use that new flag to rejoin bad channels, so
+	  the user can see the attempt and deal with it themselves,
+	  instead of saying "Couldn't rejoin xx"
 
-	    detach_action "vanishes into the fog"
-	    attach_action "returns from the abyss"
+	* Announce attachment and detachment to channels the user is on.
+	  If this starts with /me then an action is sent, otherwise a
+	  notice is sent.
+
+	    announce_detach "/me vanishes into the fog"
+	    announce_attach "/me returns from the abyss"
 
 	* To remove idle times send empty PRIVMSGs to the server while
 	  away
 
-	    antiidle_timer 120
+            idle_maxtime 300
 	    
 	* There are some modes we shoud refuse to accept from a server
 	  (results in disconnection and cycling)
 
-	    server_refuse_modes "r"
+	    server_refusemodes "r"
     
 	* Initial channels to join on first connection would be nice,
 	  could be probably done by seeding the channels list.
@@ -68,10 +75,11 @@ Stuff for 0.8.0 and future development:
 	    join #lush
 	    join #foo
 
+	  This should be connection {} only I think
+
         * Restrictions on /dircproxy commands
 
 	    allow_persist YES/no
-	    allow_detach YES/no
 
         * New /dircproxy commands to show the server list and jump to
 	  any server in the list, or a new one to be added to the list
@@ -92,7 +100,7 @@ Stuff for 0.8.0 and future development:
 	  them to specify a server to connect to.  This is only there if
 	  allow_jump is yes.
 
-	    server_auto_connect YES/no
+	    server_autoconnect YES/no
 
         * If "server_auto_connect" is "no", and "allow_jump_new" is "yes"
 	  then connection classes can have no "server" lines
@@ -100,42 +108,29 @@ Stuff for 0.8.0 and future development:
         * Another new /dircproxy command, to change the host they
 	  bind() to, ie changes local_address on the fly.
 
-            /DIRCPROXY HOSTS
-
-	  To see which ones are in the list, and to change to one:
-
-	    /DIRCPROXY HOST < num | hostname >
+            /DIRCPROXY HOST hostname
 
 	  Which of course can be enabled/disabled
 
 	    allow_host YES/no
 
-          Any number of "local_address" lines can be specified, adding to
-	  a list of them.  /dircproxy host can add to this list depending on
-
-	    allow_host_new YES/no
-
 	  Changing hosts will result in disconnection from server and
 	  reconnection to it again.
 
 	* Include some kind of miniature identd daemon to answer queries
-	  for dircproxy.  Any number of
+	  for dircproxy.
 
 	    ident_username "scott"
 
-	  lines can be specified, the first of which is used.  They can be
-	  listed with
-
-	    /DIRCPROXY IDENTS
-
-	  and changed with
+	  Which can be changed with
 	  
-	    /DIRCPROXY IDENT < num | username >
+	    /DIRCPROXY IDENT username
 
-	  depending on whether either of these exist
+	  depending on how this is set
 
-	    allow_ident yes
-	    allow_ident_new yes
+	    allow_ident YES/no
+
+	  Again, will result in reconnection to server if changed
 
         * /DIRCPROXY needs to be documented in README, along with a number
 	  of scripts for IRC clients in contrib
@@ -167,8 +162,8 @@ Stuff for 0.8.0 and future development:
 
 	* Internal timeout timers for authentication and connection
 
-	    client_auth_timeout seconds
-	    client_connect_timeout seconds
+	    client_authtimeout seconds
+	    client_connecttimeout seconds
 
 	  The latter only applying if server_auto_connect is no.
 
