@@ -1,0 +1,18 @@
+Contributed and unsupported extras
+----------------------------------
+
+These files are either contributed by dircproxy users, or useful to dircproxy users but not actually part of dircproxy.
+
+
+cronchk.sh	script to run from crontab to check whether dircproxy is
+		running or not, and restart it if necessary
+
+log.pl		*_log_program script to send a mail on certain words or
+		messages from certain people
+
+privmsg-log.pl	other_log_program to log private messages to files named after
+		the nickname of the sender (rather than all to the same file)
+
+
+Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.
+All Rights Reserved.
