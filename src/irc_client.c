@@ -92,13 +92,19 @@ int ircclient_connected(struct ircproxy *p) {
 /* Called once a client DNS lookup has completed */
 static void _ircclient_connected2(struct ircproxy *p, void *data,
                                   struct in_addr *addr, const char *name) {
+
+	int flags;                                  	
+                                  	
   p->client_host = x_strdup(name);
   if (!p->hostname)
     p->hostname = x_strdup(name);
   ircclient_send_notice(p, "Got your hostname.");
 
   p->client_status |= IRC_CLIENT_CONNECTED;
-  net_hook(p->client_sock, SOCK_NORMAL, NULL, (void *)p,
+  flags = SOCK_NORMAL;
+  if(p->cliSSL.ssl)
+  	flags |= SOCK_SSL;
+  net_hook(p->client_sock, flags, p->cliSSL.ssl, (void *)p,
            ACTIVITY_FUNCTION(_ircclient_data),
            ERROR_FUNCTION(_ircclient_error));
 
@@ -738,12 +744,19 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
 
     /* Check again, in case killing existing user killed the proxy */
     if (tmp_p) {
+    	int flags;
+    	
       debug("Attaching new client to old server session");
 
       tmp_p->client_sock = p->client_sock;
       tmp_p->client_status |= IRC_CLIENT_CONNECTED | IRC_CLIENT_AUTHED;
       tmp_p->client_addr = p->client_addr;
-      net_hook(tmp_p->client_sock, SOCK_NORMAL, NULL, (void *)tmp_p,
+      
+      flags = SOCK_NORMAL;
+		  if(p->cliSSL.ssl)
+  			flags |= SOCK_SSL;
+      
+      net_hook(tmp_p->client_sock, flags, p->cliSSL.ssl, (void *)tmp_p,
                ACTIVITY_FUNCTION(_ircclient_data),
                ERROR_FUNCTION(_ircclient_error));
 

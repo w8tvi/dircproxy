@@ -188,7 +188,28 @@ static void _ircnet_acceptclient(void *data, int sock) {
     free(p);
     return;
   }
-  net_create(&(p->client_sock), 0);
+  
+		  SSL_load_error_strings();
+		  SSLeay_add_ssl_algorithms();
+		  p->cliSSL.method = SSLv23_server_method();
+		  p->cliSSL.ctx = SSL_CTX_new(p->cliSSL.method);
+			if(!SSL_CTX_use_certificate_file(p->cliSSL.ctx, "cert", SSL_FILETYPE_PEM))
+				debug("CA file problem");
+	  	if(!SSL_CTX_use_PrivateKey_file(p->cliSSL.ctx, "pvkey", SSL_FILETYPE_PEM))
+				debug("PK file problem");
+			if (!SSL_CTX_check_private_key(p->cliSSL.ctx))
+				debug("PK doesn't match CA");
+			
+			p->cliSSL.ssl = SSL_new(p->cliSSL.ctx);
+			if(p->cliSSL.ssl == NULL)
+				debug("p->clSSL_struct.ssl == NULL");
+			if(!SSL_set_fd(p->cliSSL.ssl, p->client_sock))
+				debug("SSL_set_fd()");
+			while(SSL_accept(p->cliSSL.ssl) != 1);
+	 
+		  debug("SSL connection using %s\n", SSL_get_cipher(p->cliSSL.ssl));
+  
+  net_create(&(p->client_sock), p->cliSSL.ssl);
 
   if (p->client_sock != -1) {
     _ircnet_client_connected(p);
