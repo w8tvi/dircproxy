@@ -5,7 +5,7 @@
  * irc_log.c
  *  - Handling of log files
  * --
- * @(#) $Id: irc_log.c,v 1.13 2000/08/30 10:57:47 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.14 2000/08/30 11:36:04 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -117,9 +117,6 @@ int irclog_closetempdir(struct ircproxy *p) {
 int irclog_open(struct ircproxy *p, const char *to) {
   char *ptr, *dir, *filename;
   struct logfile *log;
-
-  if (!p->conn_class)
-    return -1;
 
   log = _irclog_getlog(p, to);
   if (!log)
@@ -419,9 +416,6 @@ static int _irclog_writetext(struct logfile *log, char prefrom,
 static int _irclog_text(struct ircproxy *p, const char *to, char prefrom,
                         const char *from, char postfrom, const char *format,
                         va_list ap) {
-  if (!p->conn_class)
-    return -1;
-
   if (to) {
     struct logfile *log;
     int timestamp;
