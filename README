@@ -1,11 +1,6 @@
 dircproxy: Detachable IRC Proxy Server
 -------------------------------------
 
-* THIS IS AN UNSTABLE DEVELOPMENT RELEASE OF DIRCPROXY.  IT HAS HIGHER
-* THEN USUAL RISK OF DESTROYING YOUR SYSTEM.
-*
-* FOR A STABLE RELEASE USE THE LATEST 1.0.x
-
 dircproxy is an IRC proxy server ("bouncer") designed for people
 who use IRC from lots of different workstations or clients, but wish
 to remain connected and see what they missed while they were away.

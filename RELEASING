@@ -10,9 +10,8 @@ Release checklist
  4.  Check it compiles and runs without any flags
  5.  Fix any bugs/warnings, commit them, and return to 1
  6.  Perform a `make maintainer-clean` and remove any litter
- 7.  Run `cvs2cl --gmt --prune -U AUTHORS.map -l '-b'` to create new
-     ChangeLog.  If this is a non-head branch replace the "-l 'b'" with
-     "-F BRANCH-x_x".
+ 7.  Run `cvs2cl --gmt --prune -U AUTHORS.map -F BRANCH-1_0` to create new
+     ChangeLog.
  8.  `rm ChangeLog.bak`
  9.  `cvs diff ChangeLog > changes.txt`
 10.  Edit changes.txt and undiffify it.
@@ -31,7 +30,7 @@ Release checklist
       download.html for more information' --detach-sign DISTFILE`
 21.  scp dist file and asc file to tetris:~ftp/pub/dircproxy/stable
 22.  Remove 'src' directory from website and replace with new version
-23.  Add new news item title "dircproxy x.x.x released" containing release.txt
+23.  Add new news item title "dircproxy x.x.x released!" containing release.txt
 24.  Add new version to bugzilla's dircproxy product
 25.  Run build-site.pl to make the site carry the latest information.
 26.  Check the site front page, news page and download page.
