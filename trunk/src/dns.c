@@ -11,7 +11,7 @@
  * of a DNS request is notified by the child death signal, so it will
  * interrupt the main loop to continue where you left off.
  * --
- * @(#) $Id: dns.c,v 1.11 2000/11/10 15:08:02 keybuk Exp $
+ * @(#) $Id: dns.c,v 1.12 2000/11/15 15:32:36 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -38,7 +38,9 @@
 struct dnschild {
   pid_t pid;
   int pipe;
-  
+
+  struct in_addr addr;
+
   void (*function)(void *, void *, struct in_addr *, const char *);
   void *boundto;
   void *data;
@@ -128,6 +130,7 @@ static int _dns_startrequest(void *boundto,
   child->pipe = p[0];
   child->function = function;
   child->boundto = boundto;
+  child->addr.s_addr = (addr ? addr->s_addr : 0);
   child->data = data;
   child->next = dnschildren;
   dnschildren = child;
@@ -229,17 +232,9 @@ int dns_endrequest(pid_t pid, int status) {
         debug("%d: Got result", pid);
 
         addr = &(result.addr);
-        if (!strlen(result.name)) {
-          char *ip;
-
-          /* No name received, so copy IP address into it */
-          ip = inet_ntoa(result.addr);
-          strncpy(result.name, ip, 255);
-          result.name[255] = 0;
-
-          debug("%d: Changed name to '%s'", pid, result.name);
-        }
         name = result.name;
+      } else {
+        debug("%d: DNS lookup failed", pid);
       }
     } else {
       debug("%d: DNS lookup returned %d", pid, WEXITSTATUS(status));
@@ -248,6 +243,24 @@ int dns_endrequest(pid_t pid, int status) {
     debug("%d: DNS lookup terminated with signal %d", pid, WTERMSIG(status));
   } else {
     debug("%d: DNS lookyp terminated abnormally", pid);
+  }
+
+  /* If DNS failed, but we were looking up an IP address, fill that */
+  if (!addr && child->addr.s_addr) {
+    result.addr.s_addr = child->addr.s_addr;
+    addr = &(result.addr);
+  }
+
+  /* If DNS failed but we have an IP, fill the name in with inet_ntoa() */
+  if (addr && (!name || !strlen(name))) {
+    char *ip;
+
+    ip = inet_ntoa(*addr);
+    strncpy(result.name, ip, 255);
+    result.name[255] = 0;
+
+    debug("%d: Changed name to '%s'", pid, result.name);
+    name = result.name;
   }
 
   /* Call the function */
