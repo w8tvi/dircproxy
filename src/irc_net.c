@@ -5,7 +5,7 @@
  * irc_net.c
  *  - Polling of sockets and acting on any data
  * --
- * @(#) $Id: irc_net.c,v 1.8 2000/05/24 21:21:44 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.9 2000/08/23 11:43:45 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -43,6 +43,9 @@ static void _ircnet_rejoin(struct ircproxy *, void *);
 
 /* list of connection classes */
 struct ircconnclass *connclasses = 0;
+
+/* whether we are a dedicated proxy or not */
+int dedicated_proxy = 0;
 
 /* list of currently proxied connections */
 static struct ircproxy *proxies = 0;
