@@ -9,7 +9,7 @@
  * its a lot smaller than anyone elses that I know of, which worries
  * me slightly :) - But it seems to work
  * --
- * @(#) $Id: match.c,v 1.3 2000/05/13 05:25:04 keybuk Exp $
+ * @(#) $Id: match.c,v 1.4 2000/05/13 16:05:16 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -20,6 +20,7 @@
 #include <string.h>
 
 #include <dircproxy.h>
+#include "sprintf.h"
 #include "stringex.h"
 #include "match.h"
 
