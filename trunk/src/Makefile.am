@@ -25,5 +25,7 @@ dircproxy_SOURCES = \
 	match.c match.h \
 	stringex.c stringex.h \
 	sprintf.c sprintf.h \
-	memdebug.c memdebug.h \
-	getopt.c getopt.h getopt1.c
+	memdebug.c memdebug.h
+
+dircproxy_LDADD = \
+	../getopt/libgetopt.a

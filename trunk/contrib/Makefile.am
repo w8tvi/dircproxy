@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
-bin_PROGRAMS = \
-	dircproxy-crypt
+pkgdata_DATA = \
+	log.pl
 
-dircproxy_crypt_SOURCES = \
-	crypt.c
+EXTRA_DIST = \
+	$(pkgdata_DATA)
