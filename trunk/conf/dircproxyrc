@@ -69,9 +69,10 @@
 # server_pingtimeout
 #     For some people, dircproxy doesn't notice that the connection to the
 #     server has been dropped because the socket remains open.  For example,
-#     those behind a NAT'd firewall.  dircproxy can monitor the amount of time
-#     between PINGs received from a server, and when it exceeds the number of
-#     seconds below assume the server is "stoned" and reconnect to it.
+#     those behind a NAT'd firewall.  dircproxy can ping the server and make
+#     sure it gets replies back.  It the time since the last reply was
+#     received exceeds the number of seconds below the server is assumed to be
+#     "stoned" and dircproxy leaves it.
 #
 #     0 = don't monitor PINGs
 #

@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.39 2000/09/26 11:51:25 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.40 2000/09/27 16:45:32 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -281,6 +281,11 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
     } else if (!strcasecmp(msg.cmd, "MOTD")) {
       /* User requesting the message of the day from the server */
       p->allow_motd = 1;
+      squelch = 0;
+
+    } else if (!strcasecmp(msg.cmd, "PING")) {
+      /* User requesting a ping from the server */
+      p->allow_pong = 1;
       squelch = 0;
 
     } else if (!strcasecmp(msg.cmd, "DIRCPROXY")) {
