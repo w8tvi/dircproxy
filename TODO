@@ -1,9 +1,9 @@
-Stuff to do:
+Stuff to do/fix in 0.7.x:
 
 	* Nothing yet
 
 
-Whenever time permits:
+Stuff for 0.8.0:
 
 	* DCC proxying/rewriting.  Not entirely sure what this involves,
 	  probably having listening sockets, rewriting addresses and all
@@ -18,10 +18,5 @@ Whenever time permits:
 	  apon authentication would fork(), setuid() then dedicate the proxy
 	  to that user.  This would get around some of the ident issues...
 
-
-Would be nice:
-
-	* How can we change the username being presented?  Team up with an
-	  identd perhaps, or we could fork(), setuid() and then run the
-	  function to make new listening socket.
+	* Support for identd's that can change username presented.
 
