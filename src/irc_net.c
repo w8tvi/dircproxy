@@ -9,7 +9,7 @@
  *  - Miscellaneous IRC functions
  *  - The main poll() loop
  * --
- * @(#) $Id: irc_net.c,v 1.31 2000/10/20 11:03:18 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.32 2000/10/23 12:30:57 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -345,8 +345,8 @@ static void _ircnet_freeproxy(struct ircproxy *p) {
     ircclient_close(p);
   }
 
-  dns_delall(p);
-  timer_delall(p);
+  dns_delall((void *)p);
+  timer_delall((void *)p);
   free(p->client_host);
 
   free(p->nickname);
@@ -534,7 +534,8 @@ int ircnet_rejoin(struct ircproxy *p, const char *name) {
     _ircnet_rejoin(p, (void *)str);
   } else if (p->conn_class->channel_rejoin > 0) {
     debug("Will rejoin '%s' in %d seconds", str, p->conn_class->channel_rejoin);
-    timer_new(p, 0, p->conn_class->channel_rejoin, _ircnet_rejoin, (void *)str);
+    timer_new((void *)p, 0, p->conn_class->channel_rejoin,
+              TIMER_FUNCTION(_ircnet_rejoin), (void *)str);
   } 
 
   return 0;
