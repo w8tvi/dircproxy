@@ -5,7 +5,7 @@
  * timers.c
  *  - Scheduling events
  * --
- * @(#) $Id: timers.c,v 1.4 2000/05/24 18:05:43 keybuk Exp $
+ * @(#) $Id: timers.c,v 1.5 2000/10/10 13:08:36 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -76,7 +76,9 @@ char *timer_new(struct ircproxy *p, const char *id, unsigned long interval,
 
   t->next = timers;
   timers = t;
- 
+
+  debug("Timer %s will be triggered in %d seconds", t->id,
+        (t->time ? t->time - time(NULL) : 0));
   return t->id;
 }
 
@@ -95,6 +97,8 @@ int timer_del(struct ircproxy *p, char *id) {
         timers = t->next;
       }
 
+      debug("Timer %s will not be triggered (%d on the clock)", 
+            t->id, (t->time ? t->time - time(NULL) : 0));
       _timer_free(t);
       return 0;
     } else {
@@ -120,6 +124,8 @@ int timer_delall(struct ircproxy *p) {
       struct timer *n;
 
       n = t->next;
+      debug("Timer %s will not be triggered (%d on the clock)", 
+            t->id, (t->time ? t->time - time(NULL) : 0));
       _timer_free(t);
 
       if (l) {
@@ -159,6 +165,7 @@ int timer_poll(void) {
       p = t->proxy;
       data = t->data;
       n = t->next;
+      debug("Timer %s triggered", t->id);
       _timer_free(t);
 
       if (l) {
@@ -195,6 +202,8 @@ void timer_flush(void) {
     struct timer *n;
 
     n = t->next;
+    debug("Timer %s never triggered (%d on the clock)", 
+          t->id, (t->time ? t->time - time(NULL) : 0));
     _timer_free(t);
     t = n;
   }
