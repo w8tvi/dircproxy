@@ -10,7 +10,7 @@ dircproxy_SOURCES = \
 	main.c \
 	dircproxy.h \
 	irc_net.c irc_net.h \
-	irc_client.c irc_client.h \
+	irc_client.c irc_client.h logo.h \
 	irc_server.c irc_server.h \
 	irc_prot.c irc_prot.h \
 	irc_log.c irc_log.h \
