@@ -11,7 +11,7 @@
  * of a DNS request is notified by the child death signal, so it will
  * interrupt the main loop to continue where you left off.
  * --
- * @(#) $Id: dns.c,v 1.7 2000/10/13 12:32:46 keybuk Exp $
+ * @(#) $Id: dns.c,v 1.8 2000/10/13 13:35:42 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -149,7 +149,7 @@ static int _dns_startrequest(struct ircproxy *proxy,
     
     /* Use ALARM to do timeouts */
     signal(SIGALRM, SIG_DFL);
-    alarm(DNS_TIMEOUT);
+    alarm(g.dns_timeout);
 
     /* Do the lookup */
     result = _dns_lookup(name, addr);

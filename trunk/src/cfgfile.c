@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.22 2000/10/13 13:24:36 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.23 2000/10/13 13:35:42 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -35,13 +35,15 @@ static int _cfg_read_string(char **, char **);
                                 filename); valid = 0; break; }
 
 /* Read a config file */
-int cfg_read(const char *filename, char **listen_port) {
+int cfg_read(const char *filename, char **listen_port,
+             struct globalvars *globals) {
   struct ircconnclass defaults, *def, *class;
   int valid;
   long line;
   FILE *fd;
 
   def = &defaults;
+  memset(globals, 0, sizeof(struct globalvars));
   memset(def, 0, sizeof(struct ircconnclass));
   class = 0;
   line = 0;
@@ -49,6 +51,11 @@ int cfg_read(const char *filename, char **listen_port) {
   fd = fopen(filename, "r");
   if (!fd)
     return -1;
+
+  /* Initialise globals */
+  globals->client_timeout = DEFAULT_CLIENT_TIMEOUT;
+  globals->connect_timeout = DEFAULT_CONNECT_TIMEOUT;
+  globals->dns_timeout = DEFAULT_DNS_TIMEOUT;
 
   /* Initialise using defaults */
   def->server_port = x_strdup(DEFAULT_SERVER_PORT ? DEFAULT_SERVER_PORT : "0");
@@ -167,6 +174,18 @@ int cfg_read(const char *filename, char **listen_port) {
           free(*listen_port);
           *listen_port = str;
         }
+
+      } else if (!class && !strcasecmp(key, "client_timeout")) {
+        /* client_timeout 60 */
+        _cfg_read_numeric(&buf, &globals->client_timeout);
+
+      } else if (!class && !strcasecmp(key, "connect_timeout")) {
+        /* connect_timeout 60 */
+        _cfg_read_numeric(&buf, &globals->connect_timeout);
+
+      } else if (!class && !strcasecmp(key, "dns_timeout")) {
+        /* dns_timeout 60 */
+        _cfg_read_numeric(&buf, &globals->dns_timeout);
 
       } else if (!strcasecmp(key, "server_port")) {
         /* server_port 6667
@@ -749,7 +768,7 @@ int cfg_read(const char *filename, char **listen_port) {
           ptr = strchr(str, ',');
           if (ptr)
             *(ptr++) = 0;
-          
+
           s = (struct strlist *)malloc(sizeof(struct strlist));
           s->str = x_strdup(str);
           s->next = 0;

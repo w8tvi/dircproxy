@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.30 2000/10/13 13:24:36 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.31 2000/10/13 13:35:42 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -48,25 +48,6 @@
  */
 #define FALLBACK_USERNAME "user"
 
-/* CLIENT_TIMEOUT
- * Maxmimum amount of time (in seconds) to allow a client to take to login.
- * If we don't get password, nickname and username by this time then we
- * close their connection.
- */
-#define CLIENT_TIMEOUT 60
-
-/* CONNECT_TIMEOUT
- * Maxmimum amount of time (in seconds) to allow a client to choose the
- * server to connect to if server_autoconnect is no.  This starts counting
- * once they've logged in.
- */
-#define CONNECT_TIMEOUT 60
-
-/* DNS_TIMEOUT
- * Maximum amount of time (in seconds) to allow for a DNS request.
- */
-#define DNS_TIMEOUT 20
-
 /* FALLBACK_NICKNAME
  * When sending a nickname while detached, its possible that we can get
  * errors back from the server.  To this end, we have to generate a new
@@ -105,6 +86,25 @@
  * What port do we listen on for new client connections?
  */
 #define DEFAULT_LISTEN_PORT "57000"
+
+/* DEFAULT_CLIENT_TIMEOUT
+ * Maxmimum amount of time (in seconds) to allow a client to take to login.
+ * If we don't get password, nickname and username by this time then we
+ * close their connection.
+ */
+#define DEFAULT_CLIENT_TIMEOUT 60
+
+/* DEFAULT_CONNECT_TIMEOUT
+ * Maxmimum amount of time (in seconds) to allow a client to choose the
+ * server to connect to if server_autoconnect is no.  This starts counting
+ * once they've logged in.
+ */
+#define DEFAULT_CONNECT_TIMEOUT 60
+
+/* DEFAULT_DNS_TIMEOUT
+ * Maximum amount of time (in seconds) to allow for a DNS request.
+ */
+#define DEFAULT_DNS_TIMEOUT 20
 
 /* DEFAULT_SERVER_PORT
  * What port do we connect to IRC servers on if the server string doesn't
@@ -402,6 +402,16 @@
  */
 #define DEFAULT_ALLOW_DIE 0
 
+
+/* Global variables */
+struct globalvars {
+  long client_timeout;
+  long connect_timeout;
+  long dns_timeout;
+};
+
+/* global variables */
+extern struct globalvars g;
 
 /* functions in main.c */
 extern int syscall_fail(const char *, const char *, const char *);

@@ -2,7 +2,7 @@
 .\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.17 2000/10/13 13:24:36 keybuk Exp $
+.\" @(#) $Id: dircproxy.1,v 1.18 2000/10/13 13:35:27 keybuk Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -103,6 +103,22 @@ What port should \fBdircproxy\fR listen for connections from IRC clients
 on?
 
 This can be a numeric port number, or a service name from /etc/services
+
+.TP
+.B client_timeout
+Maxmimum amount of time (in seconds) a client can take to connect to
+\fBdircproxy\fR and provide their password and nickname etc.
+
+.TP
+.B connect_timeout
+Maximum amount of time (in seconds) a client has to provide a server
+to connect to after they've logged in.  This only applies
+if '\fBserver_autoconnect\fR' is 'no' for that class.
+
+.TP
+.B dns_timeout
+Maximum amount of time (in seconds) to wait for a reply from a DNS
+server.  If the time exceeds this then the lookup is cancelled.
 
 .PP
 .B GLOBAL OPTIONS
