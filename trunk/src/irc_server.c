@@ -5,7 +5,7 @@
  * irc_server.c
  *  - Handling of servers connected to the proxy
  * --
- * @(#) $Id: irc_server.c,v 1.14 2000/08/25 09:38:23 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.15 2000/08/25 09:49:15 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -85,7 +85,7 @@ static void _ircserver_reconnect(struct ircproxy *p, void *data) {
 /* Called to initiate a connection to a server */
 int ircserver_connect(struct ircproxy *p) {
   struct sockaddr_in local_addr;
-  char *host;
+  char *host, *server;
   int ret;
 
   debug("Connecting to server");
@@ -97,13 +97,28 @@ int ircserver_connect(struct ircproxy *p) {
     return 0;
   }
 
+  server = x_strdup(p->conn_class->next_server->str);
+  if (strchr(server, ':') != strrchr(server, ':')) {
+    /* More than one :, second denotes password */
+    char *pass;
+
+    pass = strrchr(server, ':');
+    *(pass++) = 0;
+
+    if (strlen(pass))
+      p->serverpassword = x_strdup(pass);
+  }
+  
   host = 0;
-  if (dns_filladdr(p->conn_class->next_server->str, p->conn_class->server_port,
-                   1, &(p->server_addr), &host)) {
+  if (dns_filladdr(server, p->conn_class->server_port, 1,
+                   &(p->server_addr), &host)) {
+    debug("DNS failure, retrying");
+    free(server);
     timer_new(p, "server_recon", p->conn_class->server_dnsretry,
               _ircserver_reconnect, (void *)0);
     return -1;
   } else {
+    free(server);
     free(p->servername);
     p->servername = host;
   }
@@ -194,6 +209,8 @@ int ircserver_connected(struct ircproxy *p) {
   }
 
   username = ircprot_sanitize_username(p->username);
+  if (p->serverpassword)
+    ircserver_send_peercmd(p, "PASS", ":%s", p->serverpassword);
   ircserver_send_peercmd(p, "NICK", ":%s", p->nickname);
   ircserver_send_peercmd(p, "USER", "%s 0 * :%s", username, p->realname);
   free(username);
