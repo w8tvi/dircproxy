@@ -8,7 +8,7 @@
  *  - The list of currently active DCC proxies
  *  - Miscellaneous DCC functions
  * --
- * @(#) $Id: dcc_net.c,v 1.6 2000/11/28 12:14:34 keybuk Exp $
+ * @(#) $Id: dcc_net.c,v 1.7 2000/11/28 15:52:38 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -172,6 +172,7 @@ static int _dccnet_listen(struct dccproxy *p, int *range, size_t range_sz,
   if (port)
     *port = ntohs(local_addr.sin_port);
   debug("Listening for DCC Sendees on port %d", ntohs(local_addr.sin_port));
+  p->sendee_status |= DCC_SENDEE_LISTENING;
   net_hook(p->sendee_sock, SOCK_LISTENING, (void *)p,
            ACTIVITY_FUNCTION(_dccnet_accept), 0);
 
