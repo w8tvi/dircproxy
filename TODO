@@ -1,8 +1,40 @@
 TODO:
 
-	* Bug 5
-	* Bug 6: Should change it to a static member and make sure that
-	  log_init is called for every proxy, not just once per client
+	* Bugzilla #5
+	  dircproxy doesn't squelch replies to nick guard code
+
+	  The nick guard code generates NICK commands, it should set a
+	  squelch_nick or something after doing this:
+
+	  On receipt of a NICK command, it can decrement squelch_nick
+	  (but still pass it through to the client)
+
+	  On receipt of a 433 or similar, it can squelch it.
+
+	* Bugzilla #6
+	  incorrect log-flush
+
+	  Should change the temp directory name to use a static int
+	  rather than the socket number, and make sure log_init *is*
+	  called for every proxy, not just once per client.
+
+	* Bugzilla #9
+	  No configuration option to make dircproxy to bind to certain
+	  interface.
+
+	  There should be a configuration option to make dircproxy
+	  to bind to only certain interface. Right now, only port is
+	  setable and dircproxy listens for clientconnections on *all*
+	  available interfaces.
+
+	  Also via e-mail:
+	  Andreas Oberritter <andreas@oberritter.de>
+
+	* Look at DCC Resume patch:
+	  www-ec.njit.edu/~rxt1077/dircproxy-resume
+
+	  ryan tolboom cis stnt <rxt1077@oak.njit.edu>
+
 	* Apply Alexander's patch or ideas for outgoing private logging
 	* Seperate private messages into private_log_file
 	* Better DCC debug?
