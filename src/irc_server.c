@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.53 2001/01/11 15:29:21 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.54 2001/07/12 14:29:49 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -1040,7 +1040,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
           /* We need our local address to do anything DCC related */
           len = sizeof(struct sockaddr_in);
-          if (getsockname(p->client_sock, (struct sockaddr *)&vis_addr, &len)) {
+          if ((p->client_status == IRC_CLIENT_ACTIVE) &&
+              getsockname(p->client_sock, (struct sockaddr *)&vis_addr, &len)) {
             syscall_fail("getsockname", "", 0);
 
           } else if ((cmsg.numparams >= 4)
