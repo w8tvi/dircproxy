@@ -1,3 +1,138 @@
+2000-12-07 17:21  Scott James Remnant <scott@netsplit.com>
+
+	* src/dcc_send.c: Got rid of the extraneous debug stuff that's not
+	actually needed
+
+2000-12-07 17:17  Scott James Remnant <scott@netsplit.com>
+
+	* src/dcc_send.c: Large rework of DCC Send proxying.  We now store
+	everything we get from the sender in an internal buffer until we
+	can send it out to the sendee.	This means the sender can
+	disconnect part way through without the whole lot going *splegh*
+	all over the place.
+
+2000-12-07 17:05  Scott James Remnant <scott@netsplit.com>
+
+	* src/dircproxy.h: New #define variable - DCC_BLOCK_SIZE, the
+	maximum size of a block to send while doing dcc proxying.  Its not
+	a config file parameter because the logic behind it isn't exactly
+	spock-like.  Basically, it'll only be used when there is LOTS of
+	data in the buffer.  If the sendee connects before the sender then
+	it won't be used at all because the data will hopefully be ack'd
+	fast enough to not care.
+
+2000-12-07 17:03  Scott James Remnant <scott@netsplit.com>
+
+	* src/dcc_net.h: Need to now know how much data total we've
+	received from the sender (bytes_recvd) [should always be bytes_sent
+	+ bufsz, but I ain't risking using that in case i fuck up], need a
+	buffer and a variable to tell us how big it is, and a new status
+	for dcc sender socket's (DCC_SENDER_GONE)
+
+2000-12-07 17:01  Scott James Remnant <scott@netsplit.com>
+
+	* src/dcc_net.c: Adjusted the logic of the timer code now, as it
+	isn't quite as clear cut as "are they both connected"?
+	
+	* Made sure all sockets are set to -1 after being closed, just in
+	case the sender leaves, and the client connects just after and gets
+	the same socket number (and confuses the living buggery out of us).
+	
+	* Free the buffer when freeing the proxy
+
+2000-12-07 16:59  Scott James Remnant <scott@netsplit.com>
+
+	* src/: dcc_chat.c, irc_client.c, irc_server.c: Just to be on the
+	safe side, set any socket to -1 after closing it.  Otherwise
+	there's a *slight* possibility that we could accidentally mistake
+	it for another (especially with the dcc code).
+
+2000-12-07 16:00  Scott James Remnant <scott@netsplit.com>
+
+	* RELEASING: Updated release procedures.
+
+2000-12-06 15:25  Scott James Remnant <scott@netsplit.com>
+
+	* src/dircproxy.h: Added initial_modes stuf
+
+2000-12-06 15:17  Scott James Remnant <scott@netsplit.com>
+
+	* src/: irc_net.c, irc_net.h: Added initial_modes variable
+
+2000-12-06 15:15  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: if JUMP is done without paramters, pick the
+	next server in the list.
+	
+	* Always match IP address as well as hostname with 'from'
+	
+	* Set initial_modes on first authentication
+
+2000-12-06 15:10  Scott James Remnant <scott@netsplit.com>
+
+	* src/help.h: Added new JUMP syntax
+
+2000-12-06 15:08  Scott James Remnant <scott@netsplit.com>
+
+	* src/cfgfile.c: Added initial_modes config option and at the same
+	time made all non-fatal errors have a (warning) prefix
+
+2000-12-06 15:06  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxyrc, doc/dircproxy.1: New initial_modes config
+	option added
+
+2000-12-05 16:20  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: Updated
+
+2000-12-04 12:47  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_server.c: Its possible that ircserver_close_sock can be
+	called without a connection class, so always delete the timers
+
+2000-12-03 21:44  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: Changed message to be less confusing
+
+2000-12-03 19:25  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: More stuff to do
+
+2000-11-30 12:57  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: Updated to reflect whats gonna be happening
+
+2000-11-28 15:52  Scott James Remnant <scott@netsplit.com>
+
+	* src/dcc_net.c: Wasn't setting the DCC_SENDEE_LISTENING flag, so
+	if they never connect to us, then we never close the listening
+	socket.
+
+2000-11-28 12:14  Scott James Remnant <scott@netsplit.com>
+
+	* src/: dcc_net.c, irc_net.c: Dunno why I was using %p in debug()
+	messages - that uses my internal format stuff which ignores them.
+
+2000-11-28 12:12  Scott James Remnant <scott@netsplit.com>
+
+	* src/net.c: If poll() or select() was interrupted, or replied that
+	there were no events, then for efficiency reasons I didn't go into
+	the loop and read/write from the sockets.  However, this mean't
+	that until something happened, the activity function wouldn't get
+	called if there was data queued internally for the socket.  This
+	affected things like DCCs and made them stalled.
+	
+	Always do this loop now.
+
+2000-11-24 14:00  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in: CVS version now 0.8.4.
+
+2000-11-24 13:52  Scott James Remnant <scott@netsplit.com>
+
+	* ChangeLog, NEWS: Version 0.8.3 released.
+
 2000-11-24 13:44  Scott James Remnant <scott@netsplit.com>
 
 	* src/: irc_client.c, irc_net.c, irc_net.h, irc_server.c: Grab a
