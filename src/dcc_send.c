@@ -5,7 +5,7 @@
  * dcc_send.c
  *  - DCC send protocol
  * --
- * @(#) $Id: dcc_send.c,v 1.10 2001/07/12 14:47:10 keybuk Exp $
+ * @(#) $Id: dcc_send.c,v 1.11 2001/07/12 14:47:40 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -214,7 +214,7 @@ static int _dccsend_sendpacket(struct dccproxy *p) {
     ret = net_queue(p->sendee_sock, (void *)p->buf, nr);
     if (ret) {
       error("Couldn't queue data in dccsend_data");
-      net_close(&sock);
+      net_close(&(p->sendee_sock));
       return -1;
     }
 
