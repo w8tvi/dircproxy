@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.22 2000/09/28 10:37:15 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.23 2000/09/29 12:43:36 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -59,6 +59,7 @@ struct ircconnclass {
   long other_log_recall;
   int motd_logo;
   int motd_stats;
+  int allow_persist;
 
   char *password;
   struct strlist *servers, *next_server;

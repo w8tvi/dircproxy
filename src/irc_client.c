@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.41 2000/09/28 10:37:15 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.42 2000/09/29 12:43:36 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -119,6 +119,20 @@ static int _ircclient_detach(struct ircproxy *p, const char *message) {
     debug("Detaching proxy");
     if (p->client_status == IRC_CLIENT_ACTIVE)
       irclog_notice(p, 0, PACKAGE, "You disconnected");
+
+    /* Send detach message */
+    if ((p->server_status == IRC_SERVER_ACTIVE)
+        && (p->client_status == IRC_CLIENT_ACTIVE)) {
+      if (p->conn_class->detach_message) {
+        struct ircchannel *c;
+        int 
+
+        c = p->channels;
+        while (c) {
+          c = c->next;
+        }
+      }
+    }
 
     /* Set away message */
     if ((p->server_status == IRC_SERVER_ACTIVE)
@@ -340,7 +354,8 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
 
           irclog_recall(p, src, start, lines, filter);
 
-        } else if (!strcasecmp(msg.params[0], "PERSIST")) {
+        } else if (p->conn_class->allow_persist
+                   && !strcasecmp(msg.params[0], "PERSIST")) {
           /* User wants a die_on_close proxy to persist */
           if (p->die_on_close) {
             if (!ircnet_dedicate(p)) {
@@ -392,7 +407,8 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
           if ((msg.numparams >= 2) && strlen(msg.params[1])) {
             if (!strcasecmp(msg.params[1], "RECALL")) {
               help_page = help_recall;
-            } else if (!strcasecmp(msg.params[1], "PERSIST")) {
+            } else if (p->conn_class->allow_persist
+                       && !strcasecmp(msg.params[1], "PERSIST")) {
               help_page = help_persist;
             } else if (!strcasecmp(msg.params[1], "DETACH")) {
               help_page = help_detach;
@@ -414,10 +430,26 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
             i = 0;
             ircclient_send_notice(p, "%s %s help", PACKAGE, VERSION);
             while (help_page[i]) {
-              ircclient_send_notice(p, ":- %s", help_page[i]);
+              ircclient_send_notice(p, "- %s", help_page[i]);
               i++;
             }
-            ircclient_send_notice(p, ":-");
+            
+            if (help_page == help_index) {
+              ircclient_send_notice(p, "-     HELP");
+              ircclient_send_notice(p, "-     RECALL");
+              ircclient_send_notice(p, "-     DETACH");
+              ircclient_send_notice(p, "-     QUIT");
+              if (p->conn_class->allow_persist)
+                ircclient_send_notice(p, "-     PERSIST");
+
+              i = 0;
+              while (help_index_end[i]) {
+                ircclient_send_notice(p, "- %s", help_index_end[i]);
+                i++;
+              }
+            }
+
+            ircclient_send_notice(p, "-");
           }
 
         } else {

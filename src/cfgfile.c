@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.17 2000/09/28 10:35:10 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.18 2000/09/29 12:43:36 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -36,37 +36,13 @@ static int _cfg_read_string(char **, char **);
 
 /* Read a config file */
 int cfg_read(const char *filename, char **listen_port) {
-  struct ircconnclass *class;
+  struct ircconnclass defaults, *def, *class;
   int valid;
   long line;
   FILE *fd;
 
-  char *server_port;
-  long server_retry;
-  long server_dnsretry;
-  long server_maxattempts;
-  long server_maxinitattempts;
-  long server_pingtimeout;
-  long channel_rejoin;
-  long idle_maxtime;
-  int disconnect_existing;
-  int disconnect_on_detach;
-  char *drop_modes;
-  char *local_address;
-  char *away_message;
-  char *chan_log_dir;
-  int chan_log_always;
-  int chan_log_timestamp;
-  long chan_log_maxsize;
-  long chan_log_recall;
-  char *other_log_dir;
-  int other_log_always;
-  int other_log_timestamp;
-  long other_log_maxsize;
-  long other_log_recall;
-  int motd_logo;
-  int motd_stats;
-
+  def = &defaults;
+  memset(def, 0, sizeof(struct ircconnclass));
   class = 0;
   line = 0;
   valid = 1;
@@ -75,31 +51,36 @@ int cfg_read(const char *filename, char **listen_port) {
     return -1;
 
   /* Initialise using defaults */
-  server_port = x_strdup(DEFAULT_SERVER_PORT);
-  server_retry = DEFAULT_SERVER_RETRY;
-  server_dnsretry = DEFAULT_SERVER_DNSRETRY;
-  server_maxattempts = DEFAULT_SERVER_MAXATTEMPTS;
-  server_maxinitattempts = DEFAULT_SERVER_MAXINITATTEMPTS;
-  server_pingtimeout = DEFAULT_SERVER_PINGTIMEOUT;
-  channel_rejoin = DEFAULT_CHANNEL_REJOIN;
-  idle_maxtime = DEFAULT_IDLE_MAXTIME;
-  disconnect_existing = DEFAULT_DISCONNECT_EXISTING;
-  disconnect_on_detach = DEFAULT_DISCONNECT_ON_DETACH;
-  drop_modes = x_strdup(DEFAULT_DROP_MODES);
-  local_address = (DEFAULT_LOCAL_ADDRESS ? x_strdup(DEFAULT_LOCAL_ADDRESS) : 0);
-  away_message = (DEFAULT_AWAY_MESSAGE ? x_strdup(DEFAULT_AWAY_MESSAGE) : 0);
-  chan_log_dir = (DEFAULT_CHAN_LOG_DIR ? x_strdup(DEFAULT_CHAN_LOG_DIR) : 0);
-  chan_log_always = DEFAULT_CHAN_LOG_ALWAYS;
-  chan_log_timestamp = DEFAULT_CHAN_LOG_TIMESTAMP;
-  chan_log_maxsize = DEFAULT_CHAN_LOG_MAXSIZE;
-  chan_log_recall = DEFAULT_CHAN_LOG_RECALL;
-  other_log_dir = (DEFAULT_OTHER_LOG_DIR ? x_strdup(DEFAULT_OTHER_LOG_DIR) : 0);
-  other_log_always = DEFAULT_OTHER_LOG_ALWAYS;
-  other_log_timestamp = DEFAULT_OTHER_LOG_TIMESTAMP;
-  other_log_maxsize = DEFAULT_OTHER_LOG_MAXSIZE;
-  other_log_recall = DEFAULT_OTHER_LOG_RECALL;
-  motd_logo = DEFAULT_MOTD_LOGO;
-  motd_stats = DEFAULT_MOTD_STATS;
+  def->server_port = x_strdup(DEFAULT_SERVER_PORT ? DEFAULT_SERVER_PORT : "0");
+  def->server_retry = DEFAULT_SERVER_RETRY;
+  def->server_dnsretry = DEFAULT_SERVER_DNSRETRY;
+  def->server_maxattempts = DEFAULT_SERVER_MAXATTEMPTS;
+  def->server_maxinitattempts = DEFAULT_SERVER_MAXINITATTEMPTS;
+  def->server_pingtimeout = DEFAULT_SERVER_PINGTIMEOUT;
+  def->channel_rejoin = DEFAULT_CHANNEL_REJOIN;
+  def->idle_maxtime = DEFAULT_IDLE_MAXTIME;
+  def->disconnect_existing = DEFAULT_DISCONNECT_EXISTING;
+  def->disconnect_on_detach = DEFAULT_DISCONNECT_ON_DETACH;
+  def->drop_modes = (DEFAULT_DROP_MODES ? x_strdup(DEFAULT_DROP_MODES) : 0);
+  def->local_address = (DEFAULT_LOCAL_ADDRESS
+                        ? x_strdup(DEFAULT_LOCAL_ADDRESS) : 0);
+  def->away_message = (DEFAULT_AWAY_MESSAGE
+                       ? x_strdup(DEFAULT_AWAY_MESSAGE) : 0);
+  def->chan_log_dir = (DEFAULT_CHAN_LOG_DIR
+                       ? x_strdup(DEFAULT_CHAN_LOG_DIR) : 0);
+  def->chan_log_always = DEFAULT_CHAN_LOG_ALWAYS;
+  def->chan_log_timestamp = DEFAULT_CHAN_LOG_TIMESTAMP;
+  def->chan_log_maxsize = DEFAULT_CHAN_LOG_MAXSIZE;
+  def->chan_log_recall = DEFAULT_CHAN_LOG_RECALL;
+  def->other_log_dir = (DEFAULT_OTHER_LOG_DIR
+                        ? x_strdup(DEFAULT_OTHER_LOG_DIR) : 0);
+  def->other_log_always = DEFAULT_OTHER_LOG_ALWAYS;
+  def->other_log_timestamp = DEFAULT_OTHER_LOG_TIMESTAMP;
+  def->other_log_maxsize = DEFAULT_OTHER_LOG_MAXSIZE;
+  def->other_log_recall = DEFAULT_OTHER_LOG_RECALL;
+  def->motd_logo = DEFAULT_MOTD_LOGO;
+  def->motd_stats = DEFAULT_MOTD_STATS;
+  def->allow_persist = DEFAULT_ALLOW_PERSIST;
 
   while (valid) {
     char buff[512], *buf;
@@ -173,65 +154,46 @@ int cfg_read(const char *filename, char **listen_port) {
         if (_cfg_read_string(&buf, &str))
           UNMATCHED_QUOTE;
 
-        if (class) {
-          free(class->server_port);
-          class->server_port = str;
-        } else {
-          free(server_port);
-          server_port = str;
-        }
+        free((class ? class : def)->server_port);
+        (class ? class : def)->server_port = str;
 
       } else if (!strcasecmp(key, "server_retry")) {
         /* server_retry 15 */
-        _cfg_read_numeric(&buf,
-                          &(class ? class->server_retry : server_retry));
+        _cfg_read_numeric(&buf, &(class ? class : def)->server_retry);
 
       } else if (!strcasecmp(key, "server_dnsretry")) {
         /* server_dnsretry 15 */
-        _cfg_read_numeric(&buf,
-                          &(class ? class->server_dnsretry : server_dnsretry));
+        _cfg_read_numeric(&buf, &(class ? class : def)->server_dnsretry);
 
       } else if (!strcasecmp(key, "server_maxattempts")) {
         /* server_maxattempts 0 */
-        _cfg_read_numeric(&buf,
-                          &(class ? class->server_maxattempts
-                                  : server_maxattempts));
+        _cfg_read_numeric(&buf, &(class ? class : def)->server_maxattempts);
 
       } else if (!strcasecmp(key, "server_maxinitattempts")) {
         /* server_maxinitattempts 5 */
-        _cfg_read_numeric(&buf,
-                          &(class ? class->server_maxinitattempts
-                                  : server_maxinitattempts));
+        _cfg_read_numeric(&buf, &(class ? class : def)->server_maxinitattempts);
         
       } else if (!strcasecmp(key, "server_pingtimeout")) {
         /* server_pingtimeout 600 */
-        _cfg_read_numeric(&buf,
-                          &(class ? class->server_pingtimeout
-                                  : server_pingtimeout));
+        _cfg_read_numeric(&buf, &(class ? class : def)->server_pingtimeout);
 
       } else if (!strcasecmp(key, "channel_rejoin")) {
         /* channel_rejoin 5 */
-        _cfg_read_numeric(&buf,
-                          &(class ? class->channel_rejoin : channel_rejoin));
+        _cfg_read_numeric(&buf, &(class ? class : def)->channel_rejoin);
 
       } else if (!strcasecmp(key, "idle_maxtime")) {
         /* idle_maxtime 120 */
-        _cfg_read_numeric(&buf,
-                          &(class ? class->idle_maxtime : idle_maxtime));
+        _cfg_read_numeric(&buf, &(class ? class : def)->idle_maxtime);
  
       } else if (!strcasecmp(key, "disconnect_existing_user")) {
         /* disconnect_existing_user yes
            disconnect_existing_user no */
-        _cfg_read_bool(&buf,
-                       &(class ? class->disconnect_existing
-                               : disconnect_existing));
+        _cfg_read_bool(&buf, &(class ? class : def)->disconnect_existing);
 
       } else if (!strcasecmp(key, "disconnect_on_detach")) {
         /* disconnect_on_detach yes
            disconnect_on_detach no */
-        _cfg_read_bool(&buf,
-                       &(class ? class->disconnect_on_detach
-                               : disconnect_on_detach));
+        _cfg_read_bool(&buf, &(class ? class : def)->disconnect_on_detach);
 
       } else if (!strcasecmp(key, "drop_modes")) {
         /* drop_modes "ow" */
@@ -248,13 +210,8 @@ int cfg_read(const char *filename, char **listen_port) {
           free(tmp);
         }
 
-        if (class) {
-          free(class->drop_modes);
-          class->drop_modes = str;
-        } else {
-          free(drop_modes);
-          drop_modes = str;
-        }
+        free((class ? class : def)->drop_modes);
+        (class ? class : def)->drop_modes = str;
 
       } else if (!strcasecmp(key, "local_address")) {
         /* local_address none
@@ -269,13 +226,8 @@ int cfg_read(const char *filename, char **listen_port) {
           str = 0;
         }
 
-        if (class) {
-          free(class->local_address);
-          class->local_address = str;
-        } else {
-          free(local_address);
-          local_address = str;
-        }
+        free((class ? class : def)->local_address);
+        (class ? class : def)->local_address = str;
 
       } else if (!strcasecmp(key, "away_message")) {
         /* away_message none
@@ -290,13 +242,8 @@ int cfg_read(const char *filename, char **listen_port) {
           str = 0;
         }
 
-        if (class) {
-          free(class->away_message);
-          class->away_message = str;
-        } else {
-          free(away_message);
-          away_message = str;
-        }
+        free((class ? class : def)->away_message);
+        (class ? class : def)->away_message = str;
         
       } else if (!strcasecmp(key, "chan_log_dir")) {
         /* chan_log_dir none
@@ -327,40 +274,29 @@ int cfg_read(const char *filename, char **listen_port) {
           }
         }
 
-        if (class) {
-          free(class->chan_log_dir);
-          class->chan_log_dir = str;
-        } else {
-          free(chan_log_dir);
-          chan_log_dir = str;
-        }
+        free((class ? class : def)->chan_log_dir);
+        (class ? class : def)->chan_log_dir = str;
 
       } else if (!strcasecmp(key, "chan_log_always")) {
         /* chan_log_always yes
            chan_log_always no */
-        _cfg_read_bool(&buf,
-                       &(class ? class->chan_log_always : chan_log_always));
+        _cfg_read_bool(&buf, &(class ? class : def)->chan_log_always);
 
       } else if (!strcasecmp(key, "chan_log_timestamp")) {
         /* chan_log_timestamp yes
            chan_log_timestamp no */
-        _cfg_read_bool(&buf,
-                       &(class ? class->chan_log_timestamp
-                               : chan_log_timestamp));
+        _cfg_read_bool(&buf, &(class ? class : def)->chan_log_timestamp);
 
       } else if (!strcasecmp(key, "chan_log_maxsize")) {
         /* chan_log_maxsize 128
            chan_log_maxsize 0 */
-        _cfg_read_numeric(&buf,
-                          &(class ? class->chan_log_maxsize
-                                  : chan_log_maxsize));
+        _cfg_read_numeric(&buf, &(class ? class : def)->chan_log_maxsize);
 
       } else if (!strcasecmp(key, "chan_log_recall")) {
         /* chan_log_recall 128
            chan_log_recall 0
            chan_log_recall -1 */
-        _cfg_read_numeric(&buf,
-                          &(class ? class->chan_log_recall : chan_log_recall));
+        _cfg_read_numeric(&buf, &(class ? class : def)->chan_log_recall);
 
       } else if (!strcasecmp(key, "other_log_dir")) {
         /* other_log_dir none
@@ -391,51 +327,45 @@ int cfg_read(const char *filename, char **listen_port) {
           }
         }
 
-        if (class) {
-          free(class->other_log_dir);
-          class->other_log_dir = str;
-        } else {
-          free(other_log_dir);
-          other_log_dir = str;
-        }
+        free((class ? class : def)->other_log_dir);
+        (class ? class : def)->other_log_dir = str;
 
       } else if (!strcasecmp(key, "other_log_always")) {
         /* other_log_always yes
            other_log_always no */
-        _cfg_read_bool(&buf,
-                       &(class ? class->other_log_always : other_log_always));
+        _cfg_read_bool(&buf, &(class ? class : def)->other_log_always);
 
       } else if (!strcasecmp(key, "other_log_timestamp")) {
         /* other_log_timestamp yes
            other_log_timestamp no */
-        _cfg_read_bool(&buf,
-                       &(class ? class->other_log_timestamp
-                               : other_log_timestamp));
+        _cfg_read_bool(&buf, &(class ? class : def)->other_log_timestamp);
 
       } else if (!strcasecmp(key, "other_log_maxsize")) {
         /* other_log_maxsize 128
            other_log_maxsize 0 */
-        _cfg_read_numeric(&buf,
-                          &(class ? class->other_log_maxsize
-                                  : other_log_maxsize));
+        _cfg_read_numeric(&buf, &(class ? class : def)->other_log_maxsize);
 
       } else if (!strcasecmp(key, "other_log_recall")) {
         /* other_log_recall 128
            other_log_recall 0
            other_log_recall -1 */
-        _cfg_read_numeric(&buf,
-                          &(class ? class->other_log_recall
-                                  : other_log_recall));
+        _cfg_read_numeric(&buf, &(class ? class : def)->other_log_recall);
 
       } else if (!strcasecmp(key, "motd_logo")) {
         /* motd_logo yes
            motd_logo no */
-        _cfg_read_bool(&buf, &(class ? class->motd_logo : motd_logo));
+        _cfg_read_bool(&buf, &(class ? class : def)->motd_logo);
 
       } else if (!strcasecmp(key, "motd_stats")) {
         /* motd_stats yes
            motd_stats no */
-        _cfg_read_bool(&buf, &(class ? class->motd_stats : motd_stats));
+        _cfg_read_bool(&buf, &(class ? class : def)->motd_stats);
+
+      } else if (!strcasecmp(key, "allow_persist")) {
+        /* allow_persist yes
+           allow_persist no */
+        _cfg_read_bool(&buf, &(class ? class : def)->allow_persist);
+
 
       } else if (!class && !strcasecmp(key, "connection")) {
         /* connection {
@@ -455,32 +385,19 @@ int cfg_read(const char *filename, char **listen_port) {
 
         /* Allocate memory, it'll be filled later */
         class = (struct ircconnclass *)malloc(sizeof(struct ircconnclass));
-        memset(class, 0, sizeof(struct ircconnclass));
-        class->server_port = x_strdup(server_port);
-        class->server_retry = server_retry;
-        class->server_dnsretry = server_dnsretry;
-        class->server_maxattempts = server_maxattempts;
-        class->server_maxinitattempts = server_maxinitattempts;
-        class->server_pingtimeout = server_pingtimeout;
-        class->channel_rejoin = channel_rejoin;
-        class->idle_maxtime = idle_maxtime;
-        class->disconnect_existing = disconnect_existing;
-        class->disconnect_on_detach = disconnect_on_detach;
-        class->drop_modes = x_strdup(drop_modes);
-        class->local_address = (local_address ? x_strdup(local_address) : 0);
-        class->away_message = (away_message ? x_strdup(away_message) : 0);
-        class->chan_log_dir = (chan_log_dir ? x_strdup(chan_log_dir) : 0);
-        class->chan_log_always = chan_log_always;
-        class->chan_log_timestamp = chan_log_timestamp;
-        class->chan_log_maxsize = chan_log_maxsize;
-        class->chan_log_recall = chan_log_recall;
-        class->other_log_dir = (other_log_dir ? x_strdup(other_log_dir) : 0);
-        class->other_log_always = other_log_always;
-        class->other_log_timestamp = other_log_timestamp;
-        class->other_log_maxsize = other_log_maxsize;
-        class->other_log_recall = other_log_recall;
-        class->motd_logo = motd_logo;
-        class->motd_stats = motd_stats;
+        memcpy(class, def, sizeof(struct ircconnclass));
+        class->server_port = (def->server_port
+                              ? x_strdup(def->server_port) : 0);
+        class->drop_modes = (def->drop_modes
+                             ? x_strdup(def->drop_modes) : 0);
+        class->local_address = (def->local_address
+                                ? x_strdup(def->local_address) : 0);
+        class->away_message = (def->away_message
+                               ? x_strdup(def->away_message) : 0);
+        class->chan_log_dir = (def->chan_log_dir
+                               ? x_strdup(def->chan_log_dir) : 0);
+        class->other_log_dir = (def->other_log_dir
+                                ? x_strdup(def->other_log_dir) : 0);
 
       } else if (class && !strcasecmp(key, "password")) {
         /* connection {
@@ -601,12 +518,12 @@ int cfg_read(const char *filename, char **listen_port) {
   }
 
   fclose(fd);
-  free(server_port);
-  free(drop_modes);
-  free(local_address);
-  free(away_message);
-  free(chan_log_dir);
-  free(other_log_dir);
+  free(def->server_port);
+  free(def->drop_modes);
+  free(def->local_address);
+  free(def->away_message);
+  free(def->chan_log_dir);
+  free(def->other_log_dir);
   return (valid ? 0 : -1);
 }
 
