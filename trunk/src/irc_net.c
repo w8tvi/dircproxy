@@ -8,7 +8,7 @@
  *  - The list of currently active proxies
  *  - Miscellaneous IRC functions
  * --
- * @(#) $Id: irc_net.c,v 1.41 2000/12/06 15:17:15 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.42 2000/12/21 13:27:05 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -85,20 +85,20 @@ int _ircnet_listen(struct sockaddr_in *local_addr) {
     if (bind(this_sock, (struct sockaddr *)local_addr,
              sizeof(struct sockaddr_in))) {
       syscall_fail("bind", "listen", 0);
-      net_close(this_sock);
+      net_close(&this_sock);
       return -1;
     }
   }
 
   if (listen(this_sock, SOMAXCONN)) {
     syscall_fail("listen", 0, 0);
-    net_close(this_sock);
+    net_close(&this_sock);
     return -1;
   }
 
   if (listen_sock != -1) {
     debug("Closing existing listen socket %d", listen_sock);
-    net_close(listen_sock);
+    net_close(&listen_sock);
   }
   debug("Listening on socket %d", this_sock);
   listen_sock = this_sock;
@@ -364,6 +364,9 @@ static void _ircnet_freeproxy(struct ircproxy *p) {
   free(p->client_host);
 
   free(p->nickname);
+  free(p->setnickname);
+  free(p->oldnickname);
+
   free(p->username);
   free(p->hostname);
   free(p->realname);
@@ -536,12 +539,12 @@ static void _ircnet_rejoin(struct ircproxy *p, void *data) {
   c = ircnet_fetchchannel(p, (char *)data);
   if (c) {
     if (c->key) {
-      ircserver_send_command(p, "JOIN", "%s :%s", c->name, c->key);
+      ircserver_send_peercmd(p, "JOIN", "%s :%s", c->name, c->key);
     } else {
-      ircserver_send_command(p, "JOIN", ":%s", c->name);
+      ircserver_send_peercmd(p, "JOIN", ":%s", c->name);
     }
   } else {
-    ircserver_send_command(p, "JOIN", ":%s", (char *)data);
+    ircserver_send_peercmd(p, "JOIN", ":%s", (char *)data);
   }
 
   free(data);
