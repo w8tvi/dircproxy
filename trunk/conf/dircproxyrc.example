@@ -1,0 +1,127 @@
+# Welcome to dircproxy!
+#
+# This is an example configuration file for dircproxy.  You should copy
+# this into your home directory and call it .dircproxyrc before editing.
+#
+# This is read AFTER the global configuration file, so any values here
+# will override those in that file.  The only exception is connection
+# classes which are meerly added to the list already defined by the
+# global file.  If you don't have root on the machine you are running this
+# on you may want to run dircproxy with the -G flag to prevent it reading
+# the global file
+#
+# All the values are commented out, so they use the default value, or the
+# one set by the configuration file.  The default value is shown.
+
+# server_port
+#     What port do we connect to IRC servers on if the server string doesn't
+#     explicitly set one
+#
+#     This can be a numeric port number, or a service name from /etc/services
+#
+#server_port 6667
+
+# server_retry
+#     How many seconds after disconnection or last connection attempt do we
+#     wait before retrying again?
+#
+#server_retry 15
+
+# server_dnsretry
+#     How many seconds after last connection attempt do we wait before trying
+#     again if the error was DNS related?
+#
+#server_dnsretry 60
+
+# server_maxattempts
+#     If we are disconnected from the server, how many times should we iterate
+#     the server list before giving up and declaring the proxied connection
+#     dead?
+#
+#     0 = iterate forever
+#
+#server_maxattempts 0
+
+# server_maxinitattempts
+#     On first connection, how many times should we iterate the server list
+#     before giving up and declaring the proxied connection dead?
+#
+#     0 = iterate forever.  This isn't recommended.
+#
+#server_maxinitattempts 5
+
+# channel_rejoin
+#     If we are kicked off a channel, how many seconds do we wait before
+#     attempting * to rejoin.
+#
+#     -1 = Don't rejoin
+#      0 = Immediately
+#
+#channel_rejoin 5
+
+# log_autorecall
+#     How many lines of log off the bottom do we give to the client when it
+#     reattaches?
+#
+#log_autorecall 128
+
+
+# Connection Classes
+#     Okay, thats the easy bit of the config file over and done with, now
+#     you have to define "connection classes" to allow yourself, and others
+#     if you wish, to connect to dircproxy.
+#
+#     You can define as many of these as you like!
+#
+#     A connection class must have a password, and the address of a server
+#     to connect to.  The password is compared with the one you configure
+#     your IRC client to send., and if they match, then this connection
+#     class is used.  Its not a good idea to have two classes with the same
+#     password.  Only one person may use one connection class at a time.
+#
+#     An example basic connection class:
+#         connection {
+#             password "foobar"
+#             server "irc.linux.com"
+#         }
+#
+#     You can specify mulitple servers, they are iterated if one fails or
+#     disconnects you.  You can also specify specific ports for a server:
+#         connection {
+#             password "foobar"
+#             server "irc.linux.com"
+#             server "irc.openprojects.net:6668"
+#             server "irc.linux.com:6668"
+#         }
+#
+#     A complete connection class, using all the available config keys:
+#         connection {
+#             password "applejack"
+#
+#             server "irc.netcom.net.uk"
+#             server "chat.bt.net:6670"
+#             server "ircnet.demon.co.uk"
+#             server "irc.stealth.net"
+#
+#             from "*.myisp.com"
+#             from "*.mywork.net"
+#
+#             local_address "i.am.a.virtual.host.com"
+#             away_message "Not available, messages are logged"
+#         }
+#
+#     'from' declares a hostmask that is matched against the machine you
+#     connect from, it adds a bit of extra security.  The wildcards * and
+#     ? are allowed.
+#
+#     If the server has more than one IP, you can use 'local_address' to
+#     specify which one to bind to.  (just like ircII's -H)
+#
+#     If you detach without setting an /AWAY, dircproxy sets one for you,
+#     you can change it using the 'away_message' config key, if you don't
+#     want it to set one at all, set away_message to "none":
+#
+#connection {
+#    password "foo"
+#    server "irc.linux.com"
+#}
