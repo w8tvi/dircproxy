@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.26 2000/10/13 12:50:29 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.27 2000/10/13 13:15:27 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -126,6 +126,9 @@ int ircserver_connect(struct ircproxy *p) {
       p->serverpassword = x_strdup(pass);
   }
  
+  if (IS_CLIENT_READY(p))
+    ircclient_send_notice(p, "Looking up %s...", server);
+
   /* DNS lookup the server */
   dns_filladdr(p, server, p->conn_class->server_port, 1, &(p->server_addr),
                _ircserver_connect2, 0);
@@ -220,9 +223,8 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
               _ircserver_reconnect, (void *)0);
   } else {
     p->server_status |= IRC_SERVER_CREATED;
+    debug("Connection in progress");
   }
-
-  debug("Connected");
 }
 
 /* Called when a new server has connected */
