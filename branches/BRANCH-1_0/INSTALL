@@ -5,20 +5,6 @@ dircproxy is designed to run on any modern UNIX system, and should
 require little or no modification to work on yours.  The only
 requisite it has is a modern libc with TCP/IP networking code.
 
-I have seen or heard about it running on the following types
-of system:
-	Linux 2.x+ on i386 (Debian, RedHat, Slackware, etc)
-        Linux 2.4+ on ia64 (TurboLinux)
-        Solaris 2.5.1, 2.6, 7, 8, 9
-        FreeBSD 3.x, 4.x+
-	AIX 4.3.3
-	NetBSD on a MicroVAX 3100 (yes, really!)
-	Windows NT (with cygwin compiler)
-	Mac OS X on G3 (you may need to configure with --host=darwin)
-
-If (and you should) get it to work on any other type of system,
-please e-mail me so I can it to this list.
-
 
 Compiling dircproxy
 ===================
