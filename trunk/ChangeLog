@@ -1,3 +1,38 @@
+2000-05-25 14:00  Scott James Remnant <scott@netsplit.com>
+
+	* src/cfgfile.c: Heh who'd have thought an extra semi-colon could
+        cause a nasty core dump.
+
+2000-05-25 13:59  Scott James Remnant <scott@netsplit.com>
+
+	* src/: irc_client.c, memdebug.c: MIN() seems to be defined all
+	over the place on different platforms.	Just define it here, its
+        not hard.
+
+2000-05-25 13:58  Scott James Remnant <scott@netsplit.com>
+
+	* README: Added Solaris 2.7 to the platforms list seeing as I have
+        an account on one now to test this on.
+
+2000-05-24 22:21  Scott James Remnant <scott@netsplit.com>
+
+	* src/cfgfile.c: Argh! > didn't do what I expected here.  This is
+	one of those nasty "post release" bugs that causes the thing to
+        core dump
+
+2000-05-24 22:19  Scott James Remnant <scott@netsplit.com>
+
+	* README: Added FreeBSD 3.4 to this, because I have it running on
+        that too
+
+2000-05-24 22:04  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in: CVS version now 0.6.1
+
+2000-05-24 21:46  Scott James Remnant <scott@netsplit.com>
+
+	* ChangeLog, NEWS: Version 0.6.0 released.
+
 2000-05-24 21:29  Scott James Remnant <scott@netsplit.com>
 
 	* conf/dircproxy.conf, conf/dircproxyrc.example, src/dircproxy.h:
