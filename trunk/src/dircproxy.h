@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.31 2000/10/13 13:35:42 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.32 2000/10/13 13:42:56 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -117,12 +117,6 @@
  * wait before retrying again?
  */
 #define DEFAULT_SERVER_RETRY 15
-
-/* DEFAULT_SERVER_DNSRETRY
- * How many seconds after last connection attempt do we wait before trying
- * again if the error was DNS related?
- */
-#define DEFAULT_SERVER_DNSRETRY 60
 
 /* DEFAULT_SERVER_MAXATTEMPTS
  * If we are disconnected from the server, how many times should we iterate

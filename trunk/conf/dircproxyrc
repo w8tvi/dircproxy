@@ -78,12 +78,6 @@
 #
 #server_retry 15
 
-# server_dnsretry
-#     How many seconds after last connection attempt do we wait before trying
-#     again if the error was DNS related?
-#
-#server_dnsretry 60
-
 # server_maxattempts
 #     If we are disconnected from the server, how many times should we iterate
 #     the server list before giving up and declaring the proxied connection

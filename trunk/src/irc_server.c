@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.28 2000/10/13 13:17:45 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.29 2000/10/13 13:42:56 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -141,7 +141,7 @@ static void _ircserver_connect2(struct ircproxy *p, void *data,
                                 struct in_addr *addr, const char *host) {
   if (!host || !addr) {
     debug("DNS failure, retrying");
-    timer_new(p, "server_recon", p->conn_class->server_dnsretry,
+    timer_new(p, "server_recon", p->conn_class->server_retry,
               _ircserver_reconnect, (void *)0);
     return;
   }
