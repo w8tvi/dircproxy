@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.80 2001/12/21 20:15:55 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.81 2002/02/05 09:55:02 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -1300,7 +1300,8 @@ int ircclient_setnickname(struct ircproxy *p) {
 
 /* Check whether we need to restore the nickname later */
 int ircclient_checknickname(struct ircproxy *p) {
-  if (strcmp(p->nickname, p->setnickname))
+  if (p->conn_class && p->conn_class->nick_keep
+      && strcmp(p->nickname, p->setnickname))
     timer_new((void *)p, "client_resetnick", NICK_GUARD_TIME,
               TIMER_FUNCTION(_ircclient_resetnick), (void *)0);
 
