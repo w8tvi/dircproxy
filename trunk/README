@@ -54,6 +54,7 @@ See the file INSTALL for building and installation instructions.
 Running dircproxy
 =================
 
+
 Once you have installed and configured dircproxy, you can run it
 from the console.  It will automatically enter the background
 (unless you supply the '-D' parameter) and begin listening for
@@ -83,6 +84,24 @@ they will fill your IRC windows as if they'd just arrived.
 You can also run dircproxy from inetd if you wish, although their
 are very few reasons to do this.  See the file README.inetd for more
 information on this feature.
+
+
+Adjusting the Proxy
+===================
+
+While you are connected to the proxy you may perform a number of
+actions to adjust your proxy session using the '/dircproxy' command.
+For example, to end your proxy session, disconnecting you from the
+server, use '/dircproxy quit'.  For more information on what other
+commands are available, see '/dircproxy help'.
+
+There are scripts and configuration files for a number of different
+IRC clients in the contrib directory that will add this command
+to the client.  If you do it manually, you may find that you
+need to quote it in someway for it to reach dircproxy correctly.
+For example to quit with a message you may find you actually need
+to do '/quote dircproxy quit :This is my message' (the : indicates
+that this is the last paramter, and it may contain spaces).
 
 
 More Information
