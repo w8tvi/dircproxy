@@ -293,13 +293,57 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
       {
         SSL_load_error_strings();
         SSL_library_init();
-        p->SSL_struct.ctx = SSL_CTX_new(SSLv23_client_method());
-        p->SSL_struct.ssl = SSL_new(p->SSL_struct.ctx);
-        SSL_set_fd(p->SSL_struct.ssl, p->server_sock);
-        SSL_connect(p->SSL_struct.ssl);
-        p->SSL_struct.cert = SSL_get_peer_certificate(p->SSL_struct.ssl);
+        if(p->SSL_struct.ctx = SSL_CTX_new(SSLv23_client_method()))
+        {
+	        if(p->SSL_struct.ssl = SSL_new(p->SSL_struct.ctx))
+	        {
+		        if(SSL_set_fd(p->SSL_struct.ssl, p->server_sock))
+		        {
+			        if(SSL_connect(p->SSL_struct.ssl) == 1)
+			        {
+				        if(p->SSL_struct.cert = SSL_get_peer_certificate(p->SSL_struct.ssl))
+				        {
+				        	/*
+				        	 * Once we retrieved the server certificate,
+				        	 * we must check its validity :
+				        	*/
+				        	/* if(SSL_get_verify_result != X509_V_OK)
+				        	 *	debug("!!WARNING!! Server cert cannot be verified: unknown CA, invalid date, invalid servername");
+				        	*/
+									ret = 0;
+								}
+				        else {
+						      syscall_fail("SSL_get_peer_certificate", 0, 0);
+						      SSL_free(p->SSL_struct.ssl);
+						      SSL_CTX_free(p->SSL_struct.ctx);
+						      ret = -1;
+						    }
+				      }
+				      else {
+					      syscall_fail("SSL_connect", 0, 0);
+					      SSL_free(p->SSL_struct.ssl);
+					      SSL_CTX_free(p->SSL_struct.ctx);
+					      ret = -1;
+					    }
+			      }
+			      else {
+				      syscall_fail("SSL_set_fd", 0, 0);
+				      SSL_free(p->SSL_struct.ssl);
+				      SSL_CTX_free(p->SSL_struct.ctx);
+				      ret = -1;
+				    }
+		      }
+		      else {
+			      syscall_fail("SSL_new", 0, 0);
+			      SSL_CTX_free(p->SSL_struct.ctx);
+			      ret = -1;
+			    }
+      	}
+      	else {
+		      syscall_fail("SSL_CTX_new", 0, 0);
+		      ret = -1;
+       	}
       }
-      ret = 0;
     }
   }
 
