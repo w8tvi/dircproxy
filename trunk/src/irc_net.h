@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.38 2000/11/24 13:44:40 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.39 2000/12/06 15:17:15 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -59,6 +59,7 @@ struct ircconnclass {
   int disconnect_existing;
   int disconnect_on_detach;
 
+  char *initial_modes;
   char *drop_modes;
   char *refuse_modes;
   
