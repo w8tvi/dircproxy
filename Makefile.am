@@ -6,4 +6,5 @@ EXTRA_DIST = \
 
 SUBDIRS = \
 	conf \
+	doc \
 	src

@@ -1,0 +1,70 @@
+.TH dircproxy 8 "23 Aug 2000"
+.\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
+.\" All Rights Reserved.
+.\"
+.\" @(#) $Id: dircproxy.1,v 1.1 2000/08/23 13:25:21 keybuk Exp $
+.\"
+.\" This file is distributed according to the GNU General Public
+.\" License.  For full details, read the top of 'main.c' or the
+.\" file called COPYING that was distributed with this code.
+.SH NAME
+\fBdircproxy\fR \- Detachable Internal Relay Chat Proxy Server
+
+.SH SYNOPSIS
+\fBdircproxy\fR [\fI\-D\fR] [\fI\-I\fR] [\fI\-h\fR] [\fI\-v\fR]
+
+.SH DESCRIPTION
+.B dircproxy
+is an IRC proxy server designed for people who use IRC from lots of
+different workstations or clients, but wish to remain connected and
+see what they missed while they were away.
+.PP
+You connect to IRC through
+.B dircproxy
+, and it keeps you connected to the server, even after you detach your
+client from it.  While you're detached, it logs channel and private
+messages as well as important events, and when you re-attach it'll let
+you know what you missed.
+.PP
+This can be used to give you roughly the same functionality as using
+ircII and
+.BR screen (8)
+together, except you can use whatever IRC client you like, including
+X ones!
+
+.SH OPTIONS
+.TP
+.I -D
+Run in the foreground instead of becoming a daemon.
+.TP
+.I -I
+Indicates
+.B dircproxy
+is being run from the
+.BR inetd (8)
+daemon.  This implies
+.I -D.
+.TP
+.I -h
+Displays a brief help message about the command-line options and exits.
+.TP
+.I -v
+Displays the dircproxy version number and exits.
+
+.SH DETAILED DESCRIPTION
+
+.SH NOTES
+
+.SH SIGNALS
+
+.SH SEE ALSO
+.BR inetd (8)
+
+.SH BUGS
+.B Please submit bug reports at:
+.IP
+http://sourceforge.net/bugs/?group_id=5645
+
+.SH AUTHOR
+Written by Scott James Remnant <scott@netsplit.com>.  The copyright
+holder is Scott James Remnant.  See the file COPYING for details.
