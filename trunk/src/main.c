@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.5 2000/05/24 17:34:44 keybuk Exp $
+ * @(#) $Id: main.c,v 1.6 2000/05/24 17:39:35 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +32,8 @@
 
 #include <dircproxy.h>
 #include "getopt.h"
+#include "sprintf.h"
+#include "cfgfile.h"
 #include "irc_net.h"
 #include "timers.h"
 
@@ -45,10 +47,20 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.5 2000/05/24 17:34:44 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.6 2000/05/24 17:39:35 keybuk Exp $";
 
 /* The name of the program */
 char *progname;
+
+/* Configuration variables */
+char *listen_port = 0;
+char *server_port = 0;
+long server_retry = DEFAULT_SERVER_RETRY;
+long server_dnsretry = DEFAULT_SERVER_DNSRETRY;
+long server_maxattempts = DEFAULT_SERVER_MAXATTEMPTS;
+long server_maxinitattempts = DEFAULT_SERVER_MAXINITATTEMPTS;
+long channel_rejoin = DEFAULT_CHANNEL_REJOIN;
+unsigned long log_autorecall = DEFAULT_LOG_AUTORECALL;
 
 /* set to 1 to abort the main loop */
 static int stop_poll = 0;
@@ -75,7 +87,10 @@ int main(int argc, char *argv[]) {
   int optc, show_help, show_version, show_usage;
   int inetd_mode, no_daemon;
 
+  /* Set up some globals */
   progname = argv[0];
+  listen_port = x_strdup(DEFAULT_LISTEN_PORT);
+  server_port = x_strdup(DEFAULT_SERVER_PORT);
 
 #ifndef DEBUG
   no_daemon = 0;
@@ -190,6 +205,8 @@ int main(int argc, char *argv[]) {
   timer_flush();
   if (!inetd_mode && !no_daemon)
     closelog();
+  free(server_port);
+  free(listen_port);
 
 #ifdef DEBUG
   mem_report("termination");
