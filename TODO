@@ -1,0 +1,50 @@
+Need to do
+
+	* Think better how to do PRIVMSGs/NOTICEs from people that you missed
+	  perhaps one per person...
+
+	* put stats into motd
+
+	* recalling stuff from log files /DIRCPROXY RECALL etc
+
+	* change /DQUIT to /DIRCPROXY QUIT
+
+	* /DIRCPROXY DETACH
+
+
+
+Would be nice
+
+	* proper debug output
+
+	* when -I is used, it won't close the socket, because it is waiting
+	  for a client to reconnect.  Either enter listen mode somehow, or
+	  disconnect everything.
+
+	* message of the day file, or perhaps use this to tell them what
+	  they missed
+
+	* config file
+
+	* -p PASSWORD [ -s SERVER ]... [ -H HOST ] [ -m MASK ]...
+  	  --password=  --server=  --bind-host=  --from-mask=
+	  specifies the only connection class that can be used.  There must
+	  be one -s parameter of course.  Automatically turns off reading
+	  connection classes from the config file
+
+	* -f CONFIGFILE, --config-file=CONFIGFILE
+	  specifies an alternate config file (otherwise ~/.dircproxyrc)
+
+	* -P PORT, --listen-port=PORT
+	  config file override
+
+	* --rejoin-after-kick=VALUE --server-retry=VALUE
+	    --server-dns-retry=VALUE --server-max-attempts=VALUE
+	    --server-max-init-attempts=VALUE --detach-away-message=VALUE
+	  config file overrides
+
+	* --server-retry=VALUES
+	  config
+	  time between server retries
+
+
