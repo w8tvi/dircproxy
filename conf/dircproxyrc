@@ -95,13 +95,26 @@
 #
 #server_maxinitattempts 5
 
+# server_keepalive
+#     This checks whether the dircproxy to server connection is alive at the
+#     TCP level.  If no data is sent in either direction for a period of time,
+#     a TCP keepalive probe is sent.
+#
+#     yes = send keepalive probes
+#      no = don't send keepalive probes
+#
+#server_keepalive no
+
 # server_pingtimeout
 #     For some people, dircproxy doesn't notice that the connection to the
 #     server has been dropped because the socket remains open.  For example,
 #     those behind a NAT'd firewall.  dircproxy can ping the server and make
 #     sure it gets replies back.  If the time since the last reply was
 #     received exceeds the number of seconds below the server is assumed to be
-#     "stoned" and dircproxy leaves it.
+#     "stoned" and dircproxy leaves it.  If you have a high latency connection
+#     to the server, it can wrongly assume the server is stoned because the
+#     PINGs don't arrive in time.  Either raise the value, or use the
+#     'server_keepalive' option instead.
 #
 #     0 = don't send PINGs
 #

@@ -4,7 +4,7 @@
  *
  * net.h.h
  * --
- * @(#) $Id: net.h,v 1.6 2001/01/11 15:29:21 keybuk Exp $
+ * @(#) $Id: net.h,v 1.7 2001/12/21 19:59:25 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -26,6 +26,7 @@
 /* functions */
 extern int net_socket(void);
 extern void net_create(int *);
+extern void net_keepalive(int);
 extern int net_close(int *);
 extern int net_closeall(void);
 extern int net_flush(void);

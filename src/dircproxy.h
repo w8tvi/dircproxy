@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.45 2001/01/11 15:29:21 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.46 2001/12/21 19:59:25 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -158,6 +158,13 @@
  * 0 = iterate forever, not recommended!
  */
 #define DEFAULT_SERVER_MAXINITATTEMPTS 5
+
+/* DEFAULT_SERVER_KEEPALIVE
+ * Set the SO_KEEPALIVE socket option?
+ *  1 = Yes
+ *  0 = No
+ */
+#define DEFAULT_SERVER_KEEPALIVE 0
 
 /* DEFAULT_SERVER_PINGTIMEOUT
  * How many seconds after receiving a PING do we wait until we assume the

@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.36 2001/01/11 15:29:21 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.37 2001/12/21 19:59:25 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -64,6 +64,7 @@ int cfg_read(const char *filename, char **listen_port,
   def->server_retry = DEFAULT_SERVER_RETRY;
   def->server_maxattempts = DEFAULT_SERVER_MAXATTEMPTS;
   def->server_maxinitattempts = DEFAULT_SERVER_MAXINITATTEMPTS;
+  def->server_keepalive = DEFAULT_SERVER_KEEPALIVE;
   def->server_pingtimeout = DEFAULT_SERVER_PINGTIMEOUT;
   if (DEFAULT_SERVER_THROTTLE_BYTES || DEFAULT_SERVER_THROTTLE_PERIOD) {
     def->server_throttle = (long *)malloc(sizeof(long) * 2);
@@ -242,6 +243,11 @@ int cfg_read(const char *filename, char **listen_port,
       } else if (!strcasecmp(key, "server_maxinitattempts")) {
         /* server_maxinitattempts 5 */
         _cfg_read_numeric(&buf, &(class ? class : def)->server_maxinitattempts);
+
+      } else if (!strcasecmp(key, "server_keepalive")) {
+	/* server_keepalive yes
+	   server_keepalive no */
+	_cfg_read_bool(&buf, &(class ? class : def)->server_keepalive);
         
       } else if (!strcasecmp(key, "server_pingtimeout")) {
         /* server_pingtimeout 600 */

@@ -10,7 +10,7 @@
  *  - functions to retrieve data from buffers up to delimiters (newlines?)
  *  - main poll()/select() function
  * --
- * @(#) $Id: net.c,v 1.12 2001/07/12 14:43:33 keybuk Exp $
+ * @(#) $Id: net.c,v 1.13 2001/12/21 19:59:25 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -123,6 +123,22 @@ int net_socket(void) {
 
   net_create(&sock);
   return sock;
+}
+
+/* Make a socket keep_alive */
+void net_keepalive(int sock) {
+  struct sockinfo *sockinfo;
+
+  sockinfo = _net_fetch(sock);
+  if (sockinfo) {
+    int param;
+
+    param = 1;
+    if (setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, (void *)param, sizeof(int)))
+      syscall_fail("setsockopt", "SO_KEEPALIVE", 0);
+  } else {
+    syscall_fail("net_keepalive", 0, "bad socket provided");
+  }
 }
 
 /* Create a sockinfo structure */
