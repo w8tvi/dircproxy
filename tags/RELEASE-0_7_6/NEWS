@@ -1,0 +1,83 @@
+NEWS about changes for existing users.
+--------------------------------------
+
+Version 0.7.6 - Mon Oct 16 13:30:00 BST 2000
+
+	* No config changes.
+
+Version 0.7.5 - Mon Oct 16 12:30:00 BST 2000
+
+	* No config changes.
+
+Version 0.7.4 - Tue Oct 10 13:30:00 BST 2000
+
+	* No config changes.
+
+Version 0.7.3 - Wed Sep 27 17:55:00 BST 2000
+
+	* New config file option - "disconnect_on_detach"
+
+Version 0.7.2 - Mon Sep 25 13:13:00 BST 2000
+
+	* If you use a .dircproxyrc in your home directory, this must
+	  now have no more then 0700 permissions.  If this is not the
+	  case then dircproxy will not start.  This does not apply to
+	  the global config file or any supplied with the -f parameter.
+
+Version 0.7.1 - Thu Sep 14 13:15:00 BST 2000
+
+	* Just bug fixes.  No changes to worry about.
+
+Version 0.7.0 - Fri Sep  1 15:00:00 BST 2000
+
+	* The global configuration file is now called dircproxyrc not
+	  dircproxy.conf
+
+	* dircproxy is now installed in 'bin' not 'sbin', its a user
+	  program after all.
+
+	* Passwords for connection classes must be encrypted in the
+	  configuration file using the crypt() function (or contrib/crypt),
+	  if you don't like this then edit src/dircproxy.h and turn it off,
+	  but thats silly.
+
+	* /DQUIT is gone, try /DIRCPROXY QUIT instead
+
+	* Try /DIRCPROXY HELP
+
+	* Try "man dircproxy" :-)
+
+Version 0.6.2 - Mon Jun 26 16:58:00 BST 2000
+
+	* Changed the logic behind how configuration files are loaded.
+	  If you supply one with -f, that is loaded.  If you don't it
+	  first tries ~/.dircproxyrc and then tries etc/dircproxy.conf.
+	  This means that the config file is no longer installed, and
+	  can be found as dircproxy.conf in share/dircproxy or the conf
+	  dir of the source.  Also the -G option is no longer valid.
+
+Version 0.6.1 - Thu May 25 15:04:00 BST 2000
+
+	* Just bug fixes.  No changes to worry about.
+
+Version 0.6.0 - Wed May 24 22:33:00 BST 2000
+
+	* There is now a configuration file.  Copy the dircproxyrc.example
+	  from the conf directory to your home directory and call it
+	  .dircproxyrc - this file contains all the documentation for
+	  configuring dircproxy.
+
+Version 0.5.3 - Sat May 13 16:32:00 BST 2000
+
+	* Many of the TODO_CFG_* options defined in dircproxy.h have now
+	  been given documentation and renamed.  You'll need to recheck this
+	  file if you've changed them.  The PASS/SERVER/BIND ones are still
+	  at the bottom and still the same however.
+
+Version 0.5.2 - Fri May 12 23:00:00 BST 2000
+
+	* Initial public release
+
+
+Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
+All Rights Reserved.
