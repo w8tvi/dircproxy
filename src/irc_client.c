@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.73 2000/12/06 15:15:05 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.74 2000/12/07 16:59:28 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -1384,6 +1384,7 @@ int ircclient_close(struct ircproxy *p) {
   timer_del((void *)p, "client_connect");
 
   net_close(p->client_sock);
+  p->client_sock = -1;
   p->client_status &= ~(IRC_CLIENT_CONNECTED | IRC_CLIENT_AUTHED
                         | IRC_CLIENT_SENTWELCOME);
 
