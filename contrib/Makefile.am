@@ -1,8 +1,8 @@
 ## Process this file with automake to produce Makefile.in
 
 pkgdata_DATA = \
-	log.pl \
-	dircproxy.spec
+	log.pl
 
 EXTRA_DIST = \
+	dircproxy.spec \
 	$(pkgdata_DATA)
