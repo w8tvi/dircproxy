@@ -2,7 +2,7 @@
 .\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.24 2000/10/20 12:44:13 keybuk Exp $
+.\" @(#) $Id: dircproxy.1,v 1.25 2000/10/23 11:55:18 keybuk Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -159,11 +159,11 @@ before giving up and declaring the proxied connection dead?
 For some people, \fBdircproxy\fR doesn't notice that the connection to the
 server has been dropped because the socket remains open.  For example,
 those behind a NAT'd firewall.  \fBdircproxy\fR can ping the server and make
-sure it gets replies back.  It the time since the last reply was
+sure it gets replies back.  If the time since the last reply was
 received exceeds the number of seconds below the server is assumed to be
 "stoned" and \fBdircproxy\fR leaves it.
 
- 0 = don't monitor PINGs
+ 0 = don't send PINGs
 
 .TP
 .B server_throttle
@@ -193,7 +193,7 @@ you can create connection classes with no '\fBserver\fR' lines.
 .TP
 .B channel_rejoin
 If we are kicked off a channel, how many seconds do we wait before
-attempting * to rejoin.
+attempting to rejoin.
 
  -1 = Don't rejoin
  0 = Immediately
@@ -365,12 +365,16 @@ you recall the log files, or when automatially dumped.
 
 .TP
 .B chan_log_relativetime
-If '\fBchan_log_timestamp\fR' is 'yes' then you have a choice of recording
-a boring textual timestamp of the [HH:MM] style in the log file (easy
-to read) or a un-readable number that indicates the precise time of the
-log entry.  If you do the latter then when you recall text from the
-log file, it'll adjust the displayed timestamp to make it very clear
-exactly how long ago that message was sent.
+If '\fBchan_log_timestamp\fR' is 'yes' then you also have the option of
+using intelligent relative timestamps.  If you do, the timestamp shown
+when log file information is recalled depends on how old that line is,
+making sure it displays enough information (including date if necessary).
+Otherwise dircproxy will just tell you the time in HH:MM format which
+may not be as useful.
+
+This does mean that the time itself won't be displayed in the log files
+themselves, a timestamp is in place instead.  This may cause problems
+if you're doing things with the log files yourself.
 
  yes = Do fancy relative timestamping
  no = Do normal timestamping
@@ -454,12 +458,16 @@ displayed when you recall the log files, or when automatially dumped.
 
 .TP
 .B other_log_relativetime
-If '\fBother_log_timestamp\fR' is 'yes' then you have a choice of recording
-a boring textual timestamp of the [HH:MM] style in the log file (easy
-to read) or a un-readable number that indicates the precise time of the
-log entry.  If you do the latter then when you recall text from the
-log file, it'll adjust the displayed timestamp to make it very clear
-exactly how long ago that message was sent.
+If '\fBother_log_timestamp\fR' is 'yes' then you also have the option of
+using intelligent relative timestamps.  If you do, the timestamp shown
+when log file information is recalled depends on how old that line is,
+making sure it displays enough information (including date if necessary).
+Otherwise dircproxy will just tell you the time in HH:MM format which
+may not be as useful.
+
+This does mean that the time itself won't be displayed in the log files
+themselves, a timestamp is in place instead.  This may cause problems
+if you're doing things with the log files yourself.
 
  yes = Do fancy relative timestamping
  no = Do normal timestamping
@@ -486,9 +494,10 @@ all the information to arrive.
 
 .TP
 .B time_offset
-Different in minutes from your IRC client to the dircproxy machine.
-So if you're in GMT, but your dircproxy machine is in PST, then this
-would be -(8 * 60) = -480.  Used for log file timestamps.
+Difference in minutes from your IRC client to the dircproxy machine.
+So if you're in GMT, but your dircproxy machine is in PST (which is
+8 hours behind), then this would be -(8 * 60) = -480.  Used for log
+file timestamps.
 
  0 = Don't adjust log timestamps.
 
@@ -570,9 +579,14 @@ are mandatory.
 .TP
 .B password
 Password required to use this connection class.  This should be encrypted
-using your system's crypt() function.  It must be the same as the password
-supplied by the IRC client on connection for this connection class to be
-used.
+using your system's 
+.BR crypt (3)
+function.  It must be the same as the password supplied by the IRC client
+on connection for this connection class to be used.
+
+You can use the included
+.BR dircproxy-crypt (1)
+utility to generate these passwords.
 
 .TP
 .B server
@@ -616,7 +630,9 @@ at:
 .I http://dircproxy.sourceforge.net/
 
 .SH SEE ALSO
+.BR dircproxy-crypt (1)
 .BR inetd (8)
+.BR crypt (3)
 
 .SH BUGS
 Please submit and review bug reports at:
