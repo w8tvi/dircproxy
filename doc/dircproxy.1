@@ -2,7 +2,7 @@
 .\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.23 2000/10/20 11:03:18 keybuk Exp $
+.\" @(#) $Id: dircproxy.1,v 1.24 2000/10/20 12:44:13 keybuk Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -364,6 +364,18 @@ you recall the log files, or when automatially dumped.
  no = Do not include timestamp
 
 .TP
+.B chan_log_relativetime
+If '\fBchan_log_timestamp\fR' is 'yes' then you have a choice of recording
+a boring textual timestamp of the [HH:MM] style in the log file (easy
+to read) or a un-readable number that indicates the precise time of the
+log entry.  If you do the latter then when you recall text from the
+log file, it'll adjust the displayed timestamp to make it very clear
+exactly how long ago that message was sent.
+
+ yes = Do fancy relative timestamping
+ no = Do normal timestamping
+
+.TP
 .B chan_log_maxsize
 To preserve your harddisk space, you can limit the size of a channel
 log file.  Once the log file reaches this number of lines, every line
@@ -441,6 +453,18 @@ displayed when you recall the log files, or when automatially dumped.
  no = Do not include timestamp
 
 .TP
+.B other_log_relativetime
+If '\fBother_log_timestamp\fR' is 'yes' then you have a choice of recording
+a boring textual timestamp of the [HH:MM] style in the log file (easy
+to read) or a un-readable number that indicates the precise time of the
+log entry.  If you do the latter then when you recall text from the
+log file, it'll adjust the displayed timestamp to make it very clear
+exactly how long ago that message was sent.
+
+ yes = Do fancy relative timestamping
+ no = Do normal timestamping
+
+.TP
 .B other_log_maxsize
 To preserve your harddisk space, you can limit the size of the
 server/private message log file.  Once the log file reaches this number
@@ -459,6 +483,14 @@ all the information to arrive.
 
  -1 = Recall the whole log (not recommended if other_log_always is yes)
  0 = Don't automatically recall anything
+
+.TP
+.B time_offset
+Different in minutes from your IRC client to the dircproxy machine.
+So if you're in GMT, but your dircproxy machine is in PST, then this
+would be -(8 * 60) = -480.  Used for log file timestamps.
+
+ 0 = Don't adjust log timestamps.
 
 .TP
 .B motd_logo

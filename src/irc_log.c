@@ -7,7 +7,7 @@
  *  - Handling of log programs
  *  - Recalling from log files
  * --
- * @(#) $Id: irc_log.c,v 1.24 2000/10/20 11:03:18 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.25 2000/10/20 12:44:13 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -42,8 +42,8 @@ static char *_irclog_read(struct logfile *);
 static int _irclog_write(struct logfile *, const char *, ...);
 static int _irclog_pipe(const char *, char, const char *, char, const char *,
                         const char *);
-static int _irclog_writetext(struct logfile *, char, const char *, char,
-                             const char *, int, const char *,
+static int _irclog_writetext(struct ircproxy *, struct logfile *, int,
+                             const char *, char, const char *, char,
                              const char *, va_list);
 static int _irclog_text(struct ircproxy *, const char *, char, const char *,
                         char, const char *, va_list);
@@ -481,25 +481,38 @@ int irclog_notice(struct ircproxy *p, const char *to, const char *from,
 }
 
 /* Write some text to a log file */
-static int _irclog_writetext(struct logfile *log, char prefrom,
-                             const char *from, char postfrom, const char *to,
-                             int timestamp, const char *prog,
+static int _irclog_writetext(struct ircproxy *p, struct logfile *log,
+                             int is_chan, const char *to,
+                             char prefrom, const char *from, char postfrom,
                              const char *format, va_list ap) {
   char *text;
 
   text = x_vsprintf(format, ap);
 
-  if (timestamp) {
-    char tbuf[40];
+  if ((is_chan ? p->conn_class->chan_log_timestamp
+               : p->conn_class->other_log_timestamp)) {
     time_t now;
 
     time(&now);
-    strftime(tbuf, sizeof(tbuf), LOG_TIME_FORMAT, localtime(&now));
-    _irclog_write(log, "%c%s%c [%s] %s", prefrom, from, postfrom, tbuf, text);
+    if (p->conn_class->time_offset)
+      now -= (p->conn_class->time_offset * 60);
+
+    if ((is_chan ? p->conn_class->chan_log_relativetime
+                 : p->conn_class->other_log_relativetime)) {
+      _irclog_write(log, "@%lu %c%s%c %s", now, prefrom, from, postfrom, text);
+    } else {
+      char tbuf[40];
+
+      strftime(tbuf, sizeof(tbuf), LOG_TIME_FORMAT, localtime(&now));
+      _irclog_write(log, "%c%s%c [%s] %s", prefrom, from, postfrom, tbuf, text);
+    }
   } else {
     _irclog_write(log, "%c%s%c %s", prefrom, from, postfrom, text);
   }
-  _irclog_pipe(prog, prefrom, from, postfrom, to, text);
+
+  _irclog_pipe((is_chan ? p->conn_class->chan_log_program
+                        : p->conn_class->other_log_program),
+               prefrom, from, postfrom, to, text);
 
   free(text);
 
@@ -512,36 +525,24 @@ static int _irclog_text(struct ircproxy *p, const char *to, char prefrom,
                         va_list ap) {
   if (to) {
     struct logfile *log;
-    int timestamp;
-    char *program;
     
     /* Write to one file */
     log = _irclog_getlog(p, to);
     if (!log)
       return -1;
 
-    if (log == &(p->other_log)) {
-      timestamp = p->conn_class->other_log_timestamp;
-      program = p->conn_class->other_log_program;
-    } else {
-      timestamp = p->conn_class->chan_log_timestamp;
-      program = p->conn_class->chan_log_program;
-    }
-
-    _irclog_writetext(log, prefrom, from, postfrom, to, timestamp, program,
-                      format, ap);
+    _irclog_writetext(p, log, (log == &(p->other_log) ? 0 : 1),
+                      to, prefrom, from, postfrom, format, ap);
   } else {
     struct ircchannel *c;
 
     /* Write to all files */
-    _irclog_writetext(&(p->other_log), prefrom, from, postfrom, to,
-                      p->conn_class->other_log_timestamp,
-                      p->conn_class->other_log_program, format, ap);
+    _irclog_writetext(p, &(p->other_log), 0, to, prefrom, from, postfrom,
+                      format, ap);
     c = p->channels;
     while (c) {
-      _irclog_writetext(&(c->log), prefrom, from, postfrom, to,
-                        p->conn_class->chan_log_timestamp,
-                        p->conn_class->other_log_program, format, ap);
+      _irclog_writetext(p, &(c->log), 1, to, prefrom, from, postfrom,
+                        format, ap);
       c = c->next;
     }
   }
@@ -607,6 +608,9 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
                           const char *to, const char *from) {
   FILE *file;
   int close;
+  int is_chan;
+
+  is_chan = (log == &(p->other_log) ? 0 : 1);
 
   /* If the file isn't open, we have to open it and remember to close it
      later */
@@ -639,6 +643,36 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
 
     /* Recall lines */
     while (lines-- && (l = _irclog_read(log))) {
+      time_t when = 0;
+      char *ll;
+
+      /* Timestamped line for relative log creation */
+      ll = l;
+      if (*l == '@') {
+        char *ts, *rest;
+
+        /* Timestamp one character in */
+        ts = l + 1;
+        if (!*ts) {
+          free(ll);
+          continue;
+        }
+
+        /* Message continues after a space */
+        rest = strchr(l, ' ');
+        if (!rest) {
+          free(ll);
+          continue;
+        }
+
+        /* Delete the space */
+        *(rest++) = 0;
+        l = rest;
+
+        /* Obtain the timestamp */
+        when = strtoul(ts, (char **)NULL, 10);
+      }
+
       /* Message or Notice lines, these require a bit of parsing */
       if ((*l == '<') || (*l == '-')) {
         char *src, *msg;
@@ -646,14 +680,14 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
         /* Source starts one character in */
         src = l + 1;
         if (!*src) {
-          free(l);
+          free(ll);
           continue;
         }
 
         /* Message starts after a space and the correct closing character */
         msg = strchr(l, ' ');
         if (!msg || (*(msg - 1) != (*l == '<' ? '>' : '-'))) {
-          free(l);
+          free(ll);
           continue;
         }
 
@@ -673,14 +707,50 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
           /* Check the nicknames are the same */
           if (irc_strcasecmp(comp, from)) {
             free(comp);
-            free(l);
+            free(ll);
             continue;
           }
         }
 
-        /* Send the line */
-        net_send(p->client_sock, ":%s %s %s :%s\r\n", src,
-                 (*l == '<' ? "PRIVMSG" : "NOTICE"), to, msg);
+        /* If there was a timestamp on it, we either fake the old-style
+           stuff or do the new fancy stuff */
+        if (when && (is_chan ? p->conn_class->chan_log_timestamp
+                             : p->conn_class->other_log_timestamp)) {
+          char tbuf[40];
+
+
+          if ((is_chan ? p->conn_class->chan_log_relativetime
+                       : p->conn_class->other_log_relativetime)) {
+            time_t now, diff;
+
+            time(&now);
+            diff = now - when;
+
+            if (diff < 82800L) {
+              /* Within 23 hours [hh:mm] */
+              strftime(tbuf, sizeof(tbuf), "%H:%M", localtime(&when));
+            } else if (diff < 518400L) {
+              /* Within 6 days [day hh:mm] */
+              strftime(tbuf, sizeof(tbuf), "%a %H:%M", localtime(&when));
+            } else if (diff < 25920000L) {
+              /* Within 300 days [d mon hh:mm] */
+              strftime(tbuf, sizeof(tbuf), "%d %b %H:%M", localtime(&when));
+            } else {
+              /* Otherwise [d mon yyyy hh:mm] */
+              strftime(tbuf, sizeof(tbuf), "%d %b %Y %H:%M", localtime(&when));
+            }
+          } else {
+            strftime(tbuf, sizeof(tbuf), LOG_TIME_FORMAT, localtime(&when));
+          }
+
+          /* Send the line */
+          net_send(p->client_sock, ":%s %s %s :[%s] %s\r\n", src,
+                   (*l == '<' ? "PRIVMSG" : "NOTICE"), to, tbuf, msg);
+        } else {
+          /* Send the line */
+          net_send(p->client_sock, ":%s %s %s :%s\r\n", src,
+                   (*l == '<' ? "PRIVMSG" : "NOTICE"), to, msg);
+        }
 
       } else if (strncmp(l, "* ", 2)) {
         /* Anything thats not a comment gets sent as a notice */
@@ -688,7 +758,7 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
 
       }
 
-      free(l);
+      free(ll);
     }
   }
 

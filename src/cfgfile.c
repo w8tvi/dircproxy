@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.27 2000/10/20 11:03:18 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.28 2000/10/20 12:44:13 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -98,6 +98,7 @@ int cfg_read(const char *filename, char **listen_port,
                            ? x_strdup(DEFAULT_CHAN_LOG_PROGRAM) : 0);
   def->chan_log_always = DEFAULT_CHAN_LOG_ALWAYS;
   def->chan_log_timestamp = DEFAULT_CHAN_LOG_TIMESTAMP;
+  def->chan_log_relativetime = DEFAULT_CHAN_LOG_RELATIVETIME;
   def->chan_log_maxsize = DEFAULT_CHAN_LOG_MAXSIZE;
   def->chan_log_recall = DEFAULT_CHAN_LOG_RECALL;
   def->other_log_enabled = DEFAULT_OTHER_LOG_ENABLED;
@@ -107,8 +108,10 @@ int cfg_read(const char *filename, char **listen_port,
                             ? x_strdup(DEFAULT_OTHER_LOG_PROGRAM) : 0);
   def->other_log_always = DEFAULT_OTHER_LOG_ALWAYS;
   def->other_log_timestamp = DEFAULT_OTHER_LOG_TIMESTAMP;
+  def->other_log_relativetime = DEFAULT_OTHER_LOG_RELATIVETIME;
   def->other_log_maxsize = DEFAULT_OTHER_LOG_MAXSIZE;
   def->other_log_recall = DEFAULT_OTHER_LOG_RECALL;
+  def->time_offset = DEFAULT_TIME_OFFSET;
   def->motd_logo = DEFAULT_MOTD_LOGO;
   def->motd_file = (DEFAULT_MOTD_FILE ? x_strdup(DEFAULT_MOTD_FILE) : 0);
   def->motd_stats = DEFAULT_MOTD_STATS;
@@ -499,6 +502,11 @@ int cfg_read(const char *filename, char **listen_port,
            chan_log_timestamp no */
         _cfg_read_bool(&buf, &(class ? class : def)->chan_log_timestamp);
 
+      } else if (!strcasecmp(key, "chan_log_relativetime")) {
+        /* chan_log_relativetime yes
+           chan_log_relativetime no */
+        _cfg_read_bool(&buf, &(class ? class : def)->chan_log_relativetime);
+
       } else if (!strcasecmp(key, "chan_log_maxsize")) {
         /* chan_log_maxsize 128
            chan_log_maxsize 0 */
@@ -591,10 +599,21 @@ int cfg_read(const char *filename, char **listen_port,
            other_log_timestamp no */
         _cfg_read_bool(&buf, &(class ? class : def)->other_log_timestamp);
 
+      } else if (!strcasecmp(key, "other_log_relativetime")) {
+        /* other_log_relativetime yes
+           other_log_relativetime no */
+        _cfg_read_bool(&buf, &(class ? class : def)->other_log_relativetime);
+
       } else if (!strcasecmp(key, "other_log_maxsize")) {
         /* other_log_maxsize 128
            other_log_maxsize 0 */
         _cfg_read_numeric(&buf, &(class ? class : def)->other_log_maxsize);
+
+      } else if (!strcasecmp(key, "time_offset")) {
+        /* time_offset 0
+           time_offset -60
+           time_offset +60 */
+        _cfg_read_numeric(&buf, &(class ? class : def)->time_offset);
 
       } else if (!strcasecmp(key, "other_log_recall")) {
         /* other_log_recall 128
