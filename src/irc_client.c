@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.24 2000/08/30 10:41:21 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.25 2000/08/30 10:51:44 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -102,14 +102,14 @@ int ircclient_data(struct ircproxy *p) {
           free(mode);
         }
 
-        ircclient_close(p);
-
-        if (!p->conn_class->other_log_always) {
+        if ((p->client_status == IRC_CLIENT_ACTIVE)
+            && !p->conn_class->other_log_always) {
           if (irclog_open(p, p->nickname))
             ircclient_send_notice(p, "(warning) Unable to log server/private "
                                   "messages");
         }
-        if (!p->conn_class->chan_log_always) {
+        if ((p->client_status == IRC_CLIENT_ACTIVE)
+            && !p->conn_class->chan_log_always) {
           struct ircchannel *c;
 
           c = p->channels;
@@ -120,6 +120,8 @@ int ircclient_data(struct ircproxy *p) {
             c = c->next;
           }
         }
+
+        ircclient_close(p);
       }
 
       return -1;
