@@ -5,7 +5,7 @@
  * irc_net.c
  *  - Polling of sockets and acting on any data
  * --
- * @(#) $Id: irc_net.c,v 1.5 2000/05/24 20:20:43 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.6 2000/05/24 20:48:58 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -308,6 +308,7 @@ int ircnet_delchannel(struct ircproxy *p, const char *name) {
       ircnet_freechannel(c);
       return 0;
     } else {
+      l = c;
       c = c->next;
     }
   }
