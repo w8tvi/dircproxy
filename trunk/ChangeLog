@@ -1,3 +1,7 @@
+2004-02-14 09:50 Francois Harvey <fharvey@securiweb.net>
+        * Adding DCC RESUME support
+	(porting a patch from 1.0.3 to CVS HEAD)
+
 2004-02-13 19:30  Mike Taylor <bear@code-bear.com>
 	* Added Reload command
 

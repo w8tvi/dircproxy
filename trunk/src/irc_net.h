@@ -3,7 +3,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.53 2003/12/10 18:55:35 fharvey Exp $
+ * @(#) $Id: irc_net.h,v 1.54 2004/02/14 09:05:12 fharvey Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -200,6 +200,19 @@ typedef struct ircproxy {
   struct ircproxy *next;
 } IRCProxy;
 
+/* a dcc resume */
+struct dcc_resume {
+  int l_port;
+  int r_port;
+  char *id;
+  char *capfile;
+  char *rejmsg;
+  char *fullname;
+  uint32_t size;
+  struct in_addr r_addr;
+  struct dcc_resume *next; 
+};
+ 
 /* states a client can be in */
 #define IRC_CLIENT_NONE        0x00
 #define IRC_CLIENT_CONNECTED   0x01

@@ -7,7 +7,7 @@
  *  - The list of currently active DCC proxies
  *  - Miscellaneous DCC functions
  * --
- * @(#) $Id: dcc_net.c,v 1.14 2002/12/29 21:30:11 scott Exp $
+ * @(#) $Id: dcc_net.c,v 1.15 2004/02/14 09:05:12 fharvey Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -52,25 +52,28 @@ int dccnet_new(int type, long timeout, int *range, size_t range_sz,
                int *lport, struct in_addr addr, int port,
                const char *filename, long maxsize,
                int (*n_f)(void *, const char *, const char *),
-               void *n_p, const char *n_msg) {
+               void *n_p, const char *n_msg, uint32_t resume_from) {
   struct dccproxy *p;
 
   p = (struct dccproxy *)malloc(sizeof(struct dccproxy));
   memset(p, 0, sizeof(struct dccproxy));
   p->type = type;
-
+  p->bytes_rcvd = resume_from;
   /* If we're capturing, we do not need to listen for the client connecting
      because its not going to! */
   if (p->type & DCC_SEND_CAPTURE) {
     /* Unlink first for security */
-    if (unlink(filename) && (errno != ENOENT)) {
-      syscall_fail("unlink", filename, 0);
-      free(p);
-      return -1;
-    }
+     if (!resume_from){
+	/* Unlink first for security */
+	if (unlink(filename) && (errno != ENOENT)) {
+	   syscall_fail("unlink", filename, 0);
+	   free(p);
+	   return -1;
+	}
+     }
 
     /* Open for writing */
-    p->cap_file = fopen(filename, "w");
+    p->cap_file = fopen(filename, "a");
     if (!p->cap_file) {
       syscall_fail("fopen", filename, 0);
       free(p);
