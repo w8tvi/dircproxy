@@ -2,7 +2,7 @@
 .\" Copyright (C) 2002 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.36 2002/02/05 10:00:33 scott Exp $
+.\" @(#) $Id: dircproxy.1,v 1.37 2002/02/06 10:06:40 scott Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -15,6 +15,7 @@
 [\fB\-hvDI\fR]
 [\fB-f\fR \fIconfig_file\fR]
 [\fB-P\fR \fIlisten_port\fR]
+[\fB-p\fR \fIpid_file\fR]
 
 .SH DESCRIPTION
 .B dircproxy
@@ -76,6 +77,10 @@ see the \fIREADME.inetd\fR file.
 .B -P \fIlisten_port\fR
 Specifies an alternate port to use, overriding the default and any
 value specified in the configuration file.
+.TP
+.B -p \fIpid_file\fR
+Specifies a file to write the process id to, overriding the default
+and any value specified in the configuration file.
 
 .SH CONFIGURATION
 The configuration file has the following format:
@@ -103,6 +108,14 @@ What port should \fBdircproxy\fR listen for connections from IRC clients
 on?
 
 This can be a numeric port number, or a service name from /etc/services
+
+.TP
+.B pid_file
+File to write the \fBdircproxy\fR process id to on startup.  If you start
+this with a "~/" then it refers to a file in a directory under your
+home directory.
+
+ none = Don't write pid file
 
 .TP
 .B client_timeout
@@ -156,7 +169,7 @@ before giving up and declaring the proxied connection dead?
 
 .TP
 .B server_keepalive
-This checks whether the dircproxy to server connection is alive at the TCP
+This checks whether the \fBdircproxy\fR to server connection is alive at the TCP
 level.  If no data is sent in either direction for a period of time, a TCP
 keepalive probe is sent.
 
@@ -568,7 +581,7 @@ file timestamps.
 
 .TP
 .B log_events
-Events you want dircproxy to log for you.  This is a comma seperated
+Events you want \fBdircproxy\fR to log for you.  This is a comma seperated
 list of event names, prefixed with '+' to add the event to the list or '-'
 to remove an event.  You can also specify 'all' to log all events (the
 default) or 'none' to not log anything.
@@ -622,7 +635,7 @@ The possible events are:
  Connections and disconnections from servers
 
 \fBerror\fR
- Problems and errors dircproxy encounters (recommended!)
+ Problems and errors \fBdircproxy\fR encounters (recommended!)
 
 .TP
 .B dcc_proxy_incoming
@@ -741,15 +754,15 @@ This can be a numeric port number, or a service name from /etc/services
 
 .TP
 .B switch_user
-If you're running dircproxy as root, it can switch to a different
+If you're running \fBdircproxy\fR as root, it can switch to a different
 "effective user id" to create the server connection.  This means
 that your system ident daemon (and therefore IRC, if it queries it)
 will see your server connection as the user you put here, instead of
 root.
 
-This is most useful if you are sysadmin running a dircproxy server
+This is most useful if you are sysadmin running a \fBdircproxy\fR server
 for multiple people and want them to all appear as different usernames
-without using a hacked identd.  Because dircproxy is still running as
+without using a hacked identd.  Because \fBdircproxy\fR is still running as
 root, it will have those privileges for all operations, including the
 .BR bind (2)
 for the '\fBlocal_address\fR' config option if you're using Secure
@@ -757,8 +770,8 @@ Linux patches.
 
 This can only be used if your system supports
 .BR seteuid (2)
-and if you are running dircproxy as the root user, and not just setuid.
-Attempting otherwise will generate a warning as dircproxy starts.
+and if you are running \fBdircproxy\fR as the root user, and not just setuid.
+Attempting otherwise will generate a warning as \fBdircproxy\fR starts.
 
 This can be a numeric uid or a username from /etc/passwd.
 
@@ -793,7 +806,7 @@ not only much information you missed, but how much will be sent to you.
 
 .TP
 .B allow_persist
-You can disable the /DIRCPROXY PERSIST command here if you do not want
+You can disable the /DIRCPROXY PERSIST command if you do not want
 people using your proxy to be able to do that.
 
  yes = Command enabled
@@ -801,7 +814,7 @@ people using your proxy to be able to do that.
 
 .TP
 .B allow_jump
-You can disable the /DIRCPROXY JUMP command here if you do not want
+You can disable the /DIRCPROXY JUMP command if you do not want
 people to do that.
 
  yes = Command enabled
@@ -818,7 +831,7 @@ file.
 
 .TP
 .B allow_host
-You can disable the /DIRCPROXY HOST command here if you do not want
+You can disable the /DIRCPROXY HOST command if you do not want
 people to do that.
 
  yes = Command enabled
@@ -826,9 +839,29 @@ people to do that.
 
 .TP
 .B allow_die
-You can enable the /DIRCPROXY DIE command here if you want people
-to be able to kill your proxy.  This isn't recommended, instead only
-enable it for a specific connection class (ie yours).
+You can enable the /DIRCPROXY DIE command if you want people
+to be able to kill your proxy.  This isn't recommended as a global
+option, instead only enable it for a specific connection class (ie yours).
+
+ yes = Command enabled
+ no = Command disabled
+
+.TP
+.B allow_users
+You can enable the /DIRCPROXY USERS command if you want people
+to be able to see who's using your proxy.  This isn't recommended as
+a global option, instead only enable it for a specific connection class
+(ie yours).
+
+ yes = Command enabled
+ no = Command disabled
+
+.TP
+.B allow_kill
+You can enable the /DIRCPROXY KILL command if you want people
+to be able to disconnect anyone using your proxy (including you!).
+This isn't recommended as a global option, instead only enable it for
+a specific connection class (ie yours).
 
  yes = Command enabled
  no = Command disabled
@@ -890,7 +923,7 @@ Sending an interrupt signal, \fISIGINT\fR, or a terminate signal,
 More information, including announcements of new releases, can be found
 at:
 .PP
-.I http://dircproxy.sourceforge.net/
+.I http://www.dircproxy.net/
 
 .SH SEE ALSO
 .BR dircproxy-crypt (1)
@@ -900,7 +933,7 @@ at:
 .SH BUGS
 Please submit and review bug reports at:
 .PP
-.I http://sourceforge.net/bugs/?group_id=5645
+.I http://bugzilla.dircproxy.net/
 
 .SH AUTHOR
 Written by Scott James Remnant <scott@netsplit.com>.

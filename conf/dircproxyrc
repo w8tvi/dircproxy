@@ -31,6 +31,15 @@
 #
 #listen_port 57000
 
+# pid_file
+#     File to write the dircproxy process id to on startup.  If you start
+#     this with a "~/" then it refers to a file in a directory under your
+#     home directory.
+#
+#     none = Don't write pid file
+#
+#pid_file "none"
+
 # client_timeout
 #     Maxmimum amount of time (in seconds) a client can take to connect to
 #     dircproxy and provide their password and nickname etc.
@@ -862,6 +871,27 @@
 #     no = Command disabled
 #
 #allow_die no
+
+# allow_users
+#     You can enable the /DIRCPROXY USERS command here if you want people
+#     to be able to see who's using your proxy.  This isn't recommended,
+#     instead only enable it for a specific connection class (ie yours).
+#
+#     yes = Command enabled
+#     no = Command disabled
+#
+#allow_users no
+
+# allow_kill
+#     You can enable the /DIRCPROXY KILL command here if you want people
+#     to be able to disconnect anyone using your proxy (including you!).
+#     This isn't recommended, instead only enable it for a specific
+#     connection class (ie yours).
+#
+#     yes = Command enabled
+#     no = Command disabled
+#
+#allow_kill no
 
 
 
