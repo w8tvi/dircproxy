@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.3 2000/05/24 22:21:29 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.4 2000/05/25 14:00:22 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -236,7 +236,7 @@ int cfg_read(const char *filename) {
           struct strlist *ss;
 
           ss = class->servers;
-          while (ss->next);
+          while (ss->next)
             ss = ss->next;
 
           ss->next = s;
