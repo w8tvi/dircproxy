@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.52 2000/10/13 13:24:36 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.53 2000/10/13 13:27:09 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -706,18 +706,30 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
             }
             
             if (help_page == help_index) {
-              ircclient_send_notice(p, "-     HELP");
-              ircclient_send_notice(p, "-     MOTD");
-              ircclient_send_notice(p, "-     RECALL");
-              ircclient_send_notice(p, "-     DETACH");
-              ircclient_send_notice(p, "-     QUIT");
+              ircclient_send_notice(p, "-     HELP      "
+                                   "(help on /dircproxy commands)");
+              ircclient_send_notice(p, "-     MOTD      "
+                                   "(show dircproxy message of the day)");
+              ircclient_send_notice(p, "-     RECALL    "
+                                    "(recall text from log files)");
+              ircclient_send_notice(p, "-     DETACH    "
+                                    "(detach from dircproxy)");
               if (p->conn_class->allow_persist)
-                ircclient_send_notice(p, "-     PERSIST");
-              ircclient_send_notice(p, "-     SERVERS");
+                ircclient_send_notice(p, "-     PERSIST   "
+                                      "(inetd: keep session after detach)");
+              ircclient_send_notice(p, "-     QUIT      "
+                                    "(end dircproxy session)");
+              if (p->conn_class->allow_die)
+                ircclient_send_notice(p, "-     DIE       "
+                                      "(terminate dircproxy)");
+              ircclient_send_notice(p, "-     SERVERS   "
+                                    "(show servers list)");
               if (p->conn_class->allow_jump)
-                ircclient_send_notice(p, "-     JUMP");
+                ircclient_send_notice(p, "-     JUMP      "
+                                      "(jump to a different server)");
               if (p->conn_class->allow_host)
-                ircclient_send_notice(p, "-     HOST");
+                ircclient_send_notice(p, "-     HOST      "
+                                      "(change your visible hostname)");
 
               i = 0;
               while (help_index_end[i]) {
