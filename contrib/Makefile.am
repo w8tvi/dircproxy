@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
-noinst_PROGRAMS = \
-	crypt
+bin_PROGRAMS = \
+	dircproxy-crypt
 
-crypt_SOURCES = \
+dircproxy_crypt_SOURCES = \
 	crypt.c

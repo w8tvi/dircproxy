@@ -1,0 +1,45 @@
+.TH dircproxy-crypt 1 "21 Oct 2000"
+.\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
+.\" All Rights Reserved.
+.\"
+.\" @(#) $Id: dircproxy-crypt.1,v 1.1 2000/10/23 11:53:20 keybuk Exp $
+.\"
+.\" This file is distributed according to the GNU General Public
+.\" License.  For full details, read the top of 'main.c' or the
+.\" file called COPYING that was distributed with this code.
+.SH NAME
+\fBdircproxy-crypt\fR \- Generate encrypted password for \fBdircproxy\fR
+
+.SH SYNOPSIS
+\fBdircproxy-crypt\fR
+
+.SH DESCRIPTION
+.B dircproxy-crypt
+generates encrypted passwords for the
+.BR dircproxy (1)
+configuration file.  These passwords are used in the '\fBpassword\fR'
+configuration option of a connection class, and are compared to the
+password you configure your IRC client to use.
+.PP
+\fBdircproxy-crypt\fR, when run, will ask you for the plain text
+version of your password, and will return the encrypted version
+created using your system's
+.BR crypt (3)
+function and a random salt.
+
+.SH SEE ALSO
+.BR dircproxy (1)
+.BR crypt (3)
+
+.SH BUGS
+Please submit and review bug reports at:
+.PP
+.I http://sourceforge.net/bugs/?group_id=5645
+
+.SH AUTHOR
+Written by Scott James Remnant <scott@netsplit.com>.
+
+.SH COPYRIGHT
+Copyright (C) 2000 Scott James Remnant.  All Rights Reserved.
+\fBdircproxy\fR is distributed under the \fIGNU General Public
+License\fR.
