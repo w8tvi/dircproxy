@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.13 2000/06/20 13:41:22 keybuk Exp $
+ * @(#) $Id: main.c,v 1.14 2000/08/21 14:54:31 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.13 2000/06/20 13:41:22 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.14 2000/08/21 14:54:31 keybuk Exp $";
 
 /* The name of the program */
 char *progname;
@@ -65,6 +65,9 @@ unsigned long log_autorecall = DEFAULT_LOG_AUTORECALL;
 
 /* set to 1 to abort the main loop */
 static int stop_poll = 0;
+
+/* whether we went in the background or not */
+int in_background = 0;
 
 /* Long options */
 struct option long_opts[] = {
@@ -236,6 +239,9 @@ int main(int argc, char *argv[]) {
 
       /* Open a connection to syslog */
       openlog(progname, LOG_PID, LOG_USER);
+
+      /* Okay, we're in the background now */
+      in_background = 1;
     }
 
     if (ircnet_listen(listen_port)) {
