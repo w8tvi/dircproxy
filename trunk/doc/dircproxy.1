@@ -1,7 +1,7 @@
 .TH dircproxy 1 "11 Jan 2001"
 .\" Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
 .\"
-.\" @(#) $Id: dircproxy.1,v 1.41 2002/12/29 21:30:10 scott Exp $
+.\" @(#) $Id: dircproxy.1,v 1.42 2003/11/26 20:50:23 fharvey Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -75,7 +75,7 @@ see the \fIREADME.inetd\fR file.
 .TP
 .B -P \fIlisten_port\fR
 Specifies an alternate port to use, overriding the default and any
-value specified in the configuration file.
+value specified in the configuration file. You can also add the IP-address of the adapter you want dircproxy to bind to, e.g.: 192.168.64.1:7007
 .TP
 .B -p \fIpid_file\fR
 Specifies a file to write the process id to, overriding the default
@@ -106,7 +106,9 @@ the operation of the entire \fBdircproxy\fR server.
 What port should \fBdircproxy\fR listen for connections from IRC clients
 on?
 
-This can be a numeric port number, or a service name from /etc/services
+This can be a numeric port number, or a service name from /etc/services.
+You can also enter the IP-address of the adapter you want dircproxy to
+bind to, e.g.: 192.168.64.1:7007
 
 .TP
 .B pid_file
