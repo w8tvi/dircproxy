@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.37 2000/10/27 13:11:53 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.38 2000/10/30 13:42:23 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -484,10 +484,6 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
       /* Fall back on our original if we can */
       if (strlen(msg.params[0]) && strcmp(msg.params[0], "*")) {
-        /* Generate fake NICK command to make client see things our way */
-        if (p->client_status & IRC_CLIENT_CONNECTED)
-          ircclient_send_selfcmd(p, "NICK", ":%s", msg.params[0]);
-
         p->nickname = x_strdup(msg.params[0]);
 
         squelch = 0;
