@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.20 2000/08/29 10:34:37 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.21 2000/08/29 10:42:42 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -81,10 +81,24 @@ int ircclient_data(struct ircproxy *p) {
       } else {
         debug("Client disconnected, detaching proxy");
         irclog_notice_toall(p, "You disconnected");
+
         if ((p->server_status == IRC_SERVER_ACTIVE)
-            && (p->client_status == IRC_CLIENT_ACTIVE)
             && !p->awaymessage && p->conn_class->awaymessage)
           ircserver_send_command(p, "AWAY", ":%s", p->conn_class->awaymessage);
+
+        if (p->conn_class->drop_modes) {
+          char *mode;
+
+          mode = x_sprintf("-%s", p->conn_class->drop_modes);
+          debug("Auto-mode-change '%s'", mode);
+
+          ircclient_change_mode(p, mode);
+          if (p->server_status == IRC_SERVER_ACTIVE)
+            ircserver_send_command(p, "MODE", "%s %s", p->nickname, mode);
+
+          free(mode);
+        }
+
         ircclient_close(p);
 
         /* Make a log to record notices/privmsgs while they are away */
@@ -482,6 +496,7 @@ int ircclient_change_mode(struct ircproxy *p, const char *change) {
   int add = 1;
 
   ptr = str = x_strdup(change);
+  debug("Mode change from '%s', '%s'", (p->modes ? p->modes : ""), str);
 
   while (*ptr) {
     switch (*ptr) {
@@ -528,6 +543,7 @@ int ircclient_change_mode(struct ircproxy *p, const char *change) {
     ptr++;
   }
 
+  debug("    now '%s'", (p->modes ? p->modes : ""));
   free(str);
   return 0;
 }

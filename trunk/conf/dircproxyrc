@@ -90,6 +90,13 @@
 #
 #disconnect_existing_user no
 
+# drop_modes
+#     Which user modes to drop automatically when you detach, handy to
+#     limit the impact that your client has while connected, or for extra
+#     security if you're an IRCop.
+#
+#drop_modes "oOws"
+
 # log_autorecall
 #     How many lines of log off the bottom do we give to the client when it
 #     reattaches?
