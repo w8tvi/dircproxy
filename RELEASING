@@ -19,13 +19,14 @@ Release checklist
 16.  make dist
 17.  Upload dist file onto download and dircproxy on sourceforge.net
 18.  Remove 'src' directory from dircproxy and replace with new version
-19.  Add new file release on sourceforge quoting "Changes summary" and
+19.  Copy new version into FTP source directory.
+20.  Add new file release on sourceforge quoting "Changes summary" and
      "ChangeLog summary"
-20.  Add new news item title "dircproxy x.x.x released" containing the
+21.  Add new news item title "dircproxy x.x.x released" containing the
      "Changes summary"
-21.  Run build-site.pl on dircproxy.sourceforge.net to ensure the site always
+22.  Run build-site.pl on dircproxy.sourceforge.net to ensure the site always
      carries the latest information.
-22.  Announce new version on freshmeat quoting the "Changes summary"
-23.  E-mail dircproxy-announce list with the "Changes summary".
-24.  Edit configure.in and increment the version number, commit with message
+23.  Announce new version on freshmeat quoting the "Changes summary"
+24.  E-mail dircproxy-announce list with the "Changes summary".
+25.  Edit configure.in and increment the version number, commit with message
      "CVS version now x.x.x"
