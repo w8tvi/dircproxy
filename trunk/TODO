@@ -1,6 +1,4 @@
-0.99.x are the final testing releases before 1.0.0.  No new features
-will be added unless they are considered "essential", in effect, 0.99.x
-is a "frozen" branch with a 1.0.0 release being made once everyone seems
-happy with it and there are no bugs.
+Keep it stable! :o)
 
-New features will be considered once dircproxy acheives 1.0 and stability.
+1.1 will probably be a core overhaul to add things like scripting
+support and module support.

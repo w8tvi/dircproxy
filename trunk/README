@@ -79,9 +79,6 @@ Features
 All of dircproxy's features are completely configurable and can be
 enabled, disabled and adjusted through the configuration file.
 
-dircproxy is currently under development, so many more features will
-be added as it progresses.
-
 
 Installation
 ============
