@@ -300,7 +300,7 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
 		        if((SSL_set_fd(p->servSSL.ssl, p->server_sock)))
 		        {
 			        SSL_connect(p->servSSL.ssl);
-				      p->servSSL.cert = SSL_get_peer_certificate(p->servSSL.ssl)
+				      p->servSSL.cert = SSL_get_peer_certificate(p->servSSL.ssl);
 		        	/*
 		        	 * Once we retrieved the server certificate,
 		        	 * we must check its validity :
