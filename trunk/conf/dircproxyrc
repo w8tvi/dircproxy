@@ -18,6 +18,7 @@
 # All options are commented out, with their default value shown.  To set
 # one, you need to uncomment and change the value.
 
+
 # listen_port
 #     What port should dircproxy listen for connections from IRC clients
 #     on?
@@ -26,6 +27,7 @@
 #     This directive cannot go inside a connection class.
 #
 #listen_port 57000
+
 
 # server_port
 #     What port do we connect to IRC servers on if the server string doesn't
@@ -85,6 +87,7 @@
 #
 #channel_rejoin 15
 
+
 # disconnect_existing_user
 #     If, when you connect to dircproxy, another client is already using
 #     your connection class (ie, if you forgot to close that one), then
@@ -106,6 +109,7 @@
 #      no = Stay connected to server until reattachment
 #
 #disconnect_on_detach no
+
 
 # drop_modes
 #     Which user modes to drop automatically when you detach, handy to
@@ -130,6 +134,7 @@
 #     none = Do not set an away message for you
 #
 #away_message "Not available, messages are logged"
+
 
 # chan_log_dir
 #     Directory to keep channel logs in.  If you don't use this, dircproxy
@@ -239,6 +244,7 @@
 #      0 = Don't automatically recall anything
 #
 #other_log_recall -1
+
 
 # motd_logo
 #     If this is yes, then the dircproxy logo and version number will be
