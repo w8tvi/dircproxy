@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.13 2000/05/24 21:21:44 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.14 2000/05/25 13:59:46 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -13,7 +13,6 @@
  */
 
 #include <stdio.h>
-#include <sys/param.h>
 #include <stdlib.h>
 #include <stdarg.h>
 
@@ -37,6 +36,11 @@ static int _ircclient_got_details(struct ircproxy *, const char *,
 /* New user mode bits */
 #define RFC2812_MODE_W 0x04
 #define RFC2812_MODE_I 0x08
+
+/* Define MIN() */
+#ifndef MIN
+#define MIN(x, y) ((x) < (y) ? (x) : (y))
+#endif /* MIN */
 
 /* Called when a new client has connected */
 int ircclient_connected(struct ircproxy *p) {
