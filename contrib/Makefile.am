@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-noinst_PROGAMS = \
+noinst_PROGRAMS = \
 	crypt
 
 crypt_SOURCES = \
