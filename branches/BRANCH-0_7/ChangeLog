@@ -1,3 +1,16 @@
+2000-10-16 11:21  Scott James Remnant <scott@netsplit.com>
+
+	* src/: irc_prot.c, irc_server.c: Fixed the null from problem with
+	NOTICE/PRIVMSGs and the %s vulnerability in logging of notices
+
+2000-10-10 13:42  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in: CVS version now 0.7.5
+
+2000-10-10 13:32  Scott James Remnant <scott@netsplit.com>
+
+	* ChangeLog, configure.in: Version 0.7.4 released.
+
 2000-10-10 13:17  Scott James Remnant <scott@netsplit.com>
 
 	* src/irc_server.c: Fixed a bug where I was sending a MODE without
