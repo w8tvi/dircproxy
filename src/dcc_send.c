@@ -5,7 +5,7 @@
  * dcc_send.c
  *  - DCC send protocol
  * --
- * @(#) $Id: dcc_send.c,v 1.9 2001/01/11 15:29:21 keybuk Exp $
+ * @(#) $Id: dcc_send.c,v 1.10 2001/07/12 14:47:10 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -90,13 +90,19 @@ static void _dccsend_data(struct dccproxy *p, int sock) {
     /* Check we read some */
     if (nr > 0) {
       uint32_t na;
+      int ret;
 
       p->bufsz += nr;
       p->bytes_rcvd += nr;
 
       /* Acknowledge them */
       na = htonl(p->bytes_rcvd);
-      net_queue(p->sender_sock, (void *)&na, sizeof(uint32_t));
+      ret = net_queue(p->sender_sock, (void *)&na, sizeof(uint32_t));
+      if (ret) {
+        error("Couldn't queue data in dccsend_data");
+	net_close(&sock);
+	return;
+      }
     } else {
       p->buf = (char *)realloc(p->buf, p->bufsz);
     }
@@ -203,8 +209,15 @@ static int _dccsend_sendpacket(struct dccproxy *p) {
 
   /* Send it to the sendee */
   if (nr) {
-    net_queue(p->sendee_sock, (void *)p->buf, nr);
-    
+    int ret;
+
+    ret = net_queue(p->sendee_sock, (void *)p->buf, nr);
+    if (ret) {
+      error("Couldn't queue data in dccsend_data");
+      net_close(&sock);
+      return -1;
+    }
+
     /* Adjust or free the buffer */
     p->bytes_sent += nr;
     p->bufsz -= nr;
