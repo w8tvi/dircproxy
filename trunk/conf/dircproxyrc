@@ -218,6 +218,26 @@
 #
 #other_log_recall -1
 
+# motd_logo
+#     If this is yes, then the dircproxy logo and version number will be
+#     included in the message of the day when you connect.  Only the picky
+#     would turn this off, its pretty!
+#
+#     yes = Show me the pretty logo
+#      no = I don't like logos, I'm boring, I eat llamas.
+#
+#motd_logo yes
+
+# motd_stats
+#     Display information on what channels you were on, and log file sizes
+#     etc in the message of the day.  This is handy, and lets you know how
+#     not only much information you missed, but how much will be sent to you.
+#
+#     yes = Show the stats
+#      no = They don't interest me, don't show them.
+#
+#motd_stats yes
+
 
 # Connection Classes
 #     Okay, thats the easy bit of the config file over and done with, now
