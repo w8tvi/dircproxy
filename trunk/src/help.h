@@ -4,7 +4,7 @@
  *
  * help.h
  * --
- * @(#) $Id: help.h,v 1.9 2002/02/05 10:05:46 scott Exp $
+ * @(#) $Id: help.h,v 1.10 2002/02/06 10:08:50 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -184,6 +184,28 @@ static char *help_status[] = {
   "/DIRCPROXY STATUS",
   "displays dircproxy status information, great for bug",
   "reports!",
+  0
+};
+
+/* help users */
+static char *help_users[] = {
+  "/DIRCPROXY USERS",
+  "displays list of users currently using dircproxy",
+  0
+};
+
+/* help kill */
+static char *help_kill[] = {
+  "/DIRCPROXY KILL <num>",
+  "end the proxy session for the user listed in the",
+  "/DIRCPROXY USERS list specified by number",
+  "",
+  "/DIRCPROXY KILL <hostname>",
+  "end the proxy session for the user coming from or connecting",
+  "to the hostname specified",
+  "",
+  "/DIRCPROXY KILL <nickname>",
+  "end the proxy session for the user with the nickname specified",
   0
 };
 
