@@ -3,6 +3,7 @@ AC_INIT(src/dircproxy.h)
 AM_INIT_AUTOMAKE(dircproxy, 1.0.4)
 AM_CONFIG_HEADER(config.h)
 AC_CANONICAL_HOST
+AM_MAINTAINER_MODE
 
 dnl Checks for programs.
 AC_PROG_AWK
