@@ -18,7 +18,7 @@ dircproxy_SOURCES = \
 	timers.c timers.h \
 	cfgfile.c cfgfile.h \
 	dns.c dns.h \
-	sock.c sock.h \
+	net.c net.h \
 	match.c match.h \
 	stringex.c stringex.h \
 	sprintf.c sprintf.h \
