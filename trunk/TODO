@@ -14,3 +14,5 @@ Known Bugs:
    	least trapped.  And maybe some others in the code as well.  Those
 	core dumps just aren't pleasant.
 
+   *	Can't capture DCCs when no client because of that getsockname() call
+
