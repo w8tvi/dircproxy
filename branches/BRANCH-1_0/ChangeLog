@@ -1,3 +1,27 @@
+2002-11-21 14:10  Scott James Remnant <scott@netsplit.com>
+
+	* autogen.sh: Oops, autoheader is part of autoconf
+
+2002-11-21 14:09  Scott James Remnant <scott@netsplit.com>
+
+	* autogen.sh: Fix so it'll work on my Debian box
+
+2002-11-21 14:06  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxyrc, doc/dircproxy.1, src/dircproxy.h: [MFH] Change
+	the default setting for refuse_modes to "" from "+r", it seems
+	DALnet have decided to use +r to indicate you are registered with
+	NickServ, not that your connection is restricted like most sensible
+	networks!
+
+2002-09-09 12:51  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in, contrib/dircproxy.spec: CVS version now 1.0.5
+
+2002-09-09 12:38  Scott James Remnant <scott@netsplit.com>
+
+	* ChangeLog, NEWS: Version 1.0.4 released.
+
 2002-09-09 12:29  Scott James Remnant <scott@netsplit.com>
 
 	* configure.in: Use maintainer mode, it's good
