@@ -5,7 +5,7 @@
  * dns.c
  *  - Some simple functions to do DNS lookups etc
  * --
- * @(#) $Id: dns.c,v 1.3 2000/05/13 05:25:04 keybuk Exp $
+ * @(#) $Id: dns.c,v 1.4 2000/08/25 09:20:47 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -98,7 +98,8 @@ int dns_filladdr(const char *name, const char *defaultport, int allowcolon,
     if (port) {
       *(port++) = 0;
 
-      result->sin_port = dns_portfromserv(port);
+      if (strlen(port))
+        result->sin_port = dns_portfromserv(port);
     }
   }
 
