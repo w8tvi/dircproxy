@@ -169,6 +169,8 @@ void net_create(int *sock, SSL *ssl) {
   memset(sockinfo, 0, sizeof(struct sockinfo));
   sockinfo->sock = *sock;
 	sockinfo->ssl = ssl;
+	if(sockinfo->ssl)
+		sockinfo->type |= SOCK_SSL;
 	
   if (sockets) {
     struct sockinfo *ss;

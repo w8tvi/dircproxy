@@ -188,7 +188,7 @@ typedef struct ircproxy {
   char *setnickname;
   char *oldnickname;
   
-  struct SSL_struct servSSL;
+  struct SSL_struct servSSL, cliSSL;
 
   char *username;
   char *hostname;
