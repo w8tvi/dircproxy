@@ -398,14 +398,15 @@
 #     (the default) or 'none' to not log anything.
 #
 #     Example, to just log text and action's:
-#         log_events "none,+text,+action"
+#         log_events "none,+message,+notice,+action"
 #
 #     Example, to log everything but server messages:
 #         log_events "all,-server"
 #         log_events -server        # you don't need to specify 'all'
 #
 #     The possible events are:
-#       text      Channel text and private messages
+#       message   Channel and private messages
+#       notice    Channel and private notices (usually replies from bots)
 #       action    CTCP ACTION events (/me) sent to you or channels
 #       ctcp      Whether to record whether a CTCP was sent to you
 #       join      People (including you) joining channels
@@ -444,9 +445,21 @@
 
 # log_program
 #     Program to pipe log messages into.  If given, dircproxy will run this
-#     program for each log message giving the full source information as the
-#     first argument, the destination as the second and the message itself
-#     as a single line on standard input.
+#     program for each log message with the following arguments:
+#        1. Type of event, as used for log_events above
+#        2. Log file this would be written to, either a channel name,
+#           a nickname, or "SERVER"
+#        3. Source of the message in nick!user@host format
+#     The text to log is given as a single line on standard input.
+#
+#     For example, for a channel message this program would be called as:
+#        PROGRAM message #channel FromNick!user@host
+#     
+#     For a private message to you, it would be called as:
+#        PROGRAM message FromNick FromNick!user@host
+#
+#     And for your reply:
+#        PROGRAM message FromNick YourNick!user@host
 #
 #     The program can be anywhere in your $PATH, or you can start it with
 #     "~/" if its in a directory under your home directory.
