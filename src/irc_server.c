@@ -7,7 +7,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.30 2000/10/13 13:55:13 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.31 2000/10/16 10:59:10 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -341,7 +341,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     return -1;
 
   /* 437 is bizarre, it either means Nickname is juped or Channel is juped */
-  if (!strcasecmp(msg.cmd, "437")) {
+  if (!irc_strcasecmp(msg.cmd, "437")) {
     if (msg.numparams >= 2) {
       if (!irc_strcasecmp(p->nickname, msg.params[1])) {
         /* Our nickname is Juped - make it a 433 */
@@ -355,18 +355,18 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     }
   }
 
-  if (!strcasecmp(msg.cmd, "001")) {
+  if (!irc_strcasecmp(msg.cmd, "001")) {
     /* Use 001 to get the servername */
     if (msg.src.type & IRC_SERVER) {
       free(p->servername);
       p->servername = x_strdup(msg.src.name);
     }
 
-  } else if (!strcasecmp(msg.cmd, "002")) {
+  } else if (!irc_strcasecmp(msg.cmd, "002")) {
     /* Ignore 002 */
-  } else if (!strcasecmp(msg.cmd, "003")) {
+  } else if (!irc_strcasecmp(msg.cmd, "003")) {
     /* Ignore 003 */
-  } else if (!strcasecmp(msg.cmd, "004")) {
+  } else if (!irc_strcasecmp(msg.cmd, "004")) {
     /* 004 contains all the juicy info, use it */
     if (msg.numparams >= 5) {
       free(p->servername);
@@ -418,35 +418,36 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       }
     }
 
-  } else if (!strcasecmp(msg.cmd, "005")) {
+  } else if (!irc_strcasecmp(msg.cmd, "005")) {
     /* Ignore 005 */
-  } else if (!strcasecmp(msg.cmd, "375")) {
+  } else if (!irc_strcasecmp(msg.cmd, "375")) {
     /* Ignore 375 unless allow_motd */
     if (p->allow_motd)
       squelch = 0;
 
-  } else if (!strcasecmp(msg.cmd, "372")) {
+  } else if (!irc_strcasecmp(msg.cmd, "372")) {
     /* Ignore 372 unless allow_motd */
     if (p->allow_motd)
       squelch = 0;
 
-  } else if (!strcasecmp(msg.cmd, "376")) {
+  } else if (!irc_strcasecmp(msg.cmd, "376")) {
     /* Ignore 376 unless allow_motd */
     if (p->allow_motd) {
       squelch = 0;
       p->allow_motd = 0;
     }
 
-  } else if (!strcasecmp(msg.cmd, "422")) {
+  } else if (!irc_strcasecmp(msg.cmd, "422")) {
     /* Ignore 422 unless allow_motd */
     if (p->allow_motd) {
       squelch = 0;
       p->allow_motd = 0;
     }
     
-  } else if (!strcasecmp(msg.cmd, "431") || !strcasecmp(msg.cmd, "432")
-             || !strcasecmp(msg.cmd, "433") || !strcasecmp(msg.cmd, "436")
-             || !strcasecmp(msg.cmd, "438")) {
+  } else if (!irc_strcasecmp(msg.cmd, "431") || !irc_strcasecmp(msg.cmd, "432")
+             || !irc_strcasecmp(msg.cmd, "433")
+             || !irc_strcasecmp(msg.cmd, "436")
+             || !irc_strcasecmp(msg.cmd, "438")) {
     /* Our nickname got rejected */
     if (msg.numparams >= 2) {
       free(p->nickname);
@@ -480,8 +481,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       squelch = 0;
     }
 
-  } else if (!strcasecmp(msg.cmd, "471") || !strcasecmp(msg.cmd, "473")
-             || !strcasecmp(msg.cmd, "474")) {
+  } else if (!irc_strcasecmp(msg.cmd, "471") || !irc_strcasecmp(msg.cmd, "473")
+             || !irc_strcasecmp(msg.cmd, "474")) {
     if (msg.numparams >= 2) {
       /* Can't join a channel */
 
@@ -502,8 +503,9 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       squelch = 0;
     }
 
-  } else if (!strcasecmp(msg.cmd, "403") || !strcasecmp(msg.cmd, "475")
-             || !strcasecmp(msg.cmd, "476") || !strcasecmp(msg.cmd, "405")) {
+  } else if (!irc_strcasecmp(msg.cmd, "403") || !irc_strcasecmp(msg.cmd, "475")
+             || !irc_strcasecmp(msg.cmd, "476")
+             || !irc_strcasecmp(msg.cmd, "405")) {
     if (msg.numparams >= 2) {
       struct ircchannel *c;
 
@@ -532,7 +534,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       squelch = 0;
     }
 
-  } else if (!strcasecmp(msg.cmd, "411")) {
+  } else if (!irc_strcasecmp(msg.cmd, "411")) {
     /* Ignore 411 if squelch_411 */
     if (p->squelch_411) {
       p->squelch_411 = 0;
@@ -540,7 +542,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       squelch = 0;
     }
  
-  } else if (!strcasecmp(msg.cmd, "PING")) {
+  } else if (!irc_strcasecmp(msg.cmd, "PING")) {
     /* Reply to pings for the client */
     if (msg.numparams == 1) {
       ircserver_send_peercmd(p, "PONG", ":%s", msg.params[0]);
@@ -551,7 +553,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     /* but let it see them */
     squelch = 0;
 
-  } else if (!strcasecmp(msg.cmd, "PONG")) {
+  } else if (!irc_strcasecmp(msg.cmd, "PONG")) {
     /* Use pongs to reset the server_stoned timer */
     if (p->allow_pong)
       squelch = 0;
@@ -563,7 +565,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       p->allow_pong = 0;
     }
 
-  } else if (!strcasecmp(msg.cmd, "NICK")) {
+  } else if (!irc_strcasecmp(msg.cmd, "NICK")) {
     if (_ircserver_forclient(p, &msg)) {
       /* Server telling us our nickname */
       if (msg.numparams >= 1) {
@@ -581,7 +583,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       squelch = 0;
     }
 
-  } else if (!strcasecmp(msg.cmd, "MODE")) {
+  } else if (!irc_strcasecmp(msg.cmd, "MODE")) {
     if (msg.numparams >= 2) {
       if (!irc_strcasecmp(p->nickname, msg.params[0])) {
         /* Personal mode change */
@@ -611,7 +613,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       squelch = 0;
     }
 
-  } else if (!strcasecmp(msg.cmd, "JOIN")) {
+  } else if (!irc_strcasecmp(msg.cmd, "JOIN")) {
     if (_ircserver_forclient(p, &msg)) {
       /* Server telling us we joined a channel */
       if (msg.numparams >= 1) {
@@ -649,7 +651,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       squelch = 0;
     }
 
-  } else if (!strcasecmp(msg.cmd, "PART")) {
+  } else if (!irc_strcasecmp(msg.cmd, "PART")) {
     if (_ircserver_forclient(p, &msg)) {
       /* Server telling us we left a channel */
       if (msg.numparams >= 1) {
@@ -668,7 +670,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       squelch = 0;
     }
 
-  } else if (!strcasecmp(msg.cmd, "KICK")) {
+  } else if (!irc_strcasecmp(msg.cmd, "KICK")) {
     if (msg.numparams >= 2) {
       if (!irc_strcasecmp(p->nickname, msg.params[1])) {
         /* We got kicked off a channel */
@@ -695,7 +697,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       }
     }
 
-  } else if (!strcasecmp(msg.cmd, "PRIVMSG")) {
+  } else if (!irc_strcasecmp(msg.cmd, "PRIVMSG")) {
     if (msg.numparams >= 2) {
       char *str;
 
@@ -719,7 +721,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     /* All PRIVMSGs go to the client */
     squelch = 0;
 
-  } else if (!strcasecmp(msg.cmd, "NOTICE")) {
+  } else if (!irc_strcasecmp(msg.cmd, "NOTICE")) {
     if (msg.numparams >= 1) {
       char *str;
 
