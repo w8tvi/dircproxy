@@ -38,7 +38,7 @@ Release checklist
 27.  Announce new version on freshmeat using summary.txt
 28.  E-mail dircproxy-announce list with release.txt making sure to sign
      the e-mail.
-29.  E-Mail greid@ukug.uk.freebsd.org with any significant changes that could
+29.  E-Mail lester@mazpe.net with any significant changes that could
      affect packaging (new files etc), making sure to sign the e-mail.
 30.  Update and upload the new Debian package to master
 31.  Edit configure.in & contrib/dircproxy.spec and increment the version
