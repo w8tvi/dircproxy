@@ -2,7 +2,7 @@
 .\" Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
 .\" All Rights Reserved.
 .\"
-.\" @(#) $Id: dircproxy-crypt.1,v 1.1 2000/10/23 11:53:20 keybuk Exp $
+.\" @(#) $Id: dircproxy-crypt.1,v 1.2 2000/11/10 15:02:37 keybuk Exp $
 .\"
 .\" This file is distributed according to the GNU General Public
 .\" License.  For full details, read the top of 'main.c' or the
@@ -12,6 +12,8 @@
 
 .SH SYNOPSIS
 \fBdircproxy-crypt\fR
+[\fB-hv\fR]
+[\fBpassword\fR]...
 
 .SH DESCRIPTION
 .B dircproxy-crypt
@@ -21,11 +23,22 @@ configuration file.  These passwords are used in the '\fBpassword\fR'
 configuration option of a connection class, and are compared to the
 password you configure your IRC client to use.
 .PP
-\fBdircproxy-crypt\fR, when run, will ask you for the plain text
-version of your password, and will return the encrypted version
+If you do not supply any plain text passwords to encrypt on the command
+line then \fBdircproxy-crypt\fR, when run, will ask you for one on
+standard input.  It will display the encrypted version of each password,
 created using your system's
 .BR crypt (3)
-function and a random salt.
+function and a random salt, on standard output.
+
+.SH OPTIONS
+.TP
+.B -h
+Displays a brief help message detailing the command-line arguments,
+then exits.
+.TP
+.B -v
+Displays the \fBdircproxy\fR version number that this version of
+\fBdircproxy-crypt\fR comes with, then exits.
 
 .SH SEE ALSO
 .BR dircproxy (1)
