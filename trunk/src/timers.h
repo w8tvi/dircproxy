@@ -4,7 +4,7 @@
  *
  * timers.h
  * --
- * @(#) $Id: timers.h,v 1.1 2000/05/13 02:14:26 keybuk Exp $
+ * @(#) $Id: timers.h,v 1.2 2000/10/23 12:03:44 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -14,15 +14,15 @@
 #ifndef __DIRCPROXY_TIMERS_H
 #define __DIRCPROXY_TIMERS_H
 
-/* required includes */
-#include "irc_net.h"
+/* handy defines */
+#define TIMER_FUNCTION(_FUNC) ((void (*)(void *, void *)) _FUNC)
 
 /* functions */
-extern int timer_exists(struct ircproxy *, const char *);
-extern char *timer_new(struct ircproxy *, const char *, unsigned long,
-                       void (*)(struct ircproxy *, void *), void *);
-extern int timer_del(struct ircproxy *, char *);
-extern int timer_delall(struct ircproxy *);
+extern int timer_exists(void *, const char *);
+extern char *timer_new(void *, const char *, unsigned long,
+                       void (*)(void *, void *), void *);
+extern int timer_del(void *, char *);
+extern int timer_delall(void *);
 extern int timer_poll(void);
 extern void timer_flush(void);
 
