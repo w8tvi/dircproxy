@@ -39,6 +39,11 @@ See the file INSTALL for building and installation instructions.
 I have personally got this compiling on the following architectures:
 
 	i586-pc-linux-gnu	Linux 2.2 with glibc 2.0 (RedHat 5.2)
+	i686-pc-linux-gnu	Linux 2.2 with glibc 2.1 (RedHat 6.1)
+	i686-pc-linux-gnu	Linux 2.2 with glibc 2.1 (Caldera 2.3)
+	i686-pc-linux-gnu	Linux 2.2 with glibc 2.1 (Mandrake 7.0)
+	i686-pc-linux-gnu	Linux 2.2 with glibc 2.1 (Slackware 7.0)
+	i686-pc-linux-gnu	Linux 2.2 with glibc 2.1 (SuSE 6.3)
 	i686-pc-linux-gnu	Linux 2.2-SMP with glibc 2.1 (RedHat 6.2)
 	i386-unknown-freebsd3.4	FreeBSD 3.4-RELEASE
 	i386-unknown-freebsd4.0	FreeBSD 4.0-STABLE
