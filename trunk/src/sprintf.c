@@ -5,7 +5,7 @@
  * sprintf.c
  *  - various ways of doing allocating sprintf() functions to void b/o
  * --
- * @(#) $Id: sprintf.c,v 1.5 2000/05/24 19:05:20 keybuk Exp $
+ * @(#) $Id: sprintf.c,v 1.6 2000/05/24 19:11:46 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -89,8 +89,8 @@ static char *_x_makenum(long num, int base, int minsize, int mindigits,
     return NULL;
   }
 
-  newstr = 0;
-  newstrlen = 0;
+  newstr = x_strdup("");
+  newstrlen = 1;
 
   if (signchar) {
     if (num < 0) {
@@ -192,8 +192,8 @@ char *x_vsprintf(const char *format, va_list ap) {
   unsigned long newdestlen;
   long num;
 
-  newdest = 0;
-  newdestlen = 0;
+  newdest = x_strdup("");
+  newdestlen = 1;
   formatpos = formatcpy = x_strdup(format);
 
   while (*formatpos) {
@@ -298,6 +298,7 @@ char *x_vsprintf(const char *format, va_list ap) {
         newdest = (char *)realloc(newdest, newdestlen + len);
         strncpy(newdest + newdestlen - 1, tmpstr, len);
         newdestlen += len;
+        newdest[newdestlen - 1] = 0;
         free(tmpstr);
 
         if (!padding) {
