@@ -1,9 +1,11 @@
 /* dircproxy
  * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
+ * Copyright (C) 2004 Francois Harvey <fharvey@securiweb.net> and
+ *                    Mike Taylor <bear@code-bear.com>.
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.53 2002/12/29 21:30:11 scott Exp $
+ * @(#) $Id: dircproxy.h,v 1.54 2004/02/13 23:39:33 bear Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -616,6 +618,7 @@ extern int syscall_fail(const char *, const char *, const char *);
 extern int error(const char *, ...);
 extern int debug(const char *, ...);
 extern int stop(void);
+extern int reload(void);
 extern int go_daemon(void);
 
 #endif /* __DIRCPROXY_DIRCPROXY_H */
