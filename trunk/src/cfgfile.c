@@ -5,7 +5,7 @@
  * cfgfile.c
  *  - reading of configuration file
  * --
- * @(#) $Id: cfgfile.c,v 1.8 2000/08/25 09:19:54 keybuk Exp $
+ * @(#) $Id: cfgfile.c,v 1.9 2000/08/29 10:34:37 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -22,6 +22,7 @@
 #include "cfgfile.h"
 
 /* forward declaration */
+static int _cfg_read_bool(char **, int *);
 static int _cfg_read_numeric(char **, long *);
 static int _cfg_read_string(char **, char **);
 
@@ -37,6 +38,7 @@ static int _cfg_read_string(char **, char **);
 int cfg_read(const char *filename, char **listen_port) {
   long server_maxattempts, server_maxinitattempts;
   long server_retry, server_dnsretry;
+  int disconnect_existing;
   struct ircconnclass *class;
   long channel_rejoin;
   char *server_port;
@@ -58,6 +60,7 @@ int cfg_read(const char *filename, char **listen_port) {
   server_maxattempts = DEFAULT_SERVER_MAXATTEMPTS;
   server_maxinitattempts = DEFAULT_SERVER_MAXINITATTEMPTS;
   channel_rejoin = DEFAULT_CHANNEL_REJOIN;
+  disconnect_existing = DEFAULT_DISCONNECT_EXISTING;
 
   while (valid) {
     char buff[512], *buf;
@@ -167,6 +170,12 @@ int cfg_read(const char *filename, char **listen_port) {
         _cfg_read_numeric(&buf,
                           &(class ? class->channel_rejoin : channel_rejoin));
  
+      } else if (!strcasecmp(key, "disconnect_existing")) {
+        /* disconnect_existing no */
+        _cfg_read_bool(&buf,
+                       &(disconnect_existing ? class->disconnect_existing
+                                             : disconnect_existing));
+ 
       } else if (!class && !strcasecmp(key, "log_autorecall")) {
         /* log_autorecall 128 */
         _cfg_read_numeric(&buf, &log_autorecall);
@@ -198,6 +207,7 @@ int cfg_read(const char *filename, char **listen_port) {
         class->server_maxattempts = server_maxattempts;
         class->server_maxinitattempts = server_maxinitattempts;
         class->channel_rejoin = channel_rejoin;
+        class->disconnect_existing = disconnect_existing;
 
       } else if (class && !strcasecmp(key, "password")) {
         /* connection {
@@ -354,6 +364,37 @@ int cfg_read(const char *filename, char **listen_port) {
   fclose(fd);
   free(server_port);
   return (valid ? 0 : -1);
+}
+
+/* Read a boolean value */
+static int _cfg_read_bool(char **buf, int *val) {
+  char *ptr;
+
+  ptr = *buf;
+  *buf += strcspn(*buf, WS);
+  *((*buf)++) = 0;
+
+  if (!strcasecmp(ptr, "yes")) {
+    *val = 1;
+  } else if (!strcasecmp(ptr, "true")) {
+    *val = 1;
+  } else if (!strcasecmp(ptr, "y")) {
+    *val = 1;
+  } else if (!strcasecmp(ptr, "t")) {
+    *val = 1;
+  } else if (!strcasecmp(ptr, "no")) {
+    *val = 0;
+  } else if (!strcasecmp(ptr, "false")) {
+    *val = 0;
+  } else if (!strcasecmp(ptr, "n")) {
+    *val = 0;
+  } else if (!strcasecmp(ptr, "f")) {
+    *val = 0;
+  } else {
+    *val = (atoi(ptr) ? 1 : 0);
+  }
+
+  return 0;
 }
 
 /* Read a numeric value */

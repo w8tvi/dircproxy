@@ -78,6 +78,18 @@
 #
 #channel_rejoin 15
 
+# disconnect_existing_user
+#     If, when you connect to dircproxy, another client is already using
+#     your connection class (ie, if you forgot to close that one), then
+#     this option lets you automatically kill that one off.  Make sure you
+#     turn any "automatic reconnect to server" options off before using
+#     this, otherwise you'll have a fight on your hands.
+#
+#     yes = Yes, disconnect
+#      no = No, don't let me on
+#
+#disconnect_existing_user no
+
 # log_autorecall
 #     How many lines of log off the bottom do we give to the client when it
 #     reattaches?
