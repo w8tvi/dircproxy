@@ -9,7 +9,7 @@
  *  - Miscellaneous IRC functions
  *  - The main poll() loop
  * --
- * @(#) $Id: irc_net.c,v 1.29 2000/10/13 13:55:13 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.30 2000/10/16 11:26:04 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -349,6 +349,61 @@ int ircnet_delchannel(struct ircproxy *p, const char *name) {
   return -1;
 }
 
+/* Got a channel mode change */
+int ircnet_channel_mode(struct ircproxy *p, struct ircchannel *c,
+                        struct ircmessage *msg, int modes) {
+  int add = 1;
+  int param;
+  char *ptr;
+
+  if (msg->numparams < (modes + 1))
+    return -1;
+
+  debug("Channel '%s' mode change '%s'", c->name, msg->paramstarts[modes]);
+  ptr = msg->params[modes];
+  param = modes + 1;
+
+  while (*ptr) {
+    switch (*ptr) {
+      case '+':
+        add = 1;
+        break;
+      case '-':
+        add = 0;
+        break;
+      /* RFC2812 modes that have a parameter */
+      case 'O':
+      case 'o':
+      case 'v':
+      case 'b':
+      case 'e':
+      case 'I':
+      case 'l':
+        param++;
+        break;
+      /* Channel key */  
+      case 'k':
+        if (add) {
+          if (msg->numparams >= (param + 1)) {
+            debug("Set channel '%s' key '%s'", c->name, msg->params[param]);
+            free(c->key);
+            c->key = x_strdup(msg->params[param]);
+          } else {
+            debug("Bad mode from server, said +k without a key");
+          }
+        } else {
+          debug("Remove channel '%s' key");
+          free(c->key);
+        }
+        param++;
+    }
+
+    ptr++;
+  }
+
+  return 0;
+}
+
 /* Free an ircchannel structure, returns the next */
 struct ircchannel *ircnet_freechannel(struct ircchannel *chan) {
   struct ircchannel *ret;
@@ -402,6 +457,20 @@ static void _ircnet_freeproxy(struct ircproxy *p) {
     c = p->channels;
     while (c)
       c = ircnet_freechannel(c);
+  }
+
+  if (p->squelch_modes) {
+    struct strlist *s;
+
+    s = p->squelch_modes;
+    while (s) {
+      struct strlist *n;
+
+      n = s->next;
+      free(s->str);
+      free(s);
+      s = n;
+    }
   }
 
   irclog_free(&(p->other_log));
