@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.28 2000/10/13 13:24:36 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.29 2000/10/13 13:50:24 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -60,6 +60,7 @@ struct ircconnclass {
   char *quit_message;
   char *attach_message;
   char *detach_message;
+  char *detach_nickname;
 
   int chan_log_enabled;
   char *chan_log_dir;

@@ -9,7 +9,7 @@
  *  - Miscellaneous IRC functions
  *  - The main poll() loop
  * --
- * @(#) $Id: irc_net.c,v 1.27 2000/10/13 12:46:04 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.28 2000/10/13 13:50:24 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -478,6 +478,7 @@ void ircnet_freeconnclass(struct ircconnclass *class) {
   free(class->quit_message);
   free(class->attach_message);
   free(class->detach_message);
+  free(class->detach_nickname);
   free(class->chan_log_dir);
   free(class->chan_log_program);
   free(class->other_log_dir);
