@@ -1,0 +1,65 @@
+dircproxy: Detchable IRC Proxy Server
+-------------------------------------
+
+dircproxy is a detachable IRC proxy server designed for those people
+who use IRC from different workstations, or different clients.  You
+connect to IRC through dircproxy, and it will keep you connected to
+the server, even after you disconnect.  While you're detached it logs
+both channel and private messages, and important events for you.
+When you reattach, it downloads them to you as if they'd just arrived.
+This gives it roughly the same functionality as using ircII and screen
+on a permanently connected host, but gives you the advantage of using
+whatever irc client you like (especially X ones).
+
+
+It supports all the usual things like optional dcc rewriting for those
+people behind firewalls (it can be switched off if you like though),
+binding to a different host on your machine, and continually attempting
+reconnection to an irc server if the connection is lost.  It also
+supports some neat features, such as proxying for multiple people (so
+you only need install it once per machine), rejoining channels when kicked
+and setting you /AWAY while you are detached.
+
+You need to make no changes to your IRC client for this to work.  You
+connect to dircproxy as the server, supplying a password using the
+PASS command, which all IRC client's should support.  Upon a successful
+connection, dircproxy will either reattach you to your left session, or
+begin connection to the irc server specificied in the configuration file
+for your password.
+
+Advanced users might want to use the /DIRCPROXY command, which allows you to
+manipulate the proxy, as well as read back through the logs.  There are 
+configuration files for various clients in the contrib directory that provide
+easy shortcuts for the /DIRCPROXY commands.
+
+
+See the file INSTALL for building and installation instructions.
+
+
+I have personally got this compiling on the following architectures:
+
+	i586-pc-linux-gnu	Linux 2.2 with glibc 2.0 (RedHat 5.2)
+	i686-pc-linux-gnu	Linux 2.2-SMP with glibc 2.2 (RedHat 6.2)
+	i386-unknown-freebsd4.0	FreeBSD 4.0-STABLE
+
+If you get it to compile on any others (it should) then please let me know
+so I can add them to the list.  Send me the output of the "config.guess"
+script along with your brief description of the machine type and I'll add
+it to the list.  Thanks.
+
+
+The dircproxy home page is at:
+
+	http://netsplit.com/dircproxy
+
+
+Please send all bug reports to:
+
+	dircproxy-bugs@netsplit.com
+
+
+dircproxy is distributed according to the GNU General Public License.
+See the file COPYING for details.
+
+Copyright (C) 2000 Scott James Remnant <scott@netsplit.com>.
+All Rights Reserved.
