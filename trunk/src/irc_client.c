@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.50 2000/10/13 12:47:05 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.51 2000/10/13 13:13:25 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -121,6 +121,8 @@ static int _ircclient_detach(struct ircproxy *p, const char *message) {
 
     if (message) {
       ircserver_send_peercmd(p, "QUIT", ":%s", message);
+    } else if (p->conn_class && p->conn_class->quit_message) {
+      ircserver_send_peercmd(p, "QUIT", ":%s", p->conn_class->quit_message);
     } else {
       ircserver_send_peercmd(p, "QUIT", ":Leaving IRC - %s %s",
                              PACKAGE, VERSION);
@@ -526,6 +528,9 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
             /* Optional QUIT message can be supplied */
             if ((msg.numparams >= 2) && strlen(msg.paramstarts[1])) {
               ircserver_send_peercmd(p, "QUIT", ":%s", msg.paramstarts[1]);
+            } else if (p->conn_class->quit_message) {
+              ircserver_send_peercmd(p, "QUIT", ":%s",
+                                     p->conn_class->quit_message);
             } else {
               ircserver_send_peercmd(p, "QUIT", ":Leaving IRC - %s %s",
                                      PACKAGE, VERSION);
