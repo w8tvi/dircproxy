@@ -4,7 +4,7 @@
  *
  * irc_prot.h
  * --
- * @(#) $Id: irc_prot.h,v 1.2 2000/08/21 14:53:00 keybuk Exp $
+ * @(#) $Id: irc_prot.h,v 1.3 2000/10/11 16:02:06 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -32,6 +32,7 @@ struct ircmessage {
   int numparams;
 
   char *orig;
+  char **paramstarts;
 };
 
 /* types of ircsource */
