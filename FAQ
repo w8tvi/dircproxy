@@ -19,6 +19,7 @@ Questions
      2.3  Compilation fails with "xxx.h: No such file or directory"
      2.4  Compilation fails with "undefined reference to `xxx'"
      2.5  What does --enable-debug do?
+     2.6  Is dircproxy supported on Windows 2000?
 
 3.  Usage
      3.1  What are configuration classes?
@@ -39,6 +40,10 @@ Questions
      3.12 Can one dircproxy connection class be used to connect to
           multiple servers?
      3.13 Why doesn't dircproxy ever keep my nickname?
+     3.14 Can I get dircproxy to automatically connect to the server
+          without connecting at least once?
+     3.15 Does dircproxy support user scripts to extend it?
+     3.16 Does dircproxy provide auto-op or auto-voice support?
 
 4.  Logging
      4.1  Why does dircproxy by default log channels while I'm
@@ -55,6 +60,7 @@ Questions
      5.2  What's "DCC over ssh" and how do I use it?
      5.3  Does text I type before dircproxy tells me the remote peer
           has connected ever reach them?
+     5.4  Why doesn't dircproxy support DCC RESUME?
 
 6.  Advanced Use
      6.1  How do I change what username is presented on IRC?
@@ -102,8 +108,10 @@ Answers
 
  1.4  Is there a dircproxy IRC channel?
 
-     Yes, on the OpenProjects IRC network (irc.openprojects.net or
-     irc.linux.com).  We're on #dircproxy.
+     Yes, on the OpenProjects IRC network (irc.openprojects.net)
+     called #dircproxy.
+
+     I can usually be found with the nickname Keybuk.
 
  1.5  How do I report bugs?
 
@@ -221,6 +229,13 @@ Answers
      This slows down dircproxy a lot and makes it inconvenient
      to use.  However, for people wanting to do dircproxy code work
      its invaluable.
+
+ 2.6  Is dircproxy supported on Windows 2000?
+
+     No, it is not supported and never will be supported.  Get a real
+     operating system(tm) :o)
+
+     However, I've heard it works just fine.
 
 
  3.1  What are configuration classes?
@@ -383,6 +398,31 @@ Answers
      attempt to restore the nickname once per minute.  You can adjust
      this by changing the 'NICK_GUARD_TIME' #define in src/dircproxy.h.
 
+ 3.14 Can I get dircproxy to automatically connect to the server
+      without connecting at least once?
+
+     No.  dircproxy was never written to connect to an IRC server without
+     seeing an IRC client first.
+
+  3.15 Does dircproxy support user scripts to extend it?
+
+     No.  dircproxy is intended purely as an IRC proxy.  Scripting
+     support would make it too much like a bot, if you want that
+     kind of thing then a bot would serve you much better.
+
+     Go download eggdrop, and get yourself K-Lined from your IRC
+     server. :o)
+     
+  3.16 Does dircproxy provide auto-op or auto-voice support?
+
+     No, again this functionality would be better supplied by a bot.
+
+     Chris Crowther has writtne a patch to provide this kind
+     of support using dircproxy.  This isn't an official patch,
+     however it is available from:
+
+         http://www.shad0w.org.uk/code/
+
 
  4.1  Why does dircproxy by default log channels while I'm attached?
 
@@ -487,7 +527,54 @@ Answers
      Yes, its simply queued until the remote side connects, then
      is sent to them.
 
+ 5.4  Why doesn't dircproxy support DCC RESUME?
+
+     The DCC RESUME protocol is an mIRC extension to the standard,
+     and is documented at:
+
+         http://www.mirc.co.uk/help/dccresum.txt
+
+     dircproxy does not support this protocol, therefore you cannot
+     resume DCC transfers if you are using dircproxy.  DCC RESUME
+     support will *never* be implemented in dircproxy, the reason
+     for this is as follows.
+
+     Ordinary DCC SENDs are offered by the sender sending a DCC SEND
+     message to the receiver containing a ip address and port number.
+     The receiver accepts the offer by connecting to it.
+
+     [ sender ] --(1) DCC SEND--> [ receiver ]
+                <---(2) accept---
+    
+     When proxied through dircproxy, dircproxy accepts the offer
+     itself, then makes a new offer to the receiver.  This means
+     that dircproxy has already usually received a fair portion of
+     the file before the receiver accepts dircproxy's own offer.
+     This greatly increases the speed of transfers.
+
+     [ sender ] --(1) DCC SEND--> [ proxy ] --(3) DCC SEND--> [ receiver ]
+                <---(2) accept---           <---(4) accept---
      
+     If the DCC RESUME protocol is used, the receiver indicates it wishes
+     to do so by sending a DCC RESUME message to the sender instead of
+     connecting to it, the connect is only done after a DCC ACCEPT is
+     received from the sender.
+
+     [ sender ] --(1) DCC SEND--> [ receiver ]
+                <-(2) DCC RESUME-
+                -(3) DCC ACCEPT->
+                <---(4) accept---
+
+     Of course, with dircproxy proxying, this is too late, it's
+     already accepted the sender's offer and is receiving the file
+     from the beginning.
+
+     Ryan Tolboom has written a patch to enable DCC RESUME for
+     files that dircproxy has captured, this is available from:
+
+         http://www-ec.njit.edu/~rxt1077/dircproxy-resume/
+
+
  6.1  How do I change what username is presented on IRC?
 
      The obvious answer is to run dircproxy under that username,
