@@ -4,7 +4,7 @@
  *
  * irc_prot.h
  * --
- * @(#) $Id: irc_prot.h,v 1.4 2000/10/31 13:11:20 keybuk Exp $
+ * @(#) $Id: irc_prot.h,v 1.5 2000/11/02 16:14:46 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -23,6 +23,7 @@ struct ircsource {
   char *username;  /* Not server */
   char *hostname;  /* Not server */
   char *fullname;
+  char *orig;
 
   int type;
 };
