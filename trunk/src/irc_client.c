@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.33 2000/08/31 15:34:31 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.34 2000/09/01 12:13:13 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -812,6 +812,8 @@ int ircclient_welcome(struct ircproxy *p) {
         s = x_strdup("all");
       } else if (p->conn_class->other_log_recall == 0) {
         s = x_strdup("none");
+      } else if (p->conn_class->other_log_recall == p->other_log.nlines) {
+        s = x_strdup("all");
       } else {
         s = x_sprintf("%ld", p->conn_class->other_log_recall);
       }
@@ -838,6 +840,8 @@ int ircclient_welcome(struct ircproxy *p) {
             s = x_strdup("all");
           } else if (p->conn_class->chan_log_recall == 0) {
             s = x_strdup("none");
+          } else if (p->conn_class->chan_log_recall == c->log.nlines) {
+            s = x_strdup("all");
           } else {
             s = x_sprintf("%ld", MIN(c->log.nlines,
                                      p->conn_class->chan_log_recall));
