@@ -8,7 +8,7 @@
  *  - The list of currently active DCC proxies
  *  - Miscellaneous DCC functions
  * --
- * @(#) $Id: dcc_net.c,v 1.2 2000/11/02 13:29:41 keybuk Exp $
+ * @(#) $Id: dcc_net.c,v 1.3 2000/11/02 16:13:10 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -119,7 +119,8 @@ static int _dccnet_connect(struct dccproxy *p,
   p->sender_addr.sin_addr.s_addr = htonl(addr.s_addr);
   p->sender_addr.sin_port = htons(port);
 
-  debug("Connecting to DCC Sender %s:%d", inet_ntoa(addr), ntohs(port));
+  debug("Connecting to DCC Sender %s:%d", inet_ntoa(p->sender_addr.sin_addr),
+        ntohs(p->sender_addr.sin_port));
 
   p->sender_sock = net_socket();
   if (p->sender_sock == -1)
@@ -176,7 +177,9 @@ static void _dccnet_accept(struct dccproxy *p, int sock) {
       dccchat_accepted(p);
     }
 
-    debug("DCC Sendee connected from %s", inet_ntoa(p->sendee_addr.sin_addr));
+    debug("DCC Sendee connected from %s:%d",
+          inet_ntoa(p->sendee_addr.sin_addr),
+          ntohs(p->sendee_addr.sin_port));
   }
 }
 
