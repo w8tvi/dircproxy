@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.14 2000/08/24 11:25:10 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.15 2000/08/25 09:38:23 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -13,11 +13,6 @@
 
 #ifndef __DIRCPROXY_DIRCPROXY_H
 #define __DIRCPROXY_DIRCPROXY_H
-
-/* required includes */
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -146,19 +141,15 @@
  */
 #define DEFAULT_DETACH_AWAY "Not available, messages are logged"
 
-/* handy debug macros */
-#define DEBUG_SYSCALL_DOH(_func, _msg, _num) fprintf(stderr, \
-                                               "%s: %s() failed: %s [%d]\n",\
-                                               progname, (_func), (_msg), \
-                                               (_num))
-#define DEBUG_SYSCALL_FAIL(_func) DEBUG_SYSCALL_DOH((_func), strerror(errno), \
-                                                    errno)
-
 /* global variables */
 extern char *progname;
 extern int in_background;
 
 /* obsolete! obsolete! delete me! */
 extern unsigned long log_autorecall;
+
+/* functions in main.c */
+extern int syscall_fail(const char *, const char *, const char *);
+extern int debug(const char *, ...);
 
 #endif /* __DIRCPROXY_DIRCPROXY_H */

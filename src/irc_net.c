@@ -5,7 +5,7 @@
  * irc_net.c
  *  - Polling of sockets and acting on any data
  * --
- * @(#) $Id: irc_net.c,v 1.13 2000/08/25 09:26:27 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.14 2000/08/25 09:38:23 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -21,6 +21,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include <dircproxy.h>
 #include "sock.h"
@@ -77,13 +78,16 @@ int ircnet_listen(const char *port) {
   }
 
   if (listen(this_sock, SOMAXCONN)) {
-    DEBUG_SYSCALL_FAIL("listen");
+    syscall_fail("listen", 0, 0);
     sock_close(this_sock);
     return -1;
   }
 
-  if (listen_sock != -1)
+  if (listen_sock != -1) {
+    debug("Closing existing listen socket %d", listen_sock);
     sock_close(listen_sock);
+  }
+  debug("Listening on socket %d", this_sock);
   listen_sock = this_sock;
 
   return 0;
@@ -142,7 +146,7 @@ int ircnet_poll(void) {
 
   if (nr == -1) {
     if ((errno != EINTR) && (errno != EAGAIN)) {
-      DEBUG_SYSCALL_FAIL("select");
+      syscall_fail("select", 0, 0);
       return -1;
     } else {
       return ns;
@@ -217,7 +221,7 @@ int ircnet_hooksocket(int sock) {
 
   len = sizeof(struct sockaddr_in);
   if (getpeername(p->client_sock, (struct sockaddr *)&(p->client_addr), &len)) {
-    DEBUG_SYSCALL_FAIL("getpeername");
+    syscall_fail("getpeername", "", 0);
     free(p);
     return -1;
   }
@@ -237,7 +241,7 @@ static int _ircnet_acceptclient(int sock) {
   len = sizeof(struct sockaddr_in);
   p->client_sock = accept(sock, (struct sockaddr *)&(p->client_addr), &len);
   if (p->client_sock == -1) {
-    DEBUG_SYSCALL_FAIL("accept");
+    syscall_fail("accept", 0, 0);
     free(p);
     return -1;
   }
@@ -284,6 +288,7 @@ int ircnet_addchannel(struct ircproxy *p, const char *name) {
   c = (struct ircchannel *)malloc(sizeof(struct ircchannel));
   memset(c, 0, sizeof(struct ircchannel));
   c->name = x_strdup(name);
+  debug("Joined channel '%s'", c->name);
 
   if (irclog_open(p, c->name, &(c->log)))
     ircclient_send_channotice(p, c->name, "(warning) Unable to log channel: %s",
@@ -311,6 +316,8 @@ int ircnet_delchannel(struct ircproxy *p, const char *name) {
   l = 0;
   c = p->channels;
 
+  debug("Parted channel '%s'", name);
+
   while (c) {
     if (!irc_strcasecmp(c->name, name)) {
       if (l) {
@@ -327,6 +334,7 @@ int ircnet_delchannel(struct ircproxy *p, const char *name) {
     }
   }
 
+  debug("    (which didn't exist)");
   return -1;
 }
 
@@ -345,6 +353,8 @@ struct ircchannel *ircnet_freechannel(struct ircchannel *chan) {
 
 /* Free an ircproxy structure */
 static void _ircnet_freeproxy(struct ircproxy *p) {
+  debug("Freeing proxy %p", p);
+
   if (p->client_status & IRC_CLIENT_CONNECTED)
     ircclient_close(p);
 
@@ -470,6 +480,7 @@ void ircnet_freeconnclass(struct ircconnclass *class) {
 
 /* hook to rejoin a channel after a kick */
 static void _ircnet_rejoin(struct ircproxy *p, void *data) {
+  debug("Rejoining '%s'", (char *)data);
   ircserver_send_command(p, "JOIN", ":%s", (char *)data);
   free(data);
 }
@@ -482,6 +493,7 @@ int ircnet_rejoin(struct ircproxy *p, const char *name) {
   if (p->conn_class->channel_rejoin == 0) {
     _ircnet_rejoin(p, (void *)str);
   } else if (p->conn_class->channel_rejoin > 0) {
+    debug("Will rejoin '%s' in %d seconds", str, p->conn_class->channel_rejoin);
     timer_new(p, 0, p->conn_class->channel_rejoin, _ircnet_rejoin, (void *)str);
   } 
 
@@ -537,7 +549,7 @@ int ircnet_announce_dedicated(struct ircproxy *p) {
   int len;
 
   if (!IS_CLIENT_READY(p))
-    return 1;
+    return -1;
 
   len = sizeof(struct sockaddr_in);
   if (!getsockname(listen_sock, (struct sockaddr *)&listen_addr, &len)) {
@@ -549,7 +561,8 @@ int ircnet_announce_dedicated(struct ircproxy *p) {
                           ntohs(listen_addr.sin_port));
     free(hostname);
   } else {
-    return 1;
+    syscall_fail("getsockname", 0, 0);
+    return -1;
   }
 
   return 0;
@@ -558,7 +571,7 @@ int ircnet_announce_dedicated(struct ircproxy *p) {
 /* tell the client they can't reconnect */
 int ircnet_announce_nolisten(struct ircproxy *p) {
   if (!IS_CLIENT_READY(p))
-    return 1;
+    return -1;
 
   ircclient_send_notice(p, "You cannot reconnect to this session");
 

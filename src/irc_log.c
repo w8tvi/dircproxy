@@ -5,7 +5,7 @@
  * irc_log.c
  *  - Handling of log files
  * --
- * @(#) $Id: irc_log.c,v 1.10 2000/06/28 12:41:45 keybuk Exp $
+ * @(#) $Id: irc_log.c,v 1.11 2000/08/25 09:38:23 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -21,6 +21,7 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <string.h>
+#include <errno.h>
 
 #include <dircproxy.h>
 #include "sock.h"
@@ -52,12 +53,12 @@ int irclog_makedir(struct ircproxy *p) {
 
     if (lstat(p->logdir, &statinfo)) {
       if (errno != ENOENT) {
-        DEBUG_SYSCALL_FAIL("lstat");
+        syscall_fail("lstat", p->logdir, 0);
         free(p->logdir);
         p->logdir = 0;
         return -1;
        } else if (mkdir(p->logdir, 0700)) {
-        DEBUG_SYSCALL_FAIL("mkdir");
+        syscall_fail("mkdir", p->logdir, 0);
         free(p->logdir);
         p->logdir = 0;
         return -1;
@@ -117,20 +118,20 @@ int irclog_open(struct ircproxy *p, const char *filename, struct logfile *log) {
   }
 
   if (unlink(log->filename) && (errno != ENOENT)) {
-    DEBUG_SYSCALL_FAIL("unlink");
+    syscall_fail("unlink", log->filename, 0);
     free(log->filename);
     return -1;
   }
 
   log->file = fopen(log->filename, "w+");
   if (!log->file) {
-    DEBUG_SYSCALL_FAIL("fopen");
+    syscall_fail("fopen", log->filename, 0);
     free(log->filename);
     return -1;
   }
 
   if (chmod(log->filename, 0600))
-    DEBUG_SYSCALL_FAIL("fchmod");
+    syscall_fail("chmod", log->filename, 0);
 
   log->open = 1;
   log->nlines = 0;

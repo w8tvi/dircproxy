@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.21 2000/08/24 11:25:10 keybuk Exp $
+ * @(#) $Id: main.c,v 1.22 2000/08/25 09:38:23 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,10 +26,13 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <string.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <unistd.h>
 #include <signal.h>
 #include <syslog.h>
+#include <errno.h>
 
 #include <dircproxy.h>
 #include "getopt.h"
@@ -48,7 +51,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.21 2000/08/24 11:25:10 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.22 2000/08/25 09:38:23 keybuk Exp $";
 
 /* The name of the program */
 char *progname;
@@ -66,7 +69,11 @@ static int stop_poll = 0;
 struct option long_opts[] = {
   { "help", 0, NULL, 'h' },
   { "version", 0, NULL, 'v' },
+#ifndef DEBUG
   { "no-daemon", 0, NULL, 'D' },
+#else /* DEBUG */
+  { "daemon", 0, NULL, 'D' },
+#endif /* DEBUG */
   { "inetd", 0, NULL, 'I' },
   { "listen-port", 1, NULL, 'P' },
   { "config-file", 1, NULL, 'f' }
@@ -89,7 +96,7 @@ int main(int argc, char *argv[]) {
   no_daemon = 0;
 #else /* DEBUG */
   no_daemon = 1;
-#endif
+#endif /* DEBUG */
   local_file = cmd_listen_port = 0;
   show_help = show_version = show_usage = inetd_mode = 0;
   while ((optc = getopt_long(argc, argv, GETOPTIONS, long_opts, NULL)) != -1) {
@@ -101,7 +108,11 @@ int main(int argc, char *argv[]) {
         show_version = 1;
         break;
       case 'D':
+#ifndef DEBUG
         no_daemon = 1;
+#else /* DEBUG */
+        no_daemon = 0;
+#endif /* DEBUG */
         break;
       case 'I':
         inetd_mode = 1;
@@ -143,6 +154,7 @@ int main(int argc, char *argv[]) {
     pw = getpwuid(geteuid());
     if (pw && pw->pw_dir) {
       local_file = x_sprintf("%s/%s", pw->pw_dir, USER_CONFIG_FILENAME);
+      debug("Local config file: %s", local_file);
       if (cfg_read(local_file, &listen_port)) {
         /* If the local one didn't exist, set to 0 so we open
            global one */
@@ -166,6 +178,7 @@ int main(int argc, char *argv[]) {
 
     /* Not fatal if it doesn't exist */
     global_file = x_sprintf("%s/%s", SYSCONFDIR, GLOBAL_CONFIG_FILENAME);
+    debug("Global config file: %s", global_file);
     cfg_read(global_file, &listen_port);
     free(global_file);
   } else {
@@ -188,10 +201,10 @@ int main(int argc, char *argv[]) {
   /* Set signal handlers */
   signal(SIGTERM, sig_term);
   signal(SIGINT, sig_term);
-#ifdef DEBUG
+#ifdef DEBUG_MEMORY
   signal(SIGUSR1, sig_usr);
   signal(SIGUSR2, sig_usr);
-#endif /* DEBUG */
+#endif /* DEBUG_MEMORY */
 
   /* Broken Pipe?  This means that someone disconnected while we were
      sending stuff.  Naughty! */
@@ -202,7 +215,7 @@ int main(int argc, char *argv[]) {
     if (!no_daemon) {
       switch (fork()) {
         case -1:
-          DEBUG_SYSCALL_FAIL("fork");
+          syscall_fail("fork", "first", 0);
           return -1;
         case 0:
           break;
@@ -218,7 +231,7 @@ int main(int argc, char *argv[]) {
 
       switch (fork()) {
         case -1:
-          DEBUG_SYSCALL_FAIL("fork");
+          syscall_fail("fork", "second", 0);
           return -1;
         case 0:
           break;
@@ -274,6 +287,7 @@ int main(int argc, char *argv[]) {
 
 /* Signal to stop polling */
 static void sig_term(int sig) {
+  debug("Received signal %d to stop", sig);
   stop_poll = 1;
 }
 
@@ -283,7 +297,7 @@ static void sig_usr(int sig) {
   mem_report(sig == SIGUSR1 ? 0 : "signal");
   signal(sig, sig_usr);
 }
-#endif /* DEBUG */
+#endif /* DEBUG_MEMORY */
 
 /* Print the usage instructions to stderr */
 static int _print_usage(void) {
@@ -308,12 +322,53 @@ static int _print_help(void) {
                   "Similarly for optional arguments.\n\n");
   fprintf(stderr, "  -h, --help              Print a summary of the options\n");
   fprintf(stderr, "  -v, --version           Print the version number\n");
+#ifndef DEBUG
   fprintf(stderr, "  -D, --no-daemon         Remain in the foreground\n");
+#else /* DEBUG */
+  fprintf(stderr, "  -D, --daemon            Run as a daemon to debug it\n");
+#endif /* DEBUG */
   fprintf(stderr, "  -I, --inetd             Being run from inetd "
                                             "(implies -D)\n");
   fprintf(stderr, "  -P, --listen-port=PORT  Port to listen for clients on\n");
   fprintf(stderr, "  -f, --config-file=FILE  Use this file instead of the "
                                             "default\n\n");
+
+  return 0;
+}
+
+/* Called when a system call fails.  Print it to stderr or syslog */
+int syscall_fail(const char *function, const char *arg, const char *message) {>   char *msg;
+
+  msg = x_sprintf("%s(%s) failed: %s", function, (arg ? arg : ""),
+                  (message ? message : strerror(errno)));
+  if (in_background) {
+    syslog(LOG_NOTICE, "%s", msg);
+  } else {
+    fprintf(stderr, "%s: %s\n", progname, msg);
+  }
+
+  free(msg);
+  return 0;
+}
+
+/* Called to output debugging information to stderr or syslog */
+int debug(const char *format, ...) {
+#ifdef DEBUG
+  va_list ap;
+  char *msg;
+
+  va_start(ap, format);
+  msg = x_vsprintf(format, ap);
+  va_end(ap);
+ 
+  if (in_background) {
+    syslog(LOG_DEBUG, "%s", msg);
+  } else {
+    printf("%s\n", msg);
+  }
+
+  free(msg);
+#endif /* DEBUG */
 
   return 0;
 }
