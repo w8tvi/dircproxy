@@ -5,7 +5,7 @@
  * irc_net.c
  *  - Polling of sockets and acting on any data
  * --
- * @(#) $Id: irc_net.c,v 1.7 2000/05/24 20:53:10 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.8 2000/05/24 21:21:44 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -218,6 +218,8 @@ int ircnet_hooksocket(int sock) {
     free(p);
     return -1;
   }
+
+  p->die_on_close = 1;
 
   return _ircnet_client_connected(p);
 }

@@ -5,7 +5,7 @@
  * irc_client.c
  *  - Handling of clients connected to the proxy
  * --
- * @(#) $Id: irc_client.c,v 1.12 2000/05/24 21:02:06 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.13 2000/05/24 21:21:44 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -71,15 +71,24 @@ int ircclient_data(struct ircproxy *p) {
 #ifdef DEBUG
       printf("Client disconnected\n");
 #endif /* DEBUG */
-      irclog_notice_toall(p, "You disconnected");
-      if ((p->server_status == IRC_SERVER_ACTIVE)
-          && (p->client_status == IRC_CLIENT_ACTIVE)
-          && !p->awaymessage && p->conn_class->awaymessage)
-        ircserver_send_command(p, "AWAY", ":%s", p->conn_class->awaymessage);
-      ircclient_close(p);
+      if (p->die_on_close) {
+        p->conn_class = 0;
+        ircclient_close(p);
 
-      /* Make a log to record notices/privmsgs while they are away */
-      irclog_open(p, "misc", &(p->misclog));
+        ircserver_send_command(p, "QUIT", ":Leaving IRC - %s %s",
+                               PACKAGE, VERSION);
+        ircserver_close_sock(p);
+      } else {
+        irclog_notice_toall(p, "You disconnected");
+        if ((p->server_status == IRC_SERVER_ACTIVE)
+            && (p->client_status == IRC_CLIENT_ACTIVE)
+            && !p->awaymessage && p->conn_class->awaymessage)
+          ircserver_send_command(p, "AWAY", ":%s", p->conn_class->awaymessage);
+        ircclient_close(p);
+
+        /* Make a log to record notices/privmsgs while they are away */
+        irclog_open(p, "misc", &(p->misclog));
+      }
 
       return -1;
 

@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.4 2000/05/24 20:18:21 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.5 2000/05/24 21:21:44 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -55,6 +55,7 @@ struct ircchannel {
 struct ircproxy {
   int dead;
   struct ircconnclass *conn_class;
+  int die_on_close;
 
   int client_sock;
   int client_status;
