@@ -4,7 +4,7 @@
  *
  * dircproxy.h
  * --
- * @(#) $Id: dircproxy.h,v 1.2 2000/05/13 02:38:03 keybuk Exp $
+ * @(#) $Id: dircproxy.h,v 1.3 2000/05/13 05:12:52 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -28,6 +28,87 @@
 
 #include "memdebug.h"
 
+/* Configuration values that aren't in the config file */
+
+/* FALLBACK_USERNAME
+ * Before sending username's to the server in a USER command, we strip it
+ * of bogus characters.  It shouldn't happen, but if somehow it ends up with
+ * no other characters left, this value will be used.
+ */
+#define FALLBACK_USERNAME "user"
+
+/* FALLBACK_NICKNAME
+ * When sending a nickname while detached, its possible that we can get
+ * errors back from the server.  To this end, we have to generate a new
+ * nickname, because the client isn't around to do it for us.  It really
+ * will try to generate you a new one, but if all else fails we need
+ * something to fall back on
+ */
+#define FALLBACK_NICKNAME "dircproxy"
+
+
+/* Defaults for values in the configuration file.  Change the config file
+ * instead of these */
+
+/* DEFAULT_LISTEN_PORT
+ * What port do we listen on for new client connections?
+ */
+#define DEFAULT_LISTEN_PORT "57000"
+
+/* DEFAULT_SERVER_PORT
+ * What port do we connect to IRC servers on if the server string doesn't
+ * explicitly set one
+ */
+#define DEFAULT_SERVER_PORT "6667"
+
+/* DEFAULT_SERVER_RETRY
+ * How many seconds after disconnection or last connection attempt do we
+ * wait before retrying again?
+ */
+#define DEFAULT_SERVER_RETRY 15
+
+/* DEFAULT_SERVER_DNSRETRY
+ * How many seconds after last connection attempt do we wait before trying
+ * again if the error was DNS related?
+ */
+#define DEFAULT_SERVER_DNSRETRY 60
+
+/* DEFAULT_MAXATTEMPTS
+ * If we are disconnected from the server, how many times should we iterate
+ * the server list before giving up and declaring the proxied connection
+ * dead?
+ * 0 = iterate forever
+ */
+#define DEFAULT_SERVER_MAXATTEMPTS 0
+
+/* DEFAULT_SERVER_MAXINITATTEMPTS
+ * On first connection, how many times should we iterate the server list
+ * before giving up and declaring the proxied connection dead?
+ * 0 = iterate forever, not recommended!
+ */
+#define DEFAULT_SERVER_MAXINITATTEMPTS 5
+
+/* DEFAULT_CHANNEL_REJOIN
+ * If we are kicked off a channel, how many seconds do we wait before attempting
+ * to rejoin.
+ * -1 = Don't rejoin
+ *  0 = Immediately
+ */
+#define DEFAULT_CHANNEL_REJOIN 5
+
+/* DEFAULT_LOG_AUTORECALL
+ * How many lines of log off the bottom do we give to the client when it
+ * reattaches?
+ */
+#define DEFAULT_LOG_AUTORECALL 128
+
+/* DEFAULT_DETACH_AWAY
+ * If the client detaches without leaving an AWAY message, set this as the
+ * AWAY message until it comes back.
+ * 0 = don't do this
+ */
+#define DEFAULT_DETACH_AWAY "Not available, messages are logged"
+
 /* handy debug macros */
 #define DEBUG_SYSCALL_DOH(_func, _msg, _num) fprintf(stderr, \
                                                "%s: %s() failed: %s [%d]\n",\
@@ -37,18 +118,9 @@
                                                     errno)
 
 /* ack, make me a config file! */
-#define TODO_CFG_LISTENPORT "57000"
-#define TODO_CFG_DEFAULTPORT "6667"
 #define TODO_CFG_PASS "foo"
 #define TODO_CFG_SERVER "irc.linux.com:6667"
 #define TODO_CFG_BINDHOST 0
-#define TODO_CFG_RETRY 15
-#define TODO_CFG_DNSRETRY 60
-#define TODO_CFG_MAXINITATTEMPTS 5
-#define TODO_CFG_MAXATTEMPTS 0
-#define TODO_CFG_DETACHAWAY "Not available, messages are logged"
-#define TODO_CFG_REJOIN 5
-#define TODO_CFG_INITRECALL 128
 
 /* global variables */
 extern char *progname;

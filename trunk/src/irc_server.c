@@ -5,7 +5,7 @@
  * irc_server.c
  *  - Handling of servers connected to the proxy
  * --
- * @(#) $Id: irc_server.c,v 1.2 2000/05/13 04:41:55 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.3 2000/05/13 05:12:52 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -52,7 +52,8 @@ static void _ircserver_reconnect(struct ircproxy *p, void *data) {
     p->server_attempts++;
   }
 
-  if (TODO_CFG_MAXATTEMPTS && (p->server_attempts >= TODO_CFG_MAXATTEMPTS)) {
+  if (DEFAULT_SERVER_MAXATTEMPTS
+      && (p->server_attempts >= DEFAULT_SERVER_MAXATTEMPTS)) {
     /* If we go over maximum reattempts, then give up */
     if (IS_CLIENT_READY(p))
       ircclient_send_notice(p, "Giving up on servers.  Time to quit");
@@ -62,8 +63,8 @@ static void _ircserver_reconnect(struct ircproxy *p, void *data) {
       ircclient_close(p);
     p->dead = 1;
   } else if (!(p->server_status & IRC_SERVER_SEEN)
-             && TODO_CFG_MAXINITATTEMPTS
-             && (p->server_attempts >= TODO_CFG_MAXINITATTEMPTS)) {
+             && DEFAULT_SERVER_MAXINITATTEMPTS
+             && (p->server_attempts >= DEFAULT_SERVER_MAXINITATTEMPTS)) {
     /* Otherwise check initial attempts if its our first time */
     if (IS_CLIENT_READY(p))
       ircclient_send_notice(p, "Giving up on servers.  Time to quit");
@@ -99,9 +100,9 @@ int ircserver_connect(struct ircproxy *p) {
   }
 
   host = 0;
-  if (dns_filladdr(p->conn_class->next_server->str, TODO_CFG_DEFAULTPORT, 1,
+  if (dns_filladdr(p->conn_class->next_server->str, DEFAULT_SERVER_PORT, 1,
                    &(p->server_addr), &host)) {
-    timer_new(p, "server_recon", TODO_CFG_DNSRETRY,
+    timer_new(p, "server_recon", DEFAULT_SERVER_DNSRETRY,
               _ircserver_reconnect, (void *)0);
     return -1;
   } else {
@@ -156,7 +157,7 @@ int ircserver_connect(struct ircproxy *p) {
       ircclient_send_notice(p, "Connection failed: %s", strerror(errno));
 
     sock_close(p->server_sock);
-    timer_new(p, "server_recon", TODO_CFG_RETRY,
+    timer_new(p, "server_recon", DEFAULT_SERVER_RETRY,
               _ircserver_reconnect, (void *)0);
   } else {
     p->server_status |= IRC_SERVER_CREATED;
@@ -208,7 +209,7 @@ int ircserver_connectfailed(struct ircproxy *p, int error) {
   sock_close(p->server_sock);
   p->server_status &= ~(IRC_SERVER_CREATED);
 
-  timer_new(p, "server_recon", TODO_CFG_RETRY,
+  timer_new(p, "server_recon", DEFAULT_SERVER_RETRY,
             _ircserver_reconnect, (void *)0);
 
   return 0;
@@ -300,8 +301,9 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     /* Restore the away message */
     if (p->awaymessage) {
       ircserver_send_command(p, "AWAY", ":%s", p->awaymessage);
-    } else if (!(p->client_status & IRC_CLIENT_AUTHED)) {
-      ircserver_send_command(p, "AWAY", ":%s", TODO_CFG_DETACHAWAY);
+    } else if (!(p->client_status & IRC_CLIENT_AUTHED)
+               && p->conn_class->awaymessage) {
+      ircserver_send_command(p, "AWAY", ":%s", p->conn_class->awaymessage);
     }
 
     /* Restore the channel list */
@@ -440,7 +442,12 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
           char *str;
 
           str = strdup(msg.params[0]);
-          timer_new(p, 0, TODO_CFG_REJOIN, _ircserver_rejoin, (void *)str);
+          if (DEFAULT_CHANNEL_REJOIN == 0) {
+            _ircserver_rejoin(p, (void *)str);
+          } else if (DEFAULT_CHANNEL_REJOIN > 0) {
+            timer_new(p, 0, DEFAULT_CHANNEL_REJOIN,
+                      _ircserver_rejoin, (void *)str);
+          }
         }
       } else {
         squelch = 0;
@@ -521,7 +528,8 @@ static int _ircserver_close(struct ircproxy *p) {
   if (IS_CLIENT_READY(p))
     ircclient_send_notice(p, "Lost connection to server");
 
-  timer_new(p, "server_recon", TODO_CFG_RETRY, _ircserver_reconnect, (void *)0);
+  timer_new(p, "server_recon", DEFAULT_SERVER_RETRY,
+            _ircserver_reconnect, (void *)0);
 
   return 0;
 }

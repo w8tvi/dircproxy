@@ -6,7 +6,7 @@
  *  - IRC protocol message parsing
  *  - IRC x!y@z parsing
  * --
- * @(#) $Id: irc_prot.c,v 1.2 2000/05/13 04:41:55 keybuk Exp $
+ * @(#) $Id: irc_prot.c,v 1.3 2000/05/13 05:12:52 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -250,7 +250,7 @@ char *ircprot_sanitize_username(const char *str) {
 
   if (!strlen(ret)) {
      free(ret);
-     ret = strdup("user");
+     ret = strdup(FALLBACK_USERNAME);
   } 
 
   return ret;
