@@ -5,7 +5,7 @@
  * irc_server.c
  *  - Handling of servers connected to the proxy
  * --
- * @(#) $Id: irc_server.c,v 1.22 2000/09/27 16:45:32 keybuk Exp $
+ * @(#) $Id: irc_server.c,v 1.23 2000/09/28 10:37:15 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -41,6 +41,7 @@ static int _ircserver_gotmsg(struct ircproxy *, const char *);
 static int _ircserver_close(struct ircproxy *);
 static void _ircserver_ping(struct ircproxy *, void *);
 static void _ircserver_stoned(struct ircproxy *, void *);
+static void _ircserver_antiidle(struct ircproxy *, void *);
 static int _ircserver_forclient(struct ircproxy *, struct ircmessage *);
 
 /* hook for timer code to reconnect to a server */
@@ -224,6 +225,11 @@ int ircserver_connected(struct ircproxy *p) {
     timer_new(p, "server_stoned", p->conn_class->server_pingtimeout,
               _ircserver_stoned, (void *)0);
   }
+
+  /* Begin anti-idle */
+  if (p->conn_class->idle_maxtime)
+    timer_new(p, "server_antiidle", p->conn_class->idle_maxtime,
+              _ircserver_antiidle, (void *)0);
 
   return 0;
 }
@@ -460,6 +466,14 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       squelch = 0;
     }
 
+  } else if (!strcasecmp(msg.cmd, "411")) {
+    /* Ignore 411 if squelch_411 */
+    if (p->squelch_411) {
+      p->squelch_411 = 0;
+    } else {
+      squelch = 0;
+    }
+ 
   } else if (!strcasecmp(msg.cmd, "PING")) {
     /* Reply to pings for the client */
     if (msg.numparams == 1) {
@@ -660,6 +674,9 @@ int ircserver_close_sock(struct ircproxy *p) {
     timer_del(p, "server_stoned");
   }
 
+  if (p->conn_class->idle_maxtime)
+    timer_del(p, "server_antiidle");
+
   return 0;
 }
 
@@ -691,6 +708,22 @@ static void _ircserver_stoned(struct ircproxy *p, void *data) {
   ircserver_send_peercmd(p, "QUIT", ":Getting off stoned server - %s %s",
                          PACKAGE, VERSION);
   _ircserver_close(p);
+}
+
+/* hook for timer code to send empty privmsg to prevent idling */
+static void _ircserver_antiidle(struct ircproxy *p, void *data) {
+  debug("Sending anti-idle");
+  p->squelch_411 = 1;
+  ircserver_send_command(p, "PRIVMSG", "");
+  timer_new(p, "server_antiidle", p->conn_class->idle_maxtime,
+            _ircserver_antiidle, (void *)0);
+}
+
+/* Reset idle timer */
+void ircserver_resetidle(struct ircproxy *p) {
+  timer_del(p, "server_antiidle");
+  timer_new(p, "server_antiidle", p->conn_class->idle_maxtime,
+            _ircserver_antiidle, (void *)0);
 }
 
 /* Check if a message is bound for us, and if so check our username and

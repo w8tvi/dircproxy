@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.21 2000/09/27 16:45:32 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.22 2000/09/28 10:37:15 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -41,6 +41,7 @@ struct ircconnclass {
   long server_maxinitattempts;
   long server_pingtimeout;
   long channel_rejoin;
+  long idle_maxtime;
   int disconnect_existing;
   int disconnect_on_detach;
   char *drop_modes;
@@ -104,6 +105,8 @@ struct ircproxy {
 
   int allow_motd;
   int allow_pong;
+  int squelch_411;
+
   char *awaymessage;
   char *modes;
   struct ircchannel *channels;
