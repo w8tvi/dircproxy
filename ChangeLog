@@ -1,3 +1,8 @@
+2003-11-26 21:12  Francois Harvey <fharvey@securiweb.net>
+ 	* irc_net.c:  you can now also enter the ip-address of the adapter 
+	you want dircproxy to bind to. 
+	(Patch from Folkert van Heusden <folkert@vanheusden.com>)
+        
 2003-11-25 21:45  Mike Taylor <bear@code-bear.com>
 
 	* irc_log.c: fixed what appear to be simple typos

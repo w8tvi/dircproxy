@@ -7,7 +7,7 @@
  *  - The list of currently active proxies
  *  - Miscellaneous IRC functions
  * --
- * @(#) $Id: irc_net.c,v 1.48 2002/12/29 21:30:12 scott Exp $
+ * @(#) $Id: irc_net.c,v 1.49 2003/11/26 20:50:23 fharvey Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -26,6 +26,7 @@
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <netdb.h>
 
 #include <dircproxy.h>
 #include "net.h"
@@ -58,13 +59,34 @@ static struct ircproxy *proxies = 0;
 /* socket we are listening for new client connections on */
 static int listen_sock = -1;
 
+#define incopy(a)       *((struct in_addr *)a)
+
 /* Create a socket to listen on. 0 = ok, other = error */
 int ircnet_listen(const char *port) {
   struct sockaddr_in local_addr;
+  /* split ip:port into 2 fields - code by folkert@vanheusden.com */
+  char *dummy = strchr(port, ':');
 
-  local_addr.sin_family = AF_INET;
-  local_addr.sin_addr.s_addr = INADDR_ANY;
-  local_addr.sin_port = dns_portfromserv(port);
+  if (dummy)
+  {
+    struct hostent *ph;
+    if (!ph)
+      return -1;
+
+    *dummy=0x00;
+
+    ph = gethostbyname(port);
+
+    local_addr.sin_family = ph -> h_addrtype;
+    local_addr.sin_addr = incopy(ph -> h_addr_list[0]);
+    local_addr.sin_port = dns_portfromserv(dummy+1);
+  }
+  else
+  {
+    local_addr.sin_family = AF_INET;
+    local_addr.sin_addr.s_addr = INADDR_ANY;
+    local_addr.sin_port = dns_portfromserv(port);
+  }
 
   if (!local_addr.sin_port)
     return -1;
