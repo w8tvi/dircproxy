@@ -7,7 +7,7 @@
  *  - Handling of log programs
  *  - Recalling from log files
  * --
- * @(#) $Id: irc_log.c,v 1.40 2002/08/17 21:22:07 scott Exp $
+ * @(#) $Id: irc_log.c,v 1.41 2002/10/17 18:45:30 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -39,21 +39,22 @@
 static char *_irclog_safe(char *);
 static void _irclog_close(struct logfile *);
 static struct logfile *_irclog_getlog(struct ircproxy *, const char *);
-static FILE *_irclog_openuser(struct ircproxy *, const char *, const char *);
+static FILE *_irclog_openuser(struct ircproxy *, const char *);
 static char *_irclog_read(FILE *);
 static void _irclog_printf(FILE *, const char *, ...);
 static int _irclog_write(struct logfile *, const char *, ...);
-static int _irclog_pipe(struct ircproxy *, const char *, const char *,
+static int _irclog_pipe(struct ircproxy *, int, const char *, const char *,
                         const char *);
-static int _irclog_writetext(struct ircproxy *, struct logfile *, const char *,
+static int _irclog_writetext(struct ircproxy *, struct logfile *, int,
                              const char *, const char *, const char *);
-static int _irclog_text(struct ircproxy *, const char *, const char *,
-                        const char *, const char *);
 static int _irclog_recall(struct ircproxy *, struct logfile *, unsigned long,
                           unsigned long, const char *, const char *);
 
 /* Log time format for strftime(3) */
 #define LOG_TIME_FORMAT "%H:%M"
+
+/* User log time format */
+#define LOG_USER_TIME_FORMAT "[%d %b %H:%M] "
 
 /* Log time/date format for strftime(3) */
 #define LOG_TIMEDATE_FORMAT "%a, %d %b %Y %H:%M:%S %z"
@@ -281,9 +282,7 @@ static struct logfile *_irclog_getlog(struct ircproxy *p, const char *to) {
 }
 
 /* Open a user copy of a log file */
-static FILE * _irclog_openuser(struct ircproxy *p, const char *to,
-                               const char *nick) {
-  struct ircchannel *c;
+static FILE *_irclog_openuser(struct ircproxy *p, const char *to) {
   struct stat statinfo;
   char *filename, *userfile;
   FILE *user_log;
@@ -291,26 +290,20 @@ static FILE * _irclog_openuser(struct ircproxy *p, const char *to,
   if (!p->conn_class->log_dir)
     return 0;
 
-  if (to) {
-    c = ircnet_fetchchannel(p, to);
-    if (c) {
-      filename = x_strdup(c->name);
-    } else {
-      char *ptr;
+  if (to == IRC_LOGFILE_ALL) {
+    return 0;
 
-      filename = x_strdup(nick);
-      ptr = strchr(filename, '!');
-      if (ptr)
-        *ptr = 0;
-    }
+  } else if (to == IRC_LOGFILE_SERVER) {
+    filename = x_strdup("SERVER");
+  
   } else {
-    filename = x_strdup("server");
+    filename = x_strdup(to);
+    irc_strlwr(filename);
   }
 
-  irc_strlwr(filename);
-
   /* Work out the copy filename, and clean up */
-  userfile = x_sprintf("%s/%s", p->conn_class->log_dir, _irclog_safe(filename));
+  userfile = x_sprintf("%s/%s.log",
+                       p->conn_class->log_dir, _irclog_safe(filename));
   free(filename);
 
   /* Make sure it's safe */
@@ -451,8 +444,8 @@ static int _irclog_write(struct logfile *log, const char *format, ...) {
 }
 
 /* Write a line through a pipe to a given program */
-static int _irclog_pipe(struct ircproxy *p, const char *to, const char *from,
-                        const char *text) {
+static int _irclog_pipe(struct ircproxy *p, int event,
+                        const char *to, const char *from, const char *text) {
   int pi[2], pid;
 
   if (!p->conn_class->log_program)
@@ -493,10 +486,10 @@ static int _irclog_pipe(struct ircproxy *p, const char *to, const char *from,
       close(pi[0]);
       return 1;
     }
-  
+
     /* Run with two arguments */
     execlp(p->conn_class->log_program, p->conn_class->log_program,
-           from, (to ? to : ""), 0);
+           irclog_flagtostr(event), to, from, 0);
 
     /* We can't get here.  Well we can, it means something went wrong */
     syscall_fail("execlp", p->conn_class->log_program, 0);
@@ -506,108 +499,19 @@ static int _irclog_pipe(struct ircproxy *p, const char *to, const char *from,
   return 0;
 }
 
-/* Write a PRIVMSG to log file(s) */
-int irclog_msg(struct ircproxy *p, const char *to, const char *nick,
+/* Write a message to log file(s) */
+int irclog_log(struct ircproxy *p, int event, const char *to, const char *from,
                const char *format, ...) {
-  char *from, *text;
+  char *text;
   va_list ap;
-  int ret;
+
+  if (!(p->conn_class->log_events & event))
+    return 0;
 
   va_start(ap, format);
-  from = x_sprintf("<%s>", nick);
   text = x_vsprintf(format, ap);
-  ret = _irclog_text(p, to, from, nick, text);
-  free(text);
-  free(from);
-  va_end(ap);
 
-  return ret;
-}
-
-/* Write a NOTICE to log file(s) */
-int irclog_notice(struct ircproxy *p, const char *to, const char *nick,
-                  const char *format, ...) {
-  char *from, *text;
-  va_list ap;
-  int ret;
-
-  va_start(ap, format);
-  from = x_sprintf("-%s-", nick);
-  text = x_vsprintf(format, ap);
-  ret = _irclog_text(p, to, from, nick, text);
-  free(text);
-  free(from);
-  va_end(ap);
-
-  return ret;
-}
-
-/* Write a CTCP to log file(s) */
-int irclog_ctcp(struct ircproxy *p, const char *to, const char *nick,
-                const char *format, ...) {
-  char *from, *text;
-  va_list ap;
-  int ret;
-
-  va_start(ap, format);
-  from = x_sprintf("[%s]", nick);
-  text = x_vsprintf(format, ap);
-  ret = _irclog_text(p, to, from, nick, text);
-  free(text);
-  free(from);
-  va_end(ap);
-
-  return ret;
-}
-
-/* Write some text to a log file */
-static int _irclog_writetext(struct ircproxy *p, struct logfile *log,
-                             const char *to, const char *from,
-                             const char *nick, const char *text) {
-  FILE *user_log;
-  time_t now;
-
-  time(&now);
-  if (p->conn_class->log_timeoffset)
-    now -= (p->conn_class->log_timeoffset * 60);
-
-  if (p->conn_class->log_timestamp) {
-    if (p->conn_class->log_relativetime) {
-      _irclog_write(log, "@%lu %s %s", now, from, text);
-    } else {
-      char tbuf[40];
-
-      strftime(tbuf, sizeof(tbuf), LOG_TIME_FORMAT, localtime(&now));
-      _irclog_write(log, "%s [%s] %s", from, tbuf, text);
-    }
-  } else {
-    _irclog_write(log, "%s %s", from, text);
-  }
-
-  /* Write to the user's copy */
-  user_log = _irclog_openuser(p, to, nick);
-  if (user_log) {
-    if (p->conn_class->log_timestamp) {
-      char tbuf[40];
-
-      strftime(tbuf, sizeof(tbuf), LOG_TIME_FORMAT, localtime(&now));
-      _irclog_printf(user_log, "%s [%s] %s\n", from, tbuf, text);
-    } else {
-      _irclog_printf(user_log, "%s %s\n", from, text);
-    }
-    fclose(user_log);
-  }
-
-  /* Write to the pipe */
-  _irclog_pipe(p, to, from, text);
-
-  return 0;
-}
-
-/* Write some text to log file(s) */
-static int _irclog_text(struct ircproxy *p, const char *to, const char *from,
-                        const char *nick, const char *text) {
-  if (to != IRC_LOG_ALL) {
+  if (to != IRC_LOGFILE_ALL) {
     struct logfile *log;
     
     /* Write to one file */
@@ -615,19 +519,104 @@ static int _irclog_text(struct ircproxy *p, const char *to, const char *from,
     if (!log)
       return -1;
 
-    _irclog_writetext(p, log, to, from, nick, text);
+    _irclog_writetext(p, log, event, to, from, text);
   } else {
     struct ircchannel *c;
 
     /* Write to all files except the private one */
-    _irclog_writetext(p, &(p->server_log), (p->nickname ? p->nickname : ""),
-                      from, nick, text);
+    _irclog_writetext(p, &(p->server_log), event, IRC_LOGFILE_SERVER,
+                      from, text);
     c = p->channels;
     while (c) {
-      _irclog_writetext(p, &(c->log), c->name, from, nick, text);
+      _irclog_writetext(p, &(c->log), event, c->name, from, text);
       c = c->next;
     }
   }
+
+  free(text);
+  va_end(ap);
+
+  return 0;
+}
+  
+/* Write some text to a log file */
+static int _irclog_writetext(struct ircproxy *p, struct logfile *log,
+                             int event, const char *to, const char *from,
+                             const char *text) {
+  const char *dest;
+  FILE *user_log;
+  time_t now;
+
+  if (to == IRC_LOGFILE_ALL) {
+    return -1;
+  } else if (to == IRC_LOGFILE_SERVER) {
+    dest = "SERVER";
+  } else {
+    dest = to;
+  }
+ 
+  time(&now);
+  if (p->conn_class->log_timeoffset)
+    now -= (p->conn_class->log_timeoffset * 60);
+  
+  _irclog_write(log, "%lu %s %s %s %s",
+                now, irclog_flagtostr(event), dest, from, text);
+
+  /* Write to the user's copy FIXME do this properly */
+  user_log = _irclog_openuser(p, to);
+  if (user_log) {
+    char tbuf[40];
+    
+    if (p->conn_class->log_timestamp) {
+      strftime(tbuf, sizeof(tbuf), LOG_USER_TIME_FORMAT, localtime(&now));
+    } else {
+      tbuf[0] = '0';
+    }
+
+    /* Print a nicely formatted entry to the log file */
+    if (event & IRC_LOG_MSG) {
+      _irclog_printf(user_log, "%s<%s> %s\n", tbuf, from, text);
+    } else if (event & IRC_LOG_NOTICE) {
+      _irclog_printf(user_log, "%s-%s- %s\n", tbuf, from, text);
+    } else if (event & IRC_LOG_ACTION) {
+      char *nick, *ptr;
+
+      nick = x_strdup(from);
+      ptr = strchr(nick, '!');
+      if (ptr)
+        *ptr = 0;
+
+      _irclog_printf(user_log, "%s* %s %s\n", tbuf, nick, text);
+      free(nick);
+    } else if (event & IRC_LOG_CTCP) {
+      _irclog_printf(user_log, "%s[%s] %s\n", tbuf, from, text);
+    } else if (event & IRC_LOG_JOIN) {
+      _irclog_printf(user_log, "%s--> %s\n", tbuf, text);
+    } else if (event & IRC_LOG_PART) {
+      _irclog_printf(user_log, "%s<-- %s\n", tbuf, text);
+    } else if (event & IRC_LOG_KICK) {
+      _irclog_printf(user_log, "%s<-- %s\n", tbuf, text);
+    } else if (event & IRC_LOG_QUIT) {
+      _irclog_printf(user_log, "%s<-- %s\n", tbuf, text);
+    } else if (event & IRC_LOG_NICK) {
+      _irclog_printf(user_log, "%s--- %s\n", tbuf, text);
+    } else if (event & IRC_LOG_MODE) {
+      _irclog_printf(user_log, "%s--- %s\n", tbuf, text);
+    } else if (event & IRC_LOG_TOPIC) {
+      _irclog_printf(user_log, "%s--- %s\n", tbuf, text);
+    } else if (event & IRC_LOG_CLIENT) {
+      _irclog_printf(user_log, "%s*** %s\n", tbuf, text);
+    } else if (event & IRC_LOG_SERVER) {
+      _irclog_printf(user_log, "%s*** %s\n", tbuf, text);
+    } else if (event & IRC_LOG_ERROR) {
+      _irclog_printf(user_log, "%s*** %s\n", tbuf, text);
+    }
+      
+    fclose(user_log);
+  }
+
+  /* Write to the pipe */
+  _irclog_pipe(p, event, dest, from, text);
 
   return 0;
 }
@@ -883,4 +872,74 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
     fseek(file, 0, SEEK_END);
   }
   return 0;
+}
+
+/* Convert a textual flag name into the flag's value */
+int irclog_strtoflag(const char *str) {
+  if (!strcasecmp(str, "message")) {
+    return IRC_LOG_MSG;
+  } else if (!strcasecmp(str, "notice")) {
+    return IRC_LOG_NOTICE;
+  } else if (!strcasecmp(str, "action")) {
+    return IRC_LOG_ACTION;
+  } else if (!strcasecmp(str, "ctcp")) {
+    return IRC_LOG_CTCP;
+  } else if (!strcasecmp(str, "join")) {
+    return IRC_LOG_JOIN;
+  } else if (!strcasecmp(str, "part")) {
+    return IRC_LOG_PART;
+  } else if (!strcasecmp(str, "kick")) {
+    return IRC_LOG_KICK;
+  } else if (!strcasecmp(str, "quit")) {
+    return IRC_LOG_QUIT;
+  } else if (!strcasecmp(str, "nick")) {
+    return IRC_LOG_NICK;
+  } else if (!strcasecmp(str, "mode")) {
+    return IRC_LOG_MODE;
+  } else if (!strcasecmp(str, "topic")) {
+    return IRC_LOG_TOPIC;
+  } else if (!strcasecmp(str, "client")) {
+    return IRC_LOG_CLIENT;
+  } else if (!strcasecmp(str, "server")) {
+    return IRC_LOG_SERVER;
+  } else if (!strcasecmp(str, "error")) {
+    return IRC_LOG_ERROR;
+  } else {
+    return 0;
+  }
+}
+
+/* Convert a flag into a textual flag name */
+char *irclog_flagtostr(int flag) {
+  if (flag & IRC_LOG_MSG) {
+    return "message";
+  } else if (flag & IRC_LOG_NOTICE) {
+    return "notice";
+  } else if (flag & IRC_LOG_ACTION) {
+    return "action";
+  } else if (flag & IRC_LOG_CTCP) {
+    return "ctcp";
+  } else if (flag & IRC_LOG_JOIN) {
+    return "join";
+  } else if (flag & IRC_LOG_PART) {
+    return "part";
+  } else if (flag & IRC_LOG_KICK) {
+    return "kick";
+  } else if (flag & IRC_LOG_QUIT) {
+    return "quit";
+  } else if (flag & IRC_LOG_NICK) {
+    return "nick";
+  } else if (flag & IRC_LOG_MODE) {
+    return "mode";
+  } else if (flag & IRC_LOG_TOPIC) {
+    return "topic";
+  } else if (flag & IRC_LOG_CLIENT) {
+    return "client";
+  } else if (flag & IRC_LOG_SERVER) {
+    return "server";
+  } else if (flag & IRC_LOG_ERROR) {
+    return "error";
+  } else {
+    return "(unknown)";
+  }
 }
