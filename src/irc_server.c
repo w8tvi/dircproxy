@@ -6,7 +6,7 @@
  *  - Reconnection to servers
  *  - Functions to send data to servers in the correct protocol format
  * --
- * @(#) $Id: irc_server.c,v 1.66 2004/02/14 09:05:12 fharvey Exp $
+ * @(#) $Id: irc_server.c,v 1.67 2004/02/15 09:18:35 fharvey Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -1401,7 +1401,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
         /* Don't log DCC or ACTION twice :) */
         if (strcmp(cmsg.cmd, "DCC") && strcmp(cmsg.cmd, "ACTION")) {
           irclog_log(p, IRC_LOG_CTCP, logdest, msg.src.orig,
-                     "Received CTCP %s", cmsg.params[0]);
+                     "Received CTCP %s", cmsg.cmd);
         }
 
         ircprot_freectcp(&cmsg);
