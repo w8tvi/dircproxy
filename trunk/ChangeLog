@@ -1,3 +1,268 @@
+2000-05-24 21:29  Scott James Remnant <scott@netsplit.com>
+
+	* conf/dircproxy.conf, conf/dircproxyrc.example, src/dircproxy.h:
+        Changed the default rejoin to 15 seconds
+
+2000-05-24 21:29  Scott James Remnant <scott@netsplit.com>
+
+	* src/main.c: Oops, ignored the listen_port config variable
+
+2000-05-24 21:26  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: Updated the todo
+
+2000-05-24 21:21  Scott James Remnant <scott@netsplit.com>
+
+	* src/: irc_client.c, irc_net.c, irc_net.h: Added code so that an
+        inetd socket doesn't linger
+
+2000-05-24 21:08  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: Updated the TODO file
+
+2000-05-24 21:06  Scott James Remnant <scott@netsplit.com>
+
+	* src/main.c: Close cleanly on a ^C
+
+2000-05-24 21:03  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_log.c: Use 'dircproxy' as the source of notices
+
+2000-05-24 21:02  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: I use notice to notify of nasty system things,
+        so I might as well make it come from dircproxy itself.
+
+2000-05-24 20:58  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_server.c: Oops, msg.cmd is a string not an integer
+
+2000-05-24 20:58  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: Neatened the motd output
+
+2000-05-24 20:54  Scott James Remnant <scott@netsplit.com>
+
+	* src/cfgfile.c: Fixed it so it doesn't add the server list
+        backwards
+
+2000-05-24 20:53  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_net.c: Fixed the bug where you are rejoined to channels
+        in the opposite order to that which you joined them
+
+2000-05-24 20:50  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: Fixed the output so it doesn't keep repeating
+        itself
+
+2000-05-24 20:48  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_net.c: Bit of a bug, forgot to increment l, so if you got
+	kicked the last channel you joined, it kinda forgot about the rest
+        (oops)
+
+2000-05-24 20:48  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_log.c: Whoa, scary, I wasn't freeing any log memory -
+        talk about memleak! sheesh!
+
+2000-05-24 20:47  Scott James Remnant <scott@netsplit.com>
+
+	* src/memdebug.c: Copied across the neatening from maestro -
+	specifically this adds a little bit of code to show what is stored
+        in the memory still allocated
+
+2000-05-24 20:31  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_server.c: Fixed a couple of typo-bugs
+
+2000-05-24 20:30  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_log.h: Removed dead function definition
+
+2000-05-24 20:29  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_server.c: Added code for non-recoverable JOIN errors
+
+2000-05-24 20:25  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_server.c: Removed the auto-rejoin code (its in irc_net.c
+	now)
+	Made a special case for the 437 numeric, because it can be either
+	nickname or channel related.
+	Added code so that while a client is detached, we attempt to rejoin
+	channels if its full/invite only/banned/juped
+	Also on join, we can reactive a channel, and then spool the log
+        back to the client (in case of kick).
+
+2000-05-24 20:22  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_client.c: Make log directory on successful first auth now
+	- much better place to do it.  Also make the misclog when we loose
+	the client.
+	Added code to spool stats about sizes of log files and channels
+        user was on in the message of the day
+
+2000-05-24 20:20  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_net.c: Moved the code to rejoin channels automatically to
+	here.
+	Moved the misclog code about, this log only gets created when the
+        user disconnects now and then is removed when they connect.
+
+2000-05-24 20:18  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_net.h: New 'inactive' variable for channels.	This is set
+	to 1 when we are removed from the channel while a client isn't
+	connected.  All the time this is one we attempt to rejoin the
+	channel every few seconds until the join is successfull or the
+        client comes back.
+
+2000-05-24 20:17  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_log.c: When closing a log, make sure we set 'open' to 0
+
+2000-05-24 19:11  Scott James Remnant <scott@netsplit.com>
+
+	* src/sprintf.c: Need to have some memory allocated to avoid buffer
+        underruns, also need to null terminate after strncpy()
+
+2000-05-24 19:05  Scott James Remnant <scott@netsplit.com>
+
+	* src/sprintf.c: Fixed a few bugs
+
+2000-05-24 19:02  Scott James Remnant <scott@netsplit.com>
+
+	* src/sprintf.c: Added in an (almost) complete implementation of
+        vsprintf()
+
+2000-05-24 19:01  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in: When in debug mode, don't even detect vsnprintf(),
+        use our own implementation of vsprintf()
+
+2000-05-24 18:30  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in: [ Bug #106153 ] compiler error, partial make fix
+	Added check to see whether socket() is in -lsocket and whether
+        gethostbyname() is in -lnsl
+
+2000-05-24 18:18  Scott James Remnant <scott@netsplit.com>
+
+	* README: There is a config file now :o)
+
+2000-05-24 18:09  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: Updated the TODO file with whats left to do
+
+2000-05-24 18:05  Scott James Remnant <scott@netsplit.com>
+
+	* src/: irc_client.c, irc_log.c, irc_prot.c, irc_server.c,
+	timers.c: Removed a lot of the printf() debug code, that which I
+        still want to see I've placed inside #ifdef DEBUG stuff
+
+2000-05-24 17:57  Scott James Remnant <scott@netsplit.com>
+
+	* src/: irc_client.c, irc_net.h, irc_server.c: Took out all the
+	hacky defines and replaced them with the nice sexy config file
+        variables
+
+2000-05-24 17:52  Scott James Remnant <scott@netsplit.com>
+
+	* src/: irc_net.c, irc_net.h: Added new function to clean up a
+        connection class structure, and made expunge clean them up too
+
+2000-05-24 17:45  Scott James Remnant <scott@netsplit.com>
+
+	* src/main.c: Whoohoo, lets read some config file baby!
+
+2000-05-24 17:42  Scott James Remnant <scott@netsplit.com>
+
+	* src/main.c: Changed the command line options a bit, especially
+	added checks whether to use the global config file or not, and
+	alternate local config file.  I've decided not to do all the -p/-s
+	stuff because it'll show up in a 'ps' list which isn't a good idea!
+
+2000-05-24 17:39  Scott James Remnant <scott@netsplit.com>
+
+	* src/: dircproxy.h, main.c: Added the global variables and
+	initialise them to the values in dircproxy.h Removed those horrid
+        TODO_CFG things finally
+
+2000-05-24 17:34  Scott James Remnant <scott@netsplit.com>
+
+	* src/main.c: Using an ALARM single to stop the main loop was
+	pretty pointless, might as well just use the TERM signal which will
+        let dircproxy clean itself up if its 'kill'd
+
+2000-05-24 17:31  Scott James Remnant <scott@netsplit.com>
+
+	* src/dircproxy.h: Fixed a mistake in the comments
+
+2000-05-24 17:30  Scott James Remnant <scott@netsplit.com>
+
+	* src/: Makefile.am, dircproxy.h: Added some defines to set the
+        name and locations of the configuration files
+
+2000-05-24 17:28  Scott James Remnant <scott@netsplit.com>
+
+	* src/Makefile.am: Added the new cfgfile.c and .h files to the
+        Makefile
+
+2000-05-24 17:23  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in: Changing CVS version to 0.6.0 seeing as thats the
+        version I said the config file code would be in
+
+2000-05-24 17:22  Scott James Remnant <scott@netsplit.com>
+
+	* Makefile.am, configure.in: Added the new conf directory to
+        Makefile.am and configure.in
+
+2000-05-24 17:18  Scott James Remnant <scott@netsplit.com>
+
+	* src/: cfgfile.c, cfgfile.h: Wrote the code to read in a
+        configuration file
+
+2000-05-24 17:16  Scott James Remnant <scott@netsplit.com>
+
+	* conf/: .cvsignore, Makefile.am, dircproxy.conf,
+	dircproxyrc.example: Written the default configuration files, and
+        everything.  So adding them to CVS :o)
+
+2000-05-24 12:38  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: More stuff todo, gonna work on a lot of this today
+
+2000-05-14 20:56  Scott James Remnant <scott@netsplit.com>
+
+	* TODO: Updated the TODO file based on user-feedback and my own
+        grudges
+
+2000-05-14 20:55  Scott James Remnant <scott@netsplit.com>
+
+	* README: Added a quick meme that there is no config file at the
+        moment ...
+
+Also fixed the bugs url so its not https
+
+2000-05-13 17:05  Scott James Remnant <scott@netsplit.com>
+
+	* AUTHORS.map, RELEASING: Added a file detailing the steps to do a
+	new release, to make sure I do it right.  Also added the
+        AUTHORS.map file cvs2cl.pl uses.
+
+2000-05-13 16:20  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in: CVS version becomes 0.5.5 (although potentially
+	might be 0.6 if no more bugs appear and I can work on the config
+        file).
+
+2000-05-13 16:14  Scott James Remnant <scott@netsplit.com>
+
+	* ChangeLog, configure.in: Version 0.5.4 released.
+
 2000-05-13 16:11  Scott James Remnant <scott@netsplit.com>
 
 	* src/main.c: Logic on the -D option was wrong, should set
