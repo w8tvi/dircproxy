@@ -19,6 +19,7 @@ Questions
      2.3  Compilation fails with "xxx.h: No such file or directory"
      2.4  Compilation fails with "undefined reference to `xxx'"
      2.5  What does --enable-debug do?
+     2.6  Is dircproxy supported on Windows 2000?
 
 3.  Usage
      3.1  What are configuration classes?
@@ -39,6 +40,10 @@ Questions
      3.12 Can one dircproxy connection class be used to connect to
           multiple servers?
      3.13 Why doesn't dircproxy ever keep my nickname?
+     3.14 Can I get dircproxy to automatically connect to the server
+          without connecting at least once?
+     3.15 Does dircproxy support user scripts to extend it?
+     3.16 Does dircproxy provide auto-op or auto-voice support?
 
 4.  Logging
      4.1  Why does dircproxy by default log channels while I'm
@@ -225,6 +230,13 @@ Answers
      to use.  However, for people wanting to do dircproxy code work
      its invaluable.
 
+ 2.6  Is dircproxy supported on Windows 2000?
+
+     No, it is not supported and never will be supported.  Get a real
+     operating system(tm) :o)
+
+     However, I've heard it works just fine.
+
 
  3.1  What are configuration classes?
 
@@ -386,6 +398,31 @@ Answers
      attempt to restore the nickname once per minute.  You can adjust
      this by changing the 'NICK_GUARD_TIME' #define in src/dircproxy.h.
 
+ 3.14 Can I get dircproxy to automatically connect to the server
+      without connecting at least once?
+
+     No.  dircproxy was never written to connect to an IRC server without
+     seeing an IRC client first.
+
+  3.15 Does dircproxy support user scripts to extend it?
+
+     No.  dircproxy is intended purely as an IRC proxy.  Scripting
+     support would make it too much like a bot, if you want that
+     kind of thing then a bot would serve you much better.
+
+     Go download eggdrop, and get yourself K-Lined from your IRC
+     server. :o)
+     
+  3.16 Does dircproxy provide auto-op or auto-voice support?
+
+     No, again this functionality would be better supplied by a bot.
+
+     Chris Crowther has writtne a patch to provide this kind
+     of support using dircproxy.  This isn't an official patch,
+     however it is available from:
+
+         http://www.shad0w.org.uk/code/
+
 
  4.1  Why does dircproxy by default log channels while I'm attached?
 
@@ -528,9 +565,14 @@ Answers
                 -(3) DCC ACCEPT->
                 <---(4) accept---
 
-     Of course, with dircproxy proxying, this is too late, it's already
-     accepted the sender's offer and is receiving the file from the
-     beginning.
+     Of course, with dircproxy proxying, this is too late, it's
+     already accepted the sender's offer and is receiving the file
+     from the beginning.
+
+     Ryan Tolboom has written a patch to enable DCC RESUME for
+     files that dircproxy has captured, this is available from:
+
+         http://www-ec.njit.edu/~rxt1077/dircproxy-resume/
 
 
  6.1  How do I change what username is presented on IRC?
