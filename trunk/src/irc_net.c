@@ -8,7 +8,7 @@
  *  - The list of currently active proxies
  *  - Miscellaneous IRC functions
  * --
- * @(#) $Id: irc_net.c,v 1.39 2000/11/24 13:44:40 keybuk Exp $
+ * @(#) $Id: irc_net.c,v 1.40 2000/11/28 12:14:34 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -345,7 +345,7 @@ struct ircchannel *ircnet_freechannel(struct ircchannel *chan) {
 
 /* Free an ircproxy structure */
 static void _ircnet_freeproxy(struct ircproxy *p) {
-  debug("Freeing proxy %p", p);
+  debug("Freeing proxy");
 
   if (p->server_status & IRC_SERVER_CONNECTED) {
     ircserver_send_peercmd(p, "QUIT",

@@ -8,7 +8,7 @@
  *  - The list of currently active DCC proxies
  *  - Miscellaneous DCC functions
  * --
- * @(#) $Id: dcc_net.c,v 1.5 2000/11/10 15:06:20 keybuk Exp $
+ * @(#) $Id: dcc_net.c,v 1.6 2000/11/28 12:14:34 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -274,7 +274,7 @@ static void _dccnet_accept(struct dccproxy *p, int sock) {
 
 /* Free a DCC proxy */
 static void _dccnet_free(struct dccproxy *p) {
-  debug("Freeing DCC proxy %p", p);
+  debug("Freeing DCC proxy");
 
   if (p->sender_status & DCC_SENDER_CREATED)
     net_close(p->sender_sock);
