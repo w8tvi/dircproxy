@@ -5,7 +5,7 @@
  * main.c
  *  - Program main loop
  * --
- * @(#) $Id: main.c,v 1.11 2000/05/25 22:23:18 keybuk Exp $
+ * @(#) $Id: main.c,v 1.12 2000/06/20 13:40:23 keybuk Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ static int _print_version(void);
 static int _print_help(void);
 
 /* This is so "ident" and "what" can query version etc - useful (not) */
-const char *rcsid = "@(#) $Id: main.c,v 1.11 2000/05/25 22:23:18 keybuk Exp $";
+const char *rcsid = "@(#) $Id: main.c,v 1.12 2000/06/20 13:40:23 keybuk Exp $";
 
 /* The name of the program */
 char *progname;
@@ -311,11 +311,9 @@ static int _print_help(void) {
   fprintf(stderr, "  -D, --no-daemon         Remain in the foreground\n");
   fprintf(stderr, "  -I, --inetd             Being run from inetd "
                                             "(implies -D)\n");
-  fprintf(stderr, "  -G, --no-global-config  Do not read the global "
-                                            "configuration file\n");
   fprintf(stderr, "  -P, --listen-port=PORT  Port to listen for clients on\n");
-  fprintf(stderr, "  -f, --config-file=FILE  Use this file instead of "
-                                            "~/%s\n\n", USER_CONFIG_FILENAME);
+  fprintf(stderr, "  -f, --config-file=FILE  Use this file instead of the"
+                                            "default\n\n");
 
   return 0;
 }
