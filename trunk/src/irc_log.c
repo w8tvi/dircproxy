@@ -7,7 +7,7 @@
  *  - Handling of log programs
  *  - Recalling from log files
  * --
- * @(#) $Id: irc_log.c,v 1.42 2002/10/20 16:38:58 scott Exp $
+ * @(#) $Id: irc_log.c,v 1.43 2002/10/22 13:25:45 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -63,6 +63,30 @@ static int _irclog_recall(struct ircproxy *, struct logfile *, unsigned long,
 #ifndef MIN
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 #endif /* MIN */
+
+/* Translation table between the textual flags we use for logging and the
+ * internal #defines */
+struct flaginfo {
+	char *name;
+	int   value;
+};
+static struct flaginfo flagtable[] = {
+	{ "message", IRC_LOG_MSG },
+	{ "notice", IRC_LOG_NOTICE },
+	{ "action", IRC_LOG_ACTION },
+	{ "ctcp", IRC_LOG_CTCP },
+	{ "join", IRC_LOG_JOIN },
+	{ "part", IRC_LOG_PART },
+	{ "kick", IRC_LOG_KICK },
+	{ "quit", IRC_LOG_QUIT },
+	{ "nick", IRC_LOG_NICK },
+	{ "mode", IRC_LOG_MODE },
+	{ "topic", IRC_LOG_TOPIC },
+	{ "client", IRC_LOG_CLIENT },
+	{ "server", IRC_LOG_SERVER },
+	{ "error", IRC_LOG_ERROR },
+	{ NULL, IRC_LOG_NONE }
+};
 
 /* Create a temporary directory for log files */
 int irclog_maketempdir(struct ircproxy *p) {
@@ -874,72 +898,35 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
   return 0;
 }
 
-/* Convert a textual flag name into the flag's value */
-int irclog_strtoflag(const char *str) {
-  if (!strcasecmp(str, "message")) {
-    return IRC_LOG_MSG;
-  } else if (!strcasecmp(str, "notice")) {
-    return IRC_LOG_NOTICE;
-  } else if (!strcasecmp(str, "action")) {
-    return IRC_LOG_ACTION;
-  } else if (!strcasecmp(str, "ctcp")) {
-    return IRC_LOG_CTCP;
-  } else if (!strcasecmp(str, "join")) {
-    return IRC_LOG_JOIN;
-  } else if (!strcasecmp(str, "part")) {
-    return IRC_LOG_PART;
-  } else if (!strcasecmp(str, "kick")) {
-    return IRC_LOG_KICK;
-  } else if (!strcasecmp(str, "quit")) {
-    return IRC_LOG_QUIT;
-  } else if (!strcasecmp(str, "nick")) {
-    return IRC_LOG_NICK;
-  } else if (!strcasecmp(str, "mode")) {
-    return IRC_LOG_MODE;
-  } else if (!strcasecmp(str, "topic")) {
-    return IRC_LOG_TOPIC;
-  } else if (!strcasecmp(str, "client")) {
-    return IRC_LOG_CLIENT;
-  } else if (!strcasecmp(str, "server")) {
-    return IRC_LOG_SERVER;
-  } else if (!strcasecmp(str, "error")) {
-    return IRC_LOG_ERROR;
-  } else {
-    return 0;
-  }
+/* irclog_strtoflag
+ * Convert a textual flag name into the equivalent #define value
+ */
+int
+irclog_strtoflag(const char *str)
+{
+	struct flaginfo *fi;
+
+	for (fi = flagtable; fi->name != NULL; fi++) {
+		if (!strcasecmp(str, fi->name))
+			return fi->value;
+	}
+
+	return IRC_LOG_NONE;
 }
 
-/* Convert a flag into a textual flag name */
-char *irclog_flagtostr(int flag) {
-  if (flag & IRC_LOG_MSG) {
-    return "message";
-  } else if (flag & IRC_LOG_NOTICE) {
-    return "notice";
-  } else if (flag & IRC_LOG_ACTION) {
-    return "action";
-  } else if (flag & IRC_LOG_CTCP) {
-    return "ctcp";
-  } else if (flag & IRC_LOG_JOIN) {
-    return "join";
-  } else if (flag & IRC_LOG_PART) {
-    return "part";
-  } else if (flag & IRC_LOG_KICK) {
-    return "kick";
-  } else if (flag & IRC_LOG_QUIT) {
-    return "quit";
-  } else if (flag & IRC_LOG_NICK) {
-    return "nick";
-  } else if (flag & IRC_LOG_MODE) {
-    return "mode";
-  } else if (flag & IRC_LOG_TOPIC) {
-    return "topic";
-  } else if (flag & IRC_LOG_CLIENT) {
-    return "client";
-  } else if (flag & IRC_LOG_SERVER) {
-    return "server";
-  } else if (flag & IRC_LOG_ERROR) {
-    return "error";
-  } else {
-    return "(unknown)";
-  }
+/* irclog_flagtostr
+ * Convert a flag #define value into the equivalent textual name.  Returns the
+ * empty string if the flag does not exist.
+ */
+const char *
+irclog_flagtostr(int flag)
+{
+	struct flaginfo *fi;
+
+	for (fi = flagtable; fi->name != NULL; fi++) {
+		if (fi->value == flag)
+			return fi->name;
+	}
+
+	return "";
 }
