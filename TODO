@@ -1,20 +1,21 @@
 For version 0.8.4:
 
-	* Include DCC fixes
+	* DCC's don't appear to be working correctly.  Should probably take
+	  all the data off the incoming queue and place it in a buffer inside
+	  the dccproxy.  Send to the sendee from that buffer instead.  Also
+	  have a new sender_state, SENDER_GONE - for when they've sent
+	  it all, and disconnected - but the proxy is still active (still
+	  sending to sendee).
 	
-	* Modes to automatically set when we connect to the server (whether
-	  the client gives them to us or not)
+	* A very simple method of automatically opping people and voicing
+	  people on channels you are on.
 
-	    initial_modes "i"
+	    auto_op "#lush,#gayteensex T-Shirt*!*scott@project.linux.com"
+	    auto_op "*!aaron@*.ntl.com"
 
-	* Fixed 'from' that can accept hostnames -or- IP addresses.
-
-	* Better warnings from the config file if its still considered
-	  valid.
-
-	* /DIRCPROXY JUMP
-	  without specifying a num will just jump to the next server in
-	  the list.
+	    # first matching voice/op takes priority
+	    auto_voice "#demon pbook!*"
+	    auto_op "#demon *"
 
 
 For version 0.8.5:
@@ -23,11 +24,11 @@ For version 0.8.5:
 	  /DIRCPROXY DISCONNECT (disconnect someone) and
 	  /DIRCPROXY KILL (politely ask someone to leave :) for admins.
 
-	* dircproxy to send a number of ctcp's to the client on first
-	  connection, then use those as replies when the client is detached.
-
 	* Change the away message every hour to indicate how long they've
 	  been away
+
+	* dircproxy to send a number of ctcp's to the client on first
+	  connection, then use those as replies when the client is detached.
 
 	* Ping the client every now and then in case the server doesn't.  To
 	  make sure the line hasn't dropped between the tw.
@@ -60,18 +61,8 @@ For version 0.9.0:
 	  seteuid().  Otherwise it'll issue a warning saying it couldn't
 	  fix the username.
 
-	* A very simple method of automatically opping people and voicing
-	  people on channels you are on.
 
-	    auto_op "#lush,#gayteensex T-Shirt*!*scott@project.linux.com"
-	    auto_op "*!aaron@*.ntl.com"
-
-	    # first matching voice/op takes priority
-	    auto_voice "#demon pbook!*"
-	    auto_op "#demon *"
-
-
-To be written into 1.1.x for 1.2.0:
+Maybe to be written into 1.1.x for 1.2.0:
 
 	* mIRC DCC RESUME support.  This will probably happen once I'm sure
 	  dircproxy supports the major UNIX IRC client DCC weirdisms.  Then
