@@ -24,7 +24,7 @@
 #     What port should dircproxy listen for connections from IRC clients
 #     on?
 #
-#     This can be a numeric port number, of a service name from /etc/services
+#     This can be a numeric port number, or a service name from /etc/services
 #
 #listen_port 57000
 
