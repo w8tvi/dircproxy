@@ -5,7 +5,7 @@
  * dns.c
  *  - Some simple functions to do DNS lookups etc
  * --
- * @(#) $Id: dns.c,v 1.1 2000/05/13 02:13:42 keybuk Exp $
+ * @(#) $Id: dns.c,v 1.2 2000/05/13 04:41:55 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -32,10 +32,8 @@ int dns_addrfromhost(const char *name, struct in_addr *result, char **canon) {
   info = gethostbyname(name);
   if (info) {
     result->s_addr = *((unsigned long *) info->h_addr);
-    if (canon) {
-      *canon = (char *)malloc(strlen(info->h_name) + 1);
-      strcpy(*canon, info->h_name);
-    }
+    if (canon)
+      *canon = strdup(info->h_name);
   } else {
     return -1;
   }
@@ -50,14 +48,9 @@ char *dns_hostfromaddr(struct in_addr addr) {
 
   info = gethostbyaddr((char *)&addr, sizeof(struct in_addr), AF_INET);
   if (info) {
-    str = (char *)malloc(strlen(info->h_name) + 1);
-    strcpy(str, info->h_name);
+    str = strdup(info->h_name);
   } else {
-    char *tmp;
-
-    tmp = inet_ntoa(addr);
-    str = (char *)malloc(strlen(tmp) + 1);
-    strcpy(str, tmp);
+    str = strdup(inet_ntoa(addr));
   }
 
   return str;
@@ -78,8 +71,7 @@ char *dns_servfromport(short port) {
 
   entry = getservbyport(port, "tcp");
   if (entry) {
-    str = (char *)malloc(strlen(entry->s_name) + 1);
-    strcpy(str, entry->s_name);
+    str = strdup(entry->s_name);
   } else {
     str = x_sprintf("%d", port);
   }
@@ -98,8 +90,7 @@ int dns_filladdr(const char *name, const char *defaultport, int allowcolon,
   if (defaultport)
     result->sin_port = dns_portfromserv(defaultport);
 
-  addr = (char *)malloc(strlen(name) + 1);
-  strcpy(addr, name);
+  addr = strdup(name);
 
   if (allowcolon) {
     port = strchr(addr, ':');
