@@ -1,10 +1,6 @@
-For the next release (0.7.0)
+Stuff to do:
 
-	* Maximum log sizes
-
-	* Fix FreeBSD compilation
-
-	* Fix ia64 compilation
+	* Nothing yet
 
 
 Whenever time permits:
@@ -28,12 +24,4 @@ Would be nice:
 	* How can we change the username being presented?  Team up with an
 	  identd perhaps, or we could fork(), setuid() and then run the
 	  function to make new listening socket.
-
-
-Odd Behaviour that might need sorting:
-
-	* If you connect to a server that's down, then disconnect, and try
-	  to reconnect, you won't be allowed to.  This is because your
-	  connection class is tied up reconnecting to the server.  The
-	  way around this is to set server_maxinitattempts to 0 of course.
 

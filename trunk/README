@@ -22,11 +22,21 @@ Features
  o Can bind proxy sessions to any IP on the server
  o Uses IRC server passwords to authenticate.  No need to use any
    special commands
+ o Logs are stored on disk in human-readable format, either in a temporary
+   directory, or stored for prosperity in a directory of your choice.
+ o Logs can contain everything that occurs, or just what happens while you're
+   detached.
  o Logs are spooled in ordinary IRC protocol format for optimal reading
  o Logs can be automatically spooled on reconnect, to fill your window
    up giving you a "scroll-back"
+ o Logs can be manually recalled and played back using a special command.
+ o Log file size can be limited automatically
+ o Messages can be timestamped in log files.
+ o Can connect to servers that require a password
  o Will automatically reconnect to the server if connection is dropped
  o Will automatically rejoin channels for you if you're kicked
+ o Will reconect to servers if they become "stoned".
+ o Can drop modes for you when you detach
  o Sets you /AWAY when you detach with a custom away message
  o Host and Password based connection security
  o Easy to configure and get going

@@ -1,6 +1,25 @@
 NEWS about changes for existing users.
 --------------------------------------
 
+Version 0.7.0 - Fri Sep  1 15:00:00 BST 2000
+
+	* The global configuration file is now called dircproxyrc not
+	  dircproxy.conf
+
+	* dircproxy is now installed in 'bin' not 'sbin', its a user
+	  program after all.
+
+	* Passwords for connection classes must be encrypted in the
+	  configuration file using the crypt() function (or contrib/crypt),
+	  if you don't like this then edit src/dircproxy.h and turn it off,
+	  but thats silly.
+
+	* /DQUIT is gone, try /DIRCPROXY QUIT instead
+
+	* Try /DIRCPROXY HELP
+
+	* Try "man dircproxy" :-)
+
 Version 0.6.2 - Mon Jun 26 16:58:00 BST 2000
 
 	* Changed the logic behind how configuration files are loaded.
