@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.57 2000/10/16 10:49:28 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.58 2000/10/16 10:51:25 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -745,7 +745,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
                                     "(detach from dircproxy)");
               if (p->conn_class->allow_persist)
                 ircclient_send_notice(p, "-     PERSIST   "
-                                      "(inetd: keep session after detach)");
+                                      "(keep session after detach)");
               ircclient_send_notice(p, "-     QUIT      "
                                     "(end dircproxy session)");
               if (p->conn_class->allow_die)
