@@ -31,6 +31,24 @@
 #
 #listen_port 57000
 
+# client_timeout
+#     Maxmimum amount of time (in seconds) a client can take to connect to
+#     dircproxy and provide their password and nickname etc.
+#
+#client_timeout 60
+
+# connect_timeout
+#     Maximum amount of time (in seconds) a client has to provide a server
+#     to connect to after they've logged in.  This only applies if
+#     server_autoconnect is no for that class.
+#
+#connect_timeout 60
+
+# dns_timeout
+#     Maximum amount of time (in seconds) to wait for a reply from a DNS
+#     server.  If the time exceeds this then the lookup is cancelled.
+#
+#dns_timeout 20
 
 
 

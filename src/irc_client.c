@@ -6,7 +6,7 @@
  *  - Handling of clients connected to the proxy
  *  - Functions to send data to the client in the correct protocol format
  * --
- * @(#) $Id: irc_client.c,v 1.53 2000/10/13 13:27:09 keybuk Exp $
+ * @(#) $Id: irc_client.c,v 1.54 2000/10/13 13:35:42 keybuk Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -82,7 +82,7 @@ static void _ircclient_connected2(struct ircproxy *p, void *data,
 
   debug("Client connected from %s", p->client_host);
 
-  timer_new(p, "client_auth", CLIENT_TIMEOUT, _ircclient_timedout, (void *)0);
+  timer_new(p, "client_auth", g.client_timeout, _ircclient_timedout, (void *)0);
 }
 
 /* Called when a client sends us stuff.  -1 = closed, 0 = done */
@@ -768,7 +768,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
                                 "server");
 
           /* This won't delete an existing timer */
-          timer_new(p, "client_connect", CONNECT_TIMEOUT,
+          timer_new(p, "client_connect", g.connect_timeout,
                     _ircclient_timedout, (void *)1);
         }
       } else if (!IS_SERVER_READY(p)) {
