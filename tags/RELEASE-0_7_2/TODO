@@ -1,0 +1,22 @@
+Stuff to do/fix in 0.7.x:
+
+	* Nothing yet
+
+
+Stuff for 0.8.0:
+
+	* DCC proxying/rewriting.  Not entirely sure what this involves,
+	  probably having listening sockets, rewriting addresses and all
+	  sorts of things like that.  Ick.
+
+	* DCC-via-ssh.  This is quite nice, when we get a dcc request,
+	  we somehow run an ssh tunnel and forward the necessary ports
+	  via ssh.  Would involve killing the process when the proxy
+	  has died.  A nice feature to have if possible.
+
+	* Possible "user" directive if dircproxy is running as root, which
+	  apon authentication would fork(), setuid() then dedicate the proxy
+	  to that user.  This would get around some of the ident issues...
+
+	* Support for identd's that can change username presented.
+
