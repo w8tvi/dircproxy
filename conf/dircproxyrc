@@ -610,6 +610,7 @@
 #       quit      People quit'ing from IRC
 #       nick      People (including you) changing nickname
 #       mode      Changes in channel modes or your own personal mode
+#       topic     Changes to the channel topic
 #       client    You detaching and attaching
 #       server    Connections and disconnections from servers
 #       error     Problems and errors dircproxy encounters (recommended!)

@@ -4,7 +4,7 @@
  *
  * irc_net.h
  * --
- * @(#) $Id: irc_net.h,v 1.44 2001/12/21 20:15:55 keybuk Exp $
+ * @(#) $Id: irc_net.h,v 1.45 2002/01/31 13:55:04 scott Exp $
  *
  * This file is distributed according to the GNU General Public
  * License.  For full details, read the top of 'main.c' or the
@@ -235,9 +235,10 @@ struct ircproxy {
 #define IRC_LOG_QUIT   0x0040
 #define IRC_LOG_NICK   0x0080
 #define IRC_LOG_MODE   0x0100
-#define IRC_LOG_CLIENT 0x0200
-#define IRC_LOG_SERVER 0x0400
-#define IRC_LOG_ERROR  0x0800
+#define IRC_LOG_TOPIC  0x0200
+#define IRC_LOG_CLIENT 0x0400
+#define IRC_LOG_SERVER 0x0800
+#define IRC_LOG_ERROR  0x1000
 
 /* global variables */
 extern struct ircconnclass *connclasses;
