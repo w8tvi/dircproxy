@@ -3,6 +3,7 @@
 EXTRA_DIST = \
 	PROTOCOL \
 	README.inetd \
+	README.dcc-via-ssh \
 	FAQ
 
 SUBDIRS = \
