@@ -1,3 +1,52 @@
+2000-11-15 16:10  Scott James Remnant <scott@netsplit.com>
+
+	* acconfig.h, configure.in, src/dcc_net.h, src/dcc_send.c: Instead
+	of mucking around with typedefs, use the uint32_t type defined by
+	ISO C 9x to be in inttypes.h - we can then check for this header
+	file and if it doesn't exist #define uint32_t to be unsigned long.
+
+2000-11-15 15:56  Scott James Remnant <scott@netsplit.com>
+
+	* acconfig.h: Added new typedefs to stop autoconf moaning
+
+2000-11-15 15:52  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in: [ Bug #122324 ] fixed configure issues on other
+	platforms
+
+2000-11-15 15:48  Scott James Remnant <scott@netsplit.com>
+
+	* crypt/Makefile.am: Forgot to LDADD libgetopt.a
+
+2000-11-15 15:32  Scott James Remnant <scott@netsplit.com>
+
+	* src/dns.c: Save the address being looked up if we can, then if
+	the dns lookup fails we can pretend it worked because we use the
+	addr they looked up and the inet_ntoa() version of it for a name. 
+	This was supposed to do this, but for some reason only if
+	result.success (oops)
+
+2000-11-15 14:59  Scott James Remnant <scott@netsplit.com>
+
+	* src/: irc_net.c, main.c: A few bugs relating to inetd operation. 
+	Specifically I wasn't hooking the socket into the fancy new socket
+	stuff I wrote, so it'd get bored and exit thinking there weren't
+	any.
+
+2000-11-14 11:49  Scott James Remnant <scott@netsplit.com>
+
+	* src/irc_log.c: [ Bug #122189 ]  Use the TEMP envvar if TMPDIR
+	isn't defined.	Also make sure that p->temp_logdir isn't 0 before
+	using it to generate a log filename
+
+2000-11-10 16:28  Scott James Remnant <scott@netsplit.com>
+
+	* configure.in: CVS version now 0.8.1.
+
+2000-11-10 15:54  Scott James Remnant <scott@netsplit.com>
+
+	* ChangeLog, NEWS, README, TODO, RELEASING: Version 0.8.0 released.
+
 2000-11-10 15:18  Scott James Remnant <scott@netsplit.com>
 
 	* conf/dircproxyrc: Accidentally dropped an '=' in there
@@ -2100,21 +2149,21 @@
 
 2000-05-13 02:13  Scott James Remnant <scott@netsplit.com>
 
-	* acconfig.h, autogen.sh, src/match.h, src/stringex.h,
-	src/irc_string.h, src/stringex.c: Imported version 0.5.2 into the
-	CVS tree.  Its in a CLEAN state that requires autoconf and automake
-	(run autogen.sh) to build.
+	* autogen.sh, src/match.h, src/stringex.h, src/irc_string.h,
+	src/stringex.c: Imported version 0.5.2 into the CVS tree.  Its in a
+	CLEAN state that requires autoconf and automake (run autogen.sh) to
+	build.
         
 
 2000-05-13 02:13  Scott James Remnant <scott@netsplit.com>
 
 	* AUTHORS, ChangeLog, FILES.autoconf, Makefile.am, NEWS, PROTOCOL,
-	README, TODO, README.inetd, configure.in, src/Makefile.am,
-	src/dircproxy.h, src/dns.c, src/dns.h, src/sock.c, src/irc_prot.c,
-	src/main.c, src/match.c, src/sock.h, src/sprintf.c, src/sprintf.h,
-	src/irc_string.c, src/irc_net.c, src/memdebug.h, src/irc_prot.h,
-	src/irc_log.c, src/irc_log.h, src/irc_net.h, src/irc_client.c,
-	src/irc_client.h, src/irc_server.h, src/memdebug.c,
-	src/irc_server.c, src/timers.c, src/timers.h, src/getopt.c,
-	src/getopt.h, src/getopt1.c: Initial revision
+	README, TODO, acconfig.h, README.inetd, configure.in,
+	src/Makefile.am, src/dircproxy.h, src/dns.c, src/dns.h, src/sock.c,
+	src/irc_prot.c, src/main.c, src/match.c, src/sock.h, src/sprintf.c,
+	src/sprintf.h, src/irc_string.c, src/irc_net.c, src/memdebug.h,
+	src/irc_prot.h, src/irc_log.c, src/irc_log.h, src/irc_net.h,
+	src/irc_client.c, src/irc_client.h, src/irc_server.h,
+	src/memdebug.c, src/irc_server.c, src/timers.c, src/timers.h,
+	src/getopt.c, src/getopt.h, src/getopt1.c: Initial revision
 
