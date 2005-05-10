@@ -1,11 +1,9 @@
 /* dircproxy-crypt
- * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
+ * Copyright (C) 2005 Francois Harvey <fharvey at securiweb dot net >
  *
  * main.c
- *  - Encyrpt a password taken from stdin or the command line
+ *  - Encrypt a password taken from stdin or the command line
  *
- * This is deliberately simple, it doesn't even malloc() anything (which,
- * for something I wrote, is amazing).
  * --
  * @(#) $Id: main.c,v 1.4 2002/12/29 21:30:10 scott Exp $
  *
@@ -46,6 +44,7 @@
 
 /* forward declarations */
 static void _encrypt(const char *);
+static void _encrypt_md5(const char *);
 static void _saltchar(char *);
 static int _print_usage(void);
 static int _print_version(void);
@@ -61,23 +60,27 @@ static char *progname;
 static struct option long_opts[] = {
   { "help", 0, NULL, 'h' },
   { "version", 0, NULL, 'v' },
+  { "md5", 0, NULL, 'm' },
   { 0, 0, 0, 0}
 };
 
 /* Options */
-#define GETOPTIONS "hv"
+#define GETOPTIONS "hmv"
 
 /* The main func */
 int main(int argc, char *argv[]) {
-  int optc, show_help, show_version, show_usage;
+  int optc, show_help, show_version, show_usage, use_md5;
   
   /* Get arguments */
   progname = argv[0];
-  show_help = show_version = show_usage = 0;
+  show_help = show_version = show_usage = use_md5 = 0;
   while ((optc = getopt_long(argc, argv, GETOPTIONS, long_opts, NULL)) != -1) {
     switch (optc) {
       case 'h':
         show_help = 1;
+        break;
+      case 'm':
+        use_md5 = 1; 
         break;
       case 'v':
         show_version = 1;
@@ -109,7 +112,10 @@ int main(int argc, char *argv[]) {
 
   if (optind < argc) {
     while (optind < argc) {
-      _encrypt(argv[optind]);
+      if (use_md5)
+          _encrypt(argv[optind]);
+      else
+	  _encrypt_md5(argv[optind]);
       optind++;
     }
   } else {
@@ -123,8 +129,10 @@ int main(int argc, char *argv[]) {
 
       ptr = pass + strlen(pass);
       while ((ptr >= ret) && (*ptr <= 32)) *(ptr--) = 0;
-
-      _encrypt(pass);
+       if (use_md5) 
+	  _encrypt_md5(pass);
+       else       
+          _encrypt(pass);
     }
   }
 
@@ -140,8 +148,33 @@ static void _encrypt(const char *pass) {
   salt[2] = 0;
 
   enc = crypt(pass, salt);
-  printf("%s = %s\n", pass, enc);
+  printf("(DES) %s = %s\n", pass, enc);
 }
+
+/* Encrypt a password */
+static void _encrypt_md5(const char *pass) 
+{
+   
+     char salt[13], *enc;
+     salt[0] = '$';
+     salt[1] = '1';
+     salt[2] = '$';
+     _saltchar(&(salt[3]));
+     _saltchar(&(salt[4]));
+     _saltchar(&(salt[5]));
+     _saltchar(&(salt[6]));
+     _saltchar(&(salt[7]));
+     _saltchar(&(salt[8]));
+     _saltchar(&(salt[9]));
+     _saltchar(&(salt[10]));
+     salt[11] = '$';   
+     salt[12] = 0;
+   
+     enc = crypt(pass, salt);
+     printf("(MD5) %s = %s\n", pass, enc);
+}
+
+
 
 /* Pick a random salt character */
 static void _saltchar(char *c) {
@@ -177,6 +210,7 @@ static int _print_help(void) {
                   "it is mandatory\nfor the equivalent short option also.  "
                   "Similarly for optional arguments.\n\n");
   fprintf(stderr, "  -h, --help              Print a summary of the options\n");
+  fprintf(stderr, "  -m, --md5               Generate a md5 password\n");
   fprintf(stderr, "  -v, --version           Print the version number\n\n");
   fprintf(stderr, "  PASSWORD                Plaintext password to crypt\n\n");
   fprintf(stderr, "If no passwords are given on the command line, you will "
