@@ -1,7 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
 INCLUDES = \
-	-lssl -lcrypto \
 	-DSYSCONFDIR="\"${sysconfdir}\""
 
 bin_PROGRAMS = \
