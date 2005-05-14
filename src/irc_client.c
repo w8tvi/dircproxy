@@ -2074,8 +2074,8 @@ int _ircclient_handle_privmsg(struct ircproxy *p, struct ircmessage msg) {
 
         } else {
           /* Unknown DCC */
-          debug("Unknown or Unimplemented DCC request - %s",
-                cmsg.params[0]);
+	   if (cmsg.numparams > 0)
+	     debug("Unknown or Unimplemented DCC request - %s", cmsg.params[0]);
         }
 
       } else {
@@ -2083,8 +2083,8 @@ int _ircclient_handle_privmsg(struct ircproxy *p, struct ircmessage msg) {
 
         tmp = x_sprintf("%s!%s@%s", p->nickname, p->username,
                         p->hostname);
-        irclog_log(p, IRC_LOG_CTCP, msg.params[0], tmp,
-                   "Sent CTCP %s", cmsg.params[0]);
+	if (cmsg.numparams > 0)
+	   irclog_log(p, IRC_LOG_CTCP, msg.params[0], tmp, "Sent CTCP %s", cmsg.params[0]);
         free(tmp);
       }
 
