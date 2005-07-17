@@ -16,12 +16,15 @@
 /* required includes */
 #include <stdio.h>
 #include <sys/types.h>
+#include <sys/socket.h>
 #include <netinet/in.h>
+#include <netdb.h>
 #include <arpa/inet.h>
 #include <time.h>
 
 #include "irc_prot.h"
 #include "stringex.h"
+#include "net.h"
 
 /* a log file - there are good reasons why this isn't defined in irc_log.h */
 typedef struct logfile {
@@ -160,12 +163,12 @@ typedef struct ircproxy {
 
   int client_sock;
   int client_status;
-  struct sockaddr_in client_addr;
+  SOCKADDR client_addr;
   char *client_host;
 
   int server_sock;
   int server_status;
-  struct sockaddr_in server_addr;
+  SOCKADDR server_addr;
   long server_attempts;
 
   char *nickname;

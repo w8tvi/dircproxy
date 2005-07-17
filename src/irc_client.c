@@ -44,7 +44,7 @@
 #include "logo.h"
 
 /* forward declarations */
-static void _ircclient_connected2(struct ircproxy *, void *, struct in_addr *,
+static void _ircclient_connected2(struct ircproxy *, void *, const char *,
                                   const char *);
 static void _ircclient_data(struct ircproxy *, int);
 static void _ircclient_error(struct ircproxy *, int, int);
@@ -81,17 +81,19 @@ void _ircclient_handle_help(struct ircproxy *, struct ircmessage);
 
 /* Called when a new client has connected */
 int ircclient_connected(struct ircproxy *p) {
+  char ip[DNS_MAX_HOSTLEN];
+
   ircclient_send_notice(p, "Looking up your hostname...");
 
-  dns_hostfromaddr((void *)p, 0, p->client_addr.sin_addr,
-                   DNS_FUNCTION(_ircclient_connected2));
+  net_ntop(&p->client_addr, ip, sizeof(ip));
+  dns_hostfromaddr(p, 0, ip, (dns_fun_t) _ircclient_connected2);
 
   return 0;
 }
 
 /* Called once a client DNS lookup has completed */
 static void _ircclient_connected2(struct ircproxy *p, void *data,
-                                  struct in_addr *addr, const char *name) {
+                                  const char *ip, const char *name) {
   p->client_host = x_strdup(name);
   if (!p->hostname)
     p->hostname = x_strdup(name);
@@ -690,9 +692,10 @@ static int _ircclient_authenticate(struct ircproxy *p, const char *password) {
 #endif
       if (cc->masklist) {
         struct strlist *m;
-        char *ip;
+        const char *ip;
+        char buf[40];
 
-        ip = inet_ntoa(p->client_addr.sin_addr);
+        ip = net_ntop(&p->client_addr, buf, sizeof(buf));
 
         m = cc->masklist;
         while (m) {

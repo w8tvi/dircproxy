@@ -53,6 +53,8 @@ AC_CHECK_FUNCS([alarm dup2 gethostbyaddr inet_ntoa memmove memset mkdir rmdir \
 		realloc select seteuid strcasecmp strchr strcspn strerror \
 		strncasecmp strrchr strspn strstr strtoul])
 
+DIP_NET
+
 # Check whether to debug things
 AC_ARG_ENABLE([debug], AC_HELP_STRING([--enable-debug], [turn on debugging (default is NO)]),
 	      [	if test "x${enable_debug}" = "xyes"; then

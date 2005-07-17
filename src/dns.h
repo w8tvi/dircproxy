@@ -18,26 +18,24 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include "net.h"
+
 /* handy defines */
-#define DNS_FUNCTION(_FUNC) ((void (*)(void *, void *, struct in_addr *, \
-                                       const char *)) _FUNC)
+#define DNS_MAX_HOSTLEN 256
+
+typedef void (*dns_fun_t)(void *, void *, const char *, const char *);
 
 /* functions */
 extern int dns_endrequest(pid_t, int);
 extern int dns_delall(void *);
 extern void dns_flush(void);
-extern int dns_addrfromhost(void *, void *, const char *,
-                            void (*)(void *, void *,
-                                     struct in_addr *, const char *));
-extern int dns_hostfromaddr(void *, void *, struct in_addr,
-                            void (*)(void *, void *,
-                                     struct in_addr *, const char *));
-extern int dns_filladdr(void *, const char *, const char *, int,
-                        struct sockaddr_in *,
-                        void (*)(void *, void *,
-                                 struct in_addr *, const char *),
-                        void *);
+extern int dns_addrfromhost(void *, void *, const char *, dns_fun_t);
+extern int dns_hostfromaddr(void *, void *, const char *, dns_fun_t);
+extern int dns_filladdr(void *, const char *, const char *,
+                        SOCKADDR *, dns_fun_t);
 extern int dns_portfromserv(const char *);
 extern char *dns_servfromport(int);
 
+extern int dns_getip(const char *, char *);
+extern int dns_getname(const char *, char *, int);
 #endif /* __DIRCPROXY_DNS_H */

@@ -44,12 +44,12 @@
 
 /* forward declarations */
 static void _ircserver_reconnect(struct ircproxy *, void *);
-static void _ircserver_connect2(struct ircproxy *, void *, struct in_addr *,
+static void _ircserver_connect2(struct ircproxy *, void *, const char *,
                                 const char *);
-static void _ircserver_connect3(struct ircproxy *, void *, struct in_addr *,
+static void _ircserver_connect3(struct ircproxy *, void *, const char *,
                                 const char *);
 static void _ircserver_connected(struct ircproxy *, int);
-static void _ircserver_connected2(struct ircproxy *, void *, struct in_addr *,
+static void _ircserver_connected2(struct ircproxy *, void *, const char *,
                                   const char *);
 static void _ircserver_connectfailed(struct ircproxy *, int, int);
 static void _ircserver_data(struct ircproxy *, int);
@@ -147,16 +147,16 @@ int ircserver_connect(struct ircproxy *p) {
     ircclient_send_notice(p, "Looking up %s...", server);
 
   /* DNS lookup the server */
-  dns_filladdr((void *)p, server, p->conn_class->server_port, 1,
-               &(p->server_addr), DNS_FUNCTION(_ircserver_connect2), 0);
+  dns_filladdr((void *)p, server, p->conn_class->server_port,
+               &(p->server_addr), (dns_fun_t) _ircserver_connect2);
   free(server);
   return 0;
 }
 
 /* Called to initiate a connection to a server once its been looked up */
 static void _ircserver_connect2(struct ircproxy *p, void *data,
-                                struct in_addr *addr, const char *host) {
-  if (!host || !addr) {
+                                const char *ip, const char *host) {
+  if (!host || !ip) {
     debug("DNS failure, retrying");
     timer_new((void *)p, "server_recon", p->conn_class->server_retry,
               TIMER_FUNCTION(_ircserver_reconnect), (void *)0);
@@ -170,11 +170,11 @@ static void _ircserver_connect2(struct ircproxy *p, void *data,
   /* Copy the found information into p */
   free(p->servername);
   p->servername = x_strdup(host);
-  p->server_addr.sin_addr.s_addr = addr->s_addr;
+  net_filladdr(&p->server_addr, ip, (unsigned short)data);
   
   if (p->conn_class->local_address) {
     dns_addrfromhost((void *)p, 0, p->conn_class->local_address,
-                     DNS_FUNCTION(_ircserver_connect3));
+                     (dns_fun_t)_ircserver_connect3);
   } else {
     _ircserver_connect3(p, 0, 0, 0);
   }
@@ -183,7 +183,7 @@ static void _ircserver_connect2(struct ircproxy *p, void *data,
 /* Called to initiate a connection to a server once its been looked up
    and the local_host has been looked up */
 static void _ircserver_connect3(struct ircproxy *p, void *data,
-                                struct in_addr *addr, const char *host) {
+                                const char *ip, const char *host) {
   int ret;
 #ifdef HAVE_SETEUID
   int switched = 0;
@@ -191,11 +191,11 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
 #endif /* HAVE_SETEUID */
 
   debug("Connecting to %s port %d", p->servername,
-        ntohs(p->server_addr.sin_port));
+        ntohs(SOCKADDR_PORT(&p->server_addr)));
 
   if (IS_CLIENT_READY(p))
     ircclient_send_notice(p, "Connecting to %s port %d",
-                          p->servername, ntohs(p->server_addr.sin_port));
+                          p->servername, ntohs(SOCKADDR_PORT(&p->server_addr)));
 
 #ifdef HAVE_SETEUID
   old_euid = geteuid();
@@ -238,7 +238,7 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
   }
 #endif /* HAVE_SETEUID */
 
-  p->server_sock = net_socket();
+  p->server_sock = net_socket(SOCKADDR_FAMILY(&p->server_addr));
 
 #ifdef HAVE_SETEUID
   /* Switch back to our original euid */
@@ -259,15 +259,11 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
       net_keepalive(p->server_sock);
 
     if (p->conn_class->local_address) {
-      if (addr) {
-        struct sockaddr_in local_addr;
+      if (ip) {
+        SOCKADDR local_addr;
 
-        memset(&local_addr, 0, sizeof(struct sockaddr_in));
-        local_addr.sin_family = AF_INET;
-        local_addr.sin_addr.s_addr = addr->s_addr;
-
-        if (bind(p->server_sock, (struct sockaddr *)&local_addr,
-                 sizeof(struct sockaddr_in))) {
+        net_filladdr(&local_addr, ip, 0);
+        if (bind(p->server_sock, (struct sockaddr *)&local_addr, SOCKADDR_LEN(&local_addr))) {
           if (IS_CLIENT_READY(p))
             ircclient_send_notice(p, "(warning) Couldn't use local address %s",
                                   host);
@@ -283,7 +279,7 @@ static void _ircserver_connect3(struct ircproxy *p, void *data,
     }
 
     if (connect(p->server_sock, (struct sockaddr *)&(p->server_addr),
-                sizeof(struct sockaddr_in))
+                SOCKADDR_LEN(&p->server_addr))
         && (errno != EINPROGRESS)) {
       syscall_fail("connect", p->servername, 0);
       net_close(&(p->server_sock));
@@ -341,13 +337,15 @@ static void _ircserver_connected(struct ircproxy *p, int sock) {
   /* Need to try and look up our local hostname now we have a socket to
      somewhere that will tell us */
   if (!p->hostname) {
-    struct sockaddr_in sock_addr;
+    SOCKADDR sock_addr;
+    char ip[40];
     int len;
 
     len = sizeof(struct sockaddr_in);
     if (!getsockname(p->server_sock, (struct sockaddr *)&sock_addr, &len)) {
-      dns_hostfromaddr((void *)p, 0, sock_addr.sin_addr,
-                       DNS_FUNCTION(_ircserver_connected2));
+      net_ntop(&sock_addr, ip, sizeof(ip));
+      dns_hostfromaddr((void *)p, 0, ip,
+                       (dns_fun_t) _ircserver_connected2);
       return;
     } else {
       syscall_fail("getsockname", "", 0);
@@ -360,7 +358,7 @@ static void _ircserver_connected(struct ircproxy *p, int sock) {
 
 /* Called when a new server has connected and we have a local hostname */
 static void _ircserver_connected2(struct ircproxy *p, void *data,
-                                  struct in_addr *addr, const char *name) {
+                                  const char *ip, const char *name) {
   char *username;
 
   if (!p->hostname && name)
