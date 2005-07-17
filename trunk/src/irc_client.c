@@ -1342,6 +1342,11 @@ int ircclient_welcome(struct ircproxy *p) {
     ircclient_send_numeric(p, 4, "%s %s %s %s",
                            p->servername, p->serverver,
                            p->serverumodes, p->servercmodes);
+  struct strlist *s = p->serversupported;
+  while (s) {
+    ircclient_send_numeric(p, 5, "%s", s->str);
+    s = s->next;
+  }
 
   _ircclient_motd(p);
 

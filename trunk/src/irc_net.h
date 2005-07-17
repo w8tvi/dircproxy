@@ -183,6 +183,7 @@ typedef struct ircproxy {
   char *serverumodes;
   char *servercmodes;
   char *serverpassword;
+  struct strlist *serversupported;
 
   char *password;
 

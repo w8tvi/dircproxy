@@ -575,9 +575,21 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
     }
 
     if (i) {
-       // TODO: Use or pass to the client 005
-       // After that we can close #03, #10, #11,#12
-      debug("Weird 005 message");
+      // Store for future clients
+      struct strlist *s = (struct strlist *)malloc(sizeof(struct strlist));
+      s->str = x_strdup(msg.paramstarts[1]);
+      s->next = 0;
+      if (p->serversupported) {
+        struct strlist *ss;
+        for (ss = p->serversupported; ss->next && strcmp(ss->str,s->str); ss = ss->next)
+        ;
+        if (strcmp(ss->str,s->str))  // this line is not already present
+          ss->next = s;
+        else
+          free(s);
+      } else {
+        p->serversupported = s;
+      }
     } else {
       struct strlist *s;
       char *server;
