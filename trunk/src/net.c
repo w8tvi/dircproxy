@@ -102,11 +102,11 @@ static int _net_unbuffer(struct sockinfo *, int, void *, int);
 static struct sockinfo *sockets = 0;
 
 /* Make a non-blocking socket */
-int net_socket(void) {
+int net_socket(int family) {
   int sock, param;
 
   /* Make the socket */
-  sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+  sock = socket(family, SOCK_STREAM, IPPROTO_TCP);
   if (sock == -1) {
     syscall_fail("socket", 0, 0);
     return -1;
@@ -922,4 +922,60 @@ int net_poll(void) {
   }
 
   return ns;
+}
+
+const char *net_ntop(SOCKADDR *sa, char *buf, int len) {
+#ifdef HAVE_IPV6
+  if (sa->ss_family == AF_INET6)
+    return inet_ntop(AF_INET6, &((struct sockaddr_in6 *)sa)->sin6_addr, buf, len);
+  else
+    return inet_ntop(AF_INET, &((struct sockaddr_in *)sa)->sin_addr, buf, len);
+#else
+  char *ret;
+  
+  ret = inet_ntoa(((struct sockaddr_in *)sa)->sin_addr);
+  if (ret)
+    strncpy(buf, ret, len);
+  
+  return buf;
+#endif
+}
+
+/* wrapper for inet_pton or inet_aton */
+int net_pton(int af, const char *ip, void *addr)
+{
+#ifdef HAVE_IPV6
+    return inet_pton(af, ip, addr);
+#else
+    return inet_aton(ip, (struct in_addr *)addr);
+#endif
+}
+
+/* fill in sockaddr struct. If IP is null, bind to anyv4 */
+int net_filladdr(SOCKADDR *sa, const char *ip, unsigned short port)
+{
+  memset(sa, 0, sizeof(SOCKADDR));
+
+  SOCKADDR_FAMILY(sa) = AF_INET;
+  SOCKADDR_PORT(sa) = port;
+
+  /* default is conservative: v4 where possible */
+  if (!ip) {
+    ((struct sockaddr_in*)sa)->sin_addr.s_addr = INADDR_ANY;
+    return 1;
+  }
+
+#ifdef HAVE_IPV6
+  if (inet_pton(AF_INET, ip, &((struct sockaddr_in*)sa)->sin_addr) > 0)
+    return 1;
+  if (inet_pton(AF_INET6, ip, &((struct sockaddr_in6*)sa)->sin6_addr) > 0) {
+    SOCKADDR_FAMILY(sa) = AF_INET6;
+    return 1;
+  }
+#else
+  if (inet_aton(ip, &sa->sin_addr))
+    return 1;
+#endif
+  
+  return 0;
 }

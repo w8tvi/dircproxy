@@ -125,7 +125,7 @@ static int _dccnet_listen(struct dccproxy *p, int *range, size_t range_sz,
                           int *port) {
   int theport;
 
-  p->sendee_sock = net_socket();
+  p->sendee_sock = net_socket(AF_INET);
   if (p->sendee_sock == -1)
     return -1;
 
@@ -162,7 +162,7 @@ static int _dccnet_connect(struct dccproxy *p, struct in_addr addr, int port,
   debug("Connecting to DCC Sender %s:%d", inet_ntoa(p->sender_addr.sin_addr),
         ntohs(p->sender_addr.sin_port));
 
-  p->sender_sock = net_socket();
+  p->sender_sock = net_socket(AF_INET);
   if (p->sender_sock == -1)
     return -1;
 

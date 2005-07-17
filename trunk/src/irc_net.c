@@ -40,7 +40,7 @@
 #include "irc_net.h"
 
 /* forward declarations */
-static int _ircnet_listen(struct sockaddr_in *);
+static int _ircnet_listen(SOCKADDR *);
 static struct ircproxy *_ircnet_newircproxy(void);
 static int _ircnet_client_connected(struct ircproxy *);
 static void _ircnet_acceptclient(void *, int);
@@ -62,49 +62,49 @@ static int listen_sock = -1;
 #define incopy(a)       *((struct in_addr *)a)
 
 /* Create a socket to listen on. 0 = ok, other = error */
-int ircnet_listen(const char *port) {
-  struct sockaddr_in local_addr;
-  /* split ip:port into 2 fields - code by folkert@vanheusden.com */
-  char *dummy = strchr(port, ':');
+int ircnet_listen(const char *bindaddr) {
+  SOCKADDR local_addr;
 
-  if (dummy)
-  {
-    struct hostent *ph;
-    if (!ph)
+  char host[256];
+  char ip[40];
+  char portbuf[32];
+  unsigned short port;
+  
+  /* 1. IPv6 [addr]:port */
+  if ((sscanf(bindaddr, "[%39[^]]]:%31s", host, portbuf) == 2) ||
+      /* 2. host/ipv4:port */
+      (sscanf(bindaddr, "%255[^:]:%31s", host, portbuf) == 2))
+    port = dns_portfromserv(portbuf);
+  else {
+    /* 3. port name/number */
+    port = dns_portfromserv(bindaddr);
+    host[0] = '\0';
+  }
+
+  if (*host) {
+    if (!dns_getip(host, ip))
       return -1;
-
-    *dummy=0x00;
-
-    ph = gethostbyname(port);
-
-    local_addr.sin_family = ph -> h_addrtype;
-    local_addr.sin_addr = incopy(ph -> h_addr_list[0]);
-    local_addr.sin_port = dns_portfromserv(dummy+1);
-  }
-  else
-  {
-    local_addr.sin_family = AF_INET;
-    local_addr.sin_addr.s_addr = INADDR_ANY;
-    local_addr.sin_port = dns_portfromserv(port);
-  }
-
-  if (!local_addr.sin_port)
-    return -1;
-
+    
+    if (!net_filladdr(&local_addr, ip, port))
+      return -1;
+  } else
+    if (!net_filladdr(&local_addr, NULL, port))
+      return -1;
+  
   return _ircnet_listen(&local_addr);
 }
 
 /* Does the actual work of creating a listen socket. 0 = ok, other = error */
-int _ircnet_listen(struct sockaddr_in *local_addr) {
+int _ircnet_listen(SOCKADDR *local_addr) {
   int this_sock;
 
-  this_sock = net_socket();
+  this_sock = net_socket(SOCKADDR_FAMILY(local_addr));
   if (this_sock == -1)
     return -1;
 
   if (local_addr) {
     if (bind(this_sock, (struct sockaddr *)local_addr,
-             sizeof(struct sockaddr_in))) {
+             SOCKADDR_LEN(local_addr))) {
       syscall_fail("bind", "listen", 0);
       net_close(&this_sock);
       return -1;
@@ -156,7 +156,7 @@ int ircnet_hooksocket(int sock) {
   p = _ircnet_newircproxy();
   p->client_sock = sock;
 
-  len = sizeof(struct sockaddr_in);
+  len = sizeof(SOCKADDR);
   if (getpeername(p->client_sock, (struct sockaddr *)&(p->client_addr), &len)) {
     syscall_fail("getpeername", "", 0);
     free(p);
@@ -181,7 +181,7 @@ static void _ircnet_acceptclient(void *data, int sock) {
 
   p = _ircnet_newircproxy();
 
-  len = sizeof(struct sockaddr_in);
+  len = sizeof(SOCKADDR);
   p->client_sock = accept(sock, (struct sockaddr *)&(p->client_addr), &len);
   if (p->client_sock == -1) {
     syscall_fail("accept", 0, 0);
@@ -628,16 +628,16 @@ int ircnet_dedicate(struct ircproxy *p) {
 
 /* send the dedicated listening port to the user */
 int ircnet_announce_dedicated(struct ircproxy *p) {
-  struct sockaddr_in listen_addr;
+  SOCKADDR listen_addr;
   unsigned int port;
   int len;
 
   if (!IS_CLIENT_READY(p))
     return -1;
 
-  len = sizeof(struct sockaddr_in);
+  len = sizeof(SOCKADDR);
   if (!getsockname(listen_sock, (struct sockaddr *)&listen_addr, &len)) {
-    port = ntohs(listen_addr.sin_port);
+    port = ntohs(SOCKADDR_PORT(&listen_addr));
   } else {
     syscall_fail("getsockname", "listen_sock", 0);
     return -1;
