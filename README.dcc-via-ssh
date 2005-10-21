@@ -157,4 +157,5 @@ established, the second set is the link being established to the
 remote peer itself.  This is normal and nothing to worry about.
 
 
-Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
+Copyright (C) 2000, 2001, 2002, 2003 Scott James Remnant <scott@netsplit.com>.
+Copyright (C) 2004, 2005 Francois Harvey <fharvey at securiweb dot net>

@@ -1,5 +1,6 @@
 .TH dircproxy-crypt 1 "11 Jan 2001"
 .\" Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
+.\" Copyright (C) 2004,2005 Francois Harvey <fharvey at securiweb dot net>
 .\"
 .\" @(#) $Id: dircproxy-crypt.1,v 1.7 2004/04/24 09:32:26 fharvey Exp $
 .\"
@@ -35,6 +36,9 @@ function and a random salt, on standard output.
 Displays a brief help message detailing the command-line arguments,
 then exits.
 .TP
+.B -m
+Create a MD5 password hash
+.TP
 .B -v
 Displays the \fBdircproxy\fR version number that this version of
 \fBdircproxy-crypt\fR comes with, then exits.
@@ -46,14 +50,18 @@ Displays the \fBdircproxy\fR version number that this version of
 .SH BUGS
 Please submit and review bug reports at:
 .PP
-.I http://bugs.securiweb.net/
+.I http://dircproxy.securiweb.net/
 
 .SH AUTHOR
+Current maintainership by Francois Harvey <fharvey at securiweb dot net>
+
 Written by Scott James Remnant <scott@netsplit.com>.
 
 .SH COPYRIGHT
 
-Copyright (C) 2004 Francois Harvey <fharvey@securiweb.net> and Mike Taylor <bear@code-bear.com>
+Copyright (C) 2004,2005 Francois Harvey <fharvey at securiweb dot net>
+
 Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
+
 \fBdircproxy\fR is distributed under the \fIGNU General Public
 License\fR.

@@ -1,6 +1,7 @@
 /* dircproxy
  * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
- *
+ * Copyright (C) 2004, 2005 Francois Harvey <fharvey at securiweb dot net>
+ * 
  * irc_prot.c
  *  - IRC protocol message parsing
  *  - IRC x!y@z parsing

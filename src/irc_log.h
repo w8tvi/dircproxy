@@ -1,6 +1,7 @@
 /* dircproxy
  * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
- *
+ * Copyright (C) 2004, 2005 Francois Harvey <fharvey at securiweb dot net>
+ * 
  * irc_log.h
  * --
  * $Id: irc_log.h,v 1.15 2003/03/03 18:06:29 scott Exp $
