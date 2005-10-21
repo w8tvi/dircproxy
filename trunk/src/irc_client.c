@@ -1,7 +1,6 @@
 /* dircproxy
  * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
- * Copyright (C) 2004 Francois Harvey <fharvey@securiweb.net> and
- *                    Mike Taylor <bear@code-bear.com>.
+ * Copyright (C) 2004, 2005 Francois Harvey <fharvey at securiweb dot net>
  *
  * irc_client.c
  *  - Handling of clients connected to the proxy

@@ -1,7 +1,7 @@
 Summary: irc proxy
 Name: dircproxy
-%define branch 1.1
-%define	version %{branch}.1
+%define branch 1.2
+%define	version %{branch}.0
 %define location /usr
 Version: %{version}
 Release: 1

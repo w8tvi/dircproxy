@@ -1,5 +1,15 @@
 NEWS about changes for existing users.
 --------------------------------------
+Version 1.2.0 -     Oct                 2005
+        * Nickserv support
+	* Binding to a local IP
+	* a new /dircproxy RELOAD to reload the config
+	* Add DCC Resume
+	* Add 005 Support
+	* Can be build with SSL support (experimental)
+	* Support for IPV6 (experimental)
+	* a new /dircproxy NOTIFY command	
+	* Support for MD5 password
 
 Version 1.1.0 - Sun Aug 18 02:45:00 BST 2002
 
@@ -190,3 +200,4 @@ Version 0.5.2 - Fri May 12 23:00:00 BST 2000
 
 
 Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
+Copyright (C) 2004, 2005 Francois Harvey <fharvey at securiweb dot net>

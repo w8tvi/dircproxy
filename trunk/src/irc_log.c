@@ -1,7 +1,6 @@
 /* dircproxy
  * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
- * Copyright (C) 2004 Francois Harvey <fharvey@securiweb.net> and
- *                    Mike Taylor <bear@code-bear.com>.
+ * Copyright (C) 2004, 2005 Francois Harvey <fharvey at securiweb dot net>
  *
  * irc_log.c
  *  - Handling of log files
@@ -426,7 +425,7 @@ _open_user_log(IRCProxy *p, const char *to)
 	
 	} else {
 		filename = x_strdup(to);
-		irc_strlwr(_safe_name(to));
+		irc_strlwr(_safe_name((char*)to));
 	}
 
 	/* The filename is under the user's log_dir */
@@ -844,7 +843,7 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
     return -1;
   }
 
-  printf("recalling log [%s]\r\n", log->filename);
+  debug("recalling log [%s]\r\n", log->filename);
 
   /* If to is 0, then we're recalling from the server_log, and need to send
    * it to the nickname */
@@ -878,7 +877,7 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
 
       tbuf[0] = 0;
      
-printf("log: [%s]\r\n", msg);
+      debug("log: [%s]\r\n", msg);
 
         /*
          * 1079304950 client #dircproxy dircproxy You connected
@@ -944,7 +943,7 @@ printf("log: [%s]\r\n", msg);
       *(rest++) = 0;                             /* Delete the space */
       msg = rest;
   
-printf("timestamp: %d event: %d src: [%s] frm: [%s] log: [%s]\r\n", when, event, src, frm, msg);
+      debug("timestamp: %d event: %d src: [%s] frm: [%s] log: [%s]\r\n", when, event, src, frm, msg);
 
         /* If the log_timestamp option is on, format the timestamp */
       if (when && p->conn_class->log_timestamp) {

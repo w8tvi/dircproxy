@@ -1,8 +1,7 @@
 /* dircproxy
  * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
- * Copyright (C) 2004 Francois Harvey <fharvey@securiweb.net> and
- *                    Mike Taylor <bear@code-bear.com>
- *
+ * Copyright (C) 2004, 2005 Francois Harvey <fharvey at securiweb dot net>
+ * 
  * help.h
  * --
  * @(#) $Id: help.h,v 1.13 2004/02/13 23:39:33 bear Exp $

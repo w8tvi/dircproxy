@@ -130,6 +130,9 @@ useful ones are documented here.
 	Enables the dircproxy debug mode, only useful if you want to
 	help fix a bug you've found.  Not recommended for normal use.
 
+'--enable-ssl'
+	Enable SSL support.		    
+ 
 
 If compilation fails for any reason, you can pass shell variables
 to the 'configure' script to tell it about your system.  A complete
@@ -144,3 +147,4 @@ Or on systems that have the 'env' program, you can do it like this:
 
 
 Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
+Copyright (C) 2004,2005 Francois Harvey <fharvey at securiweb dot net>

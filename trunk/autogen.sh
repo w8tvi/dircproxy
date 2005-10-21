@@ -1,6 +1,6 @@
 #!/bin/sh
 # autogen.sh for dircproxy
-# Scott James Remnant <scott@netsplit.com>
+# Francois Harvey <fharvey at securiweb dot net>
 
 if [ -f ./configure ]; then
 	echo "No need to run autogen.sh, run autoreconf"

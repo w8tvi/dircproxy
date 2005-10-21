@@ -1,35 +1,4 @@
-Roadmap Post-1.0.3
+Roadmap Post-1.2.0
 ==================
 
-                     1.0.4 (1.0.5)
-		    .--+- - - +- -  BRANCH-1_0
-		   /
-	---+------+------+- - - +-  HEAD
-	 1.0.2  1.0.3  1.1.0 (1.1.1)
-
-1.0.3 was the last stable release to be made on the HEAD.  At that
-release a branch was made ("BRANCH-1_0") on which further stable
-releases can be made.  These stable releases will only consist of bug
-fixes.
-
-Releases on the HEAD will be of the 1.1.x development series, these will
-contain new features and changes to existing features.  Those planned
-are listed below, although the release numbers are purely conjectural.
-
-1.1.0	Autoconf 2.5/Automake 1.6 required.
-	New private log file format.
-	Better DCC error notification.
-
-1.1.1	New internal log file format.
-	New logging code.
-
-1.1.2	
-
-1.1.3	IRC protocol code changed to use hash + handlers.
-	005 numeric support.
-	IPv6 support
-
-1.1.4	DCC RESUME support.
-	(Probable irc_dcc.[ch] code being added).
-
-1.1.5	SSL support.
+fixe bug, listen user complain, add feature

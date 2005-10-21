@@ -1,6 +1,7 @@
 /* dircproxy
  * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
- *
+ * Copyright (C) 2004, 2005 Francois Harvey <fharvey at securiweb dot net>
+ * 
  * dcc_net.h
  * --
  * @(#) $Id: dcc_net.h,v 1.11 2004/02/14 09:05:12 fharvey Exp $

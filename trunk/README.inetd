@@ -12,7 +12,7 @@ To run from inetd add a line to /etc/services for the port you
 want to listen on, and give it a service name of "dircproxy".
 This is actually good practice anyway.
 
-dircproxy	57000/tcp		# Detchable IRC Proxy
+dircproxy	57000/tcp		# Detachable IRC Proxy
 
 
 Now add a line to /etc/inetd.conf for dircproxy.  You'll need to
@@ -34,4 +34,5 @@ command.  This will tell you which port you can reconnect to your
 session at.
 
 
-Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
+Copyright (C) 2000, 2001, 2002, 2003 Scott James Remnant <scott@netsplit.com>.
+Copyright (C) 2004, 2005 Francois Harvey <fharvey at securiweb dot net>
