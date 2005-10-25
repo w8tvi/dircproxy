@@ -1,4 +1,29 @@
 Roadmap Post-1.2.0
 ==================
 
-fixe bug, listen user complain, add feature
+  1.2.x - fixe bug, listen user complain, add small feature (2005-2006)
+  
+  
+  1.3.x - (need a little explaination)  (2006-) 
+  dircproxy is, hum, a large chunk of cryptic C code, with no dependency
+  but full of file/hack that doesn't do a thing about IRC. 
+  
+     * Move all the IRC stuff in a separate lib, we have already a very good
+       C irc stuff handler, both server side, and client side. 
+       This should clean the main dircproxy source code
+       
+     * The main core of dircproxy should be more clean (not to deal with a
+       lot of detail (config file, log format, irc, etc.. )
+     
+     * A new config file ! work in cfgfile.c is a painfull 
+       Support /get /set command to modify option on the fly
+       
+     * Support new log format native (text) but also sql (sqlite/mysql), this
+       will open the door for : 
+       /DIRCPROXY RECALL channel="#dircproxy" AND msg LIKE "*version*" 
+       Also a small web interface can be coded
+      
+     *  Rewrite it in VB dot net (just kidding)
+       
+    1.4.x 
+     * Take over the word

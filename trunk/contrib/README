@@ -1,6 +1,11 @@
 Contributed and unsupported extras
 ----------------------------------
 
+-------------------------------------------------------
+WARNING: FILE IN THIS DIR WAS NOT TESTED IN THE 1.2.0 BRANCH
+-------------------------------------------------------
+
+
 These files are either contributed by dircproxy users, or useful to dircproxy users but not actually part of dircproxy.
 
 
