@@ -5,7 +5,7 @@ If you want to hack on dircproxy, it will make your life easier to have
 the following packages installed:
 
 	GNU autoconf 2.5x
-	GNU automake 1.6.x
+	GNU automake 1.9.x
 
 
 Hacker's configure options

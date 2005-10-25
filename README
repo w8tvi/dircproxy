@@ -1,10 +1,9 @@
 dircproxy: Detachable IRC Proxy Server
 -------------------------------------
 
-* THIS IS AN UNSTABLE DEVELOPMENT RELEASE OF DIRCPROXY.  IT HAS HIGHER
-* THEN USUAL RISK OF DESTROYING YOUR SYSTEM.
-*
-* FOR A STABLE RELEASE USE THE LATEST 1.0.x
+----------------------------------------------
+WARNING : 1.2.0-beta is currently experimental
+----------------------------------------------
 
 dircproxy is an IRC proxy server ("bouncer") designed for people
 who use IRC from lots of different workstations or clients, but wish
@@ -79,6 +78,7 @@ Features
    a user-by-user basis.
  o Host and password based security.
  o Easy to configure and get running.
+ o Can support SSL and ipv6 (experimental)
 
 All of dircproxy's features are completely configurable and can be
 enabled, disabled and adjusted through the configuration file.
@@ -153,4 +153,5 @@ Also join us on the #dircproxy IRC channel on irc.openprojects.net.
 dircproxy is distributed according to the GNU General Public License.
 See the file COPYING for details.
 
+Copyright (C) 2004,2005	Francois Harvey <fharvey at securiweb dot net>
 Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
