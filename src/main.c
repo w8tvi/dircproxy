@@ -502,8 +502,11 @@ static int _print_usage(void) {
 
 /* Print the version number to stderr */
 static int _print_version(void) {
+#ifdef SSL
+  fprintf(stderr, "%s %s - SSL\n", PACKAGE, VERSION);
+#else /* SSL */
   fprintf(stderr, "%s %s\n", PACKAGE, VERSION);
-
+#endif /* SSL */
   return 0;
 }
 
