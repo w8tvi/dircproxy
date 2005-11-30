@@ -27,9 +27,9 @@ static char *logo[] = {
 
 /* static string to use as format for VERSION */
 #ifdef SSL
-static char *verstr = "                                      %s";
-#else /* SSL */
 static char *verstr = "                                  %s SSL";
+#else /* SSL */
+static char *verstr = "                                      %s";
 #endif /* SSL */
 
 #endif /* __DIRCPROXY_LOGO_H */
