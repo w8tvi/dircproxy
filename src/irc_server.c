@@ -574,7 +574,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 	}
       }
     }
-
+    free(c0);
+     
     if (i) {
       // Store for future clients
       struct strlist *s = (struct strlist *)malloc(sizeof(struct strlist));
@@ -587,6 +588,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
         if (strcmp(ss->str,s->str))  // this line is not already present
           ss->next = s;
         else
+	  free(s->str);
           free(s);
       } else {
         p->serversupported = s;
