@@ -941,7 +941,8 @@
 #connection {
 #    # this password must by encrypted using dircproxy-crypt(1)
 #    password "foobar"
-#    server "irc.linux.com"
+#    server "irc.freenode.net"
+#    join "#dircproxy"
 #}
 
 # You can specify multiple servers, they are iterated if one fails or
@@ -973,9 +974,8 @@
 #    # this password must by encrypted using dircproxy-crypt(1)
 #    password "applejack"
 #
-#    server "irc.linux.com"
-#    server "irc.openprojects.net:6668"
-#    server "irc.linux.com:6668"
+#    server "irc.freenode.net"
+#    server "irc.us.freenode.net:6667"
 #    server "oper.irc.netsplit.com:6660:scrumpy"
 #    server "oper.irc.gurgle.org::scrumpy"
 #
