@@ -368,7 +368,8 @@ int dccnet_expunge_proxies(void) {
       n = p->next;
       _dccnet_free(p);
 
-      p = (l ? l->next : proxies) = n;
+      if (l) l->next = n; else proxies = n;
+      p = n;
     } else {
       l = p;
       p = p->next;

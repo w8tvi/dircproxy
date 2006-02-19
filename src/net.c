@@ -459,8 +459,7 @@ static int _net_buffer(struct sockinfo *s, int buff, int mode,
     return 0;
   }
   
-  l = &(buff == SB_IN ? s->in_buff_last : s->out_buff_last);
-
+  l = (buff == SB_IN) ? &s->in_buff_last : &s->out_buff_last;
   /* Check whether we can just add to the existing buffer */
   if ((mode == SM_RAW) && *l && ((*l)->mode == mode)) {
     (*l)->data = realloc((*l)->data, (*l)->len + len);
