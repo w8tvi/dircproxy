@@ -788,7 +788,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
               free(s);
 
               /* Was in the squelch list, so remove it and stop looking */
-              s = (l ? l->next : p->squelch_modes) = n;
+	      if (l) l->next = n; else p->squelch_modes = n;
+	      s = n;
               squelch = 1;
               break;
             } else {
@@ -829,7 +830,8 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
               free(s);
 
               /* Was in the squelch list, so remove it and stop looking */
-              s = (l ? l->next : p->squelch_modes) = n;
+	      if (l) l->next = n; else p->squelch_modes = n;
+	      s = n;
               squelch = 1;
               break;
             } else {
