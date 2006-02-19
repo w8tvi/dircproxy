@@ -1,0 +1,91 @@
+ --------------------------
+[ Using SSL with dircproxy ]
+ --------------------------
+
+* DISCLAIMER :
+*
+* THIS IS AN UNSTABLE DEVELOPMENT RELEASE OF DIRCPROXY.  IT HAS HIGHER
+* THAN USUAL RISK OF DESTROYING YOUR SYSTEM OR LOSING YOUR DATA OR
+* CORRUPTING YOUR BOX.
+*
+* DO NOT USE IT IF YOU DO NOT ACCEPT THE RISKS
+*
+* RESPONSABILITY OF DIRCPROXY STAFF COULD NOT BE ENGAGED IN ANY CASE
+
+
+What has changed in this branch
+===============================
+
+This branch adds SSL support for both client-side and server-side.
+Both features may be used independently.
+
+  o Client-side : dircproxy connects to SSL-enabled servers, allowing
+    you to identify the IRC server you are connecting to, eventually
+    identifying yourself to the server  and securing communications with
+    a crypted socket.
+  o Server-side : dircproxy offers SSL services, allowing you to identify
+    the dircproxy server you are connecting to, eventually identifying
+    yourself to the server and securing communications with a crypted socket.
+
+These changes are useful for people worried about their talk privacy.
+
+What has been done
+==================
+
+- Client-side :
+  o Connecting to any SSL-enabled server, using the "server_ssl" var in
+  config-file
+  
+- Server-side :
+  o Presenting the certificate to any client and allow any client to connect
+
+What needs to be done
+=====================
+
+[P] = Priority   [E] = Enhancement
+
+- Client-side :
+  o [E] Checking the certificate validity (date, server name, fingerprint)
+  o [E] Allow users to manually validate certificate
+  o [E] Allow dircproxy to present a certificate to identify user on server
+  
+- Server-side :
+  o [P] dircproxy hangs when SSL is enabled and client connects without
+        SSL (due to "while(SSL_accept(p->cliSSL.ssl) != 1);" in irc_net.c on
+        line 235, need to find a smarter way to handle this)
+  o [E] Allow user to present a certificate to identify user on server
+  
+How to use dircproxy-SSL
+========================
+
+- Client-side : Add 'server_ssl yes' (without quotes) to your config file
+  and dircproxy will connect to server using a SSL socket
+  
+- Server-side : Add 'pk_file "/path/to/privkey.pem"' and 
+  'cert_file "/path/to/cacert.pem"' (both without simple quotes) and
+  dircproxy will present the certificate to connecting users.
+
+To generate a test certificate with OpenSSL (http://www.openssl.org/),
+generate a private key with "openssl genrsa -out privkey.pem 2048" then
+generate a self-signed certificate 
+"openssl req -new -x509 -key privkey.pem -out cacert.pem -days 1095"
+
+* BEWARE NOT TO USE SELF-SIGNED CERTIFICATE IN PRODUCTION ENVIRONMENT *
+
+  
+More Information
+================
+
+The dircproxy home page is at:
+  http://dircproxy.securiweb.net/
+
+Please submit bug reports at:
+  http://dircproxy.securiweb.net/newticket
+
+Also join us on the #dircproxy IRC channel on irc.openprojects.net.
+
+dircproxy is distributed according to the GNU General Public License.
+See the file COPYING for details.
+
+Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
+Copyright (C) 2004 Francois Harvey and Mike Taylor.  
