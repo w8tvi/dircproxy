@@ -59,8 +59,8 @@ static char *progname;
 /* Long options */
 static struct option long_opts[] = {
   { "help", 0, NULL, 'h' },
+  { "md5", 0, NULL, 'm' }, 
   { "version", 0, NULL, 'v' },
-  { "md5", 0, NULL, 'm' },
   { 0, 0, 0, 0}
 };
 
@@ -113,9 +113,9 @@ int main(int argc, char *argv[]) {
   if (optind < argc) {
     while (optind < argc) {
       if (use_md5)
-          _encrypt(argv[optind]);
+          _encrypt_md5(argv[optind]);
       else
-	  _encrypt_md5(argv[optind]);
+	  _encrypt(argv[optind]);
       optind++;
     }
   } else {
