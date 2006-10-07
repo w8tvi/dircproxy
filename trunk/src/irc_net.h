@@ -139,6 +139,14 @@ typedef struct ircconnclass {
   /* Most config file options can be changed by editing the config file and
      HUP'ing dircproxy.  One or two can be done from the /DIRCPROXY command
      though.  Always keep the originals. */
+  
+   /* EXPERIMENTAL
+    * allow dynamic enable GET and SET command to get and set configuration
+    * option in runtime. usefull if you want to put some configuration option
+    * inside your irc client. 
+    */
+  int allow_dynamic;
+   
   char *orig_local_address;
 
   struct ircconnclass *next;

@@ -608,6 +608,14 @@
  */
 #define DEFAULT_ALLOW_NOTIFY 0
 
+/* DEFAULT_ALLOW_DYNAMIC
+ * Wheter the /DIRCPROXY GET and /DIRCPROXY SET command can be used
+ * 0 = Disabled
+ * 1 = Read Only
+ * 2 = Read/Write
+ */
+#define DEFAULT_ALLOW_DYNAMIC 1
+
 /* Global variables */
 struct globalvars {
   long client_timeout;

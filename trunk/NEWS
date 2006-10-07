@@ -1,5 +1,9 @@
 NEWS about changes for existing users.
 --------------------------------------
+Version 1.2.0-beta - 
+        * Add Support for GET and SET
+	* Lot of bugfixes
+
 Version 1.2.0-beta - 25 Oct 2005 
         * Nickserv support
 	* Binding to a local IP

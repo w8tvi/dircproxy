@@ -504,7 +504,20 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
           } else {
             ircnet_announce_dedicated(p);
           }
-
+	} else if (!irc_strcasecmp(msg.params[0], "GET")) {
+	   /* User want to get a configuration item */
+	   if (p->conn_class->allow_dynamic >= 1) {
+	      // todo
+	   } else {	   
+	      ircclient_send_notice(p, "You are not authorized to use GET command");
+	   }
+	} else if (!irc_strcasecmp(msg.params[0], "SET")) {
+	   /* User want to set a configuration item */	      
+	   if (p->conn_class->allow_dynamic == 2) {
+	      // todo
+	   } else {	   
+	      ircclient_send_notice(p, "You are not authorized to use SET command");
+	   }
         } else if (!irc_strcasecmp(msg.params[0], "RELOAD")) {
           /* User wants to reload the configuration file */
           ircclient_send_notice(p, "RELOAD in progress");
@@ -567,7 +580,7 @@ static int _ircclient_gotmsg(struct ircproxy *p, const char *str) {
 	} else if (p->conn_class->allow_notify
 		   && !irc_strcasecmp(msg.params[0], "NOTIFY")) {
 	  _ircclient_handle_notify(p, msg);
-	      
+	   
         } else if (!irc_strcasecmp(msg.params[0], "SERVERS")) {
           struct strlist *s;
           int i;
@@ -2183,6 +2196,10 @@ void _ircclient_handle_help(struct ircproxy *p, struct ircmessage msg) {
                             "(show dircproxy status information)");
       ircclient_send_notice(p, "-     RECALL    "
                             "(recall text from log files)");
+      ircclient_send_notice(p, "-     GET    "
+			    "(Get the value of a configuration item)");
+      ircclient_send_notice(p, "-     SET    "
+			     "(Set the value of a configuration item)");       
       ircclient_send_notice(p, "-     RELOAD    "
                             "(reload configuration file)");
       ircclient_send_notice(p, "-     DETACH    "
