@@ -325,7 +325,7 @@ irclog_open(IRCProxy *p, const char *to)
 	}
 
 	/* Try to remove world and group read/write */
-	if (fchmod((int)log->file, 0600))
+	if (fchmod(fileno(log->file), 0600))
 		syscall_fail("fchmod", log->filename, 0);
   
 	log->open = log->made = 1;
@@ -523,7 +523,7 @@ static int _logfile_write(struct logfile *log, const char *format, ...) {
   va_end(ap);
 
   if (log->open && log->maxlines && (log->nlines >= log->maxlines)) {
-    FILE *out;
+    FILE *fout;
     char *l;
 
     /* We can't simply add .tmp or something on the end, because there is
@@ -535,14 +535,14 @@ static int _logfile_write(struct logfile *log, const char *format, ...) {
     unlink(log->filename);
 
     /* This *really* shouldn't happen */
-    out = fopen(log->filename, "w+");
-    if (!out) {
+    fout = fopen(log->filename, "w+");
+    if (!fout) {
       syscall_fail("fopen", log->filename, 0);
       return -1;
     }
 
     /* Make sure it's got the right permissions */
-    if (fchmod((int) out, 0600))
+    if (fchmod( fileno(fout), 0600))
       syscall_fail("fchmod", log->filename, 0);
 
     /* Eat from the start */
@@ -553,13 +553,13 @@ static int _logfile_write(struct logfile *log, const char *format, ...) {
 
     /* Write the rest */
     while ((l = _log_read(log->file))) {
-      fprintf(out, "%s\n", l);
+      fprintf(fout, "%s\n", l);
       free(l);
     }
 
     /* Close the input file, thereby *whoosh*ing it */
     fclose(log->file);
-    log->file = out;
+    log->file = fout;
   }
 
   /* Write to the log file */

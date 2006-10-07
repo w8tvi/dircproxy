@@ -301,7 +301,7 @@ int main(int argc, char *argv[]) {
 
     pidfile = fopen(pid_file, "w");
     if (pidfile) {
-      fchmod((int) pidfile, 0600);
+      fchmod(fileno(pidfile), 0600);
       fprintf(pidfile, "%d\n", getpid());
       fclose(pidfile);
     } else {
