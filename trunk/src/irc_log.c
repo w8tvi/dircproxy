@@ -1,6 +1,6 @@
 /* dircproxy
  * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
- * Copyright (C) 2004, 2005 Francois Harvey <fharvey at securiweb dot net>
+ * Copyright (C) 2004,2005,2006 Francois Harvey <fharvey at securiweb dot net>
  *
  * irc_log.c
  *  - Handling of log files
@@ -41,13 +41,10 @@
 #include "sprintf.h"
 #include "irc_net.h"
 
-
-
 #include <fcntl.h>
 #include <string.h>
 #include <stdarg.h>
 #include <time.h>
-
 
 #include "net.h"
 #include "irc_prot.h"
@@ -58,7 +55,7 @@
 
 
 /* Log time format for strftime(3) */
-#define LOG_TIME_FORMAT "%H:%M"
+#define LOG_TIME_FORMAT "[%H:%M] "
 
 /* User log time format */
 #define LOG_USER_TIME_FORMAT "[%d %b %H:%M] "
@@ -202,6 +199,7 @@ irclog_maketempdir(IRCProxy *p)
  * "/tmp/#/../../etc/passwd" = "/etc/passwd".  * If running as root this
  * could be bad.  So to compensate we replace '/' with ':' as thats not
  * valid in channel names.
+ * We do the same for $ and \ (for Microsoft OS) 
  */
 static char *
 _safe_name(char *name)
@@ -211,9 +209,11 @@ _safe_name(char *name)
 	ptr = name;
 	while (*ptr) {
 		switch (*ptr) {
-		case '/':
-			*ptr = ':';
-			break;
+		 case '$':
+		 case '\\':
+		 case '/':
+		   *ptr = ':';
+		   break;
 		}
 
 		ptr++;
@@ -879,13 +879,13 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
      
       debug("log: [%s]\r\n", msg);
 
-        /*
-         * 1079304950 client #dircproxy dircproxy You connected
-         * 1079304951 join #dircproxy niven.freenode.net You joined the channel
-         * 1079305132 client #dircproxy dircproxy You disconnected
-         * 1079305143 message #dircproxy bear!~bear@pa.comcast.net lah
-         * 1079305150 action #dircproxy bear!~bear@pa.comcast.net moons the channel
-         */
+       /*
+	* 1079304950 client #dircproxy dircproxy You connected
+	* 1079304951 join #dircproxy niven.freenode.net You joined the channel
+	* 1079305132 client #dircproxy dircproxy You disconnected
+	* 1079305143 message #dircproxy bear!~bear@pa.comcast.net lah
+	* 1079305150 action #dircproxy bear!~bear@pa.comcast.net moons the channel
+	*/
 
       ll   = msg;
       work = msg;
@@ -945,33 +945,33 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
   
       debug("timestamp: %d event: %d src: [%s] frm: [%s] log: [%s]\r\n", when, event, src, frm, msg);
 
-        /* If the log_timestamp option is on, format the timestamp */
+      /* If the log_timestamp option is on, format the timestamp */
       if (when && p->conn_class->log_timestamp) {
         if (p->conn_class->log_relativetime) {
           time(&now);
           diff = now - when;
 
           if (diff < 82800L) {                /* Within 23 hours [hh:mm] */
-            strftime(tbuf, sizeof(tbuf), "%H:%M", localtime(&when));
+            strftime(tbuf, sizeof(tbuf), "[%H:%M] ", localtime(&when));
           } else if (diff < 518400L) {        /* Within 6 days [day hh:mm] */
-            strftime(tbuf, sizeof(tbuf), "%a %H:%M", localtime(&when));
+            strftime(tbuf, sizeof(tbuf), "[%a %H:%M] ", localtime(&when));
           } else if (diff < 25920000L) {      /* Within 300 days [d mon] */
-            strftime(tbuf, sizeof(tbuf), "%d %b", localtime(&when));
+            strftime(tbuf, sizeof(tbuf), "[%d %b] ", localtime(&when));
           } else {                            /* Otherwise [d mon yyyy] */
-            strftime(tbuf, sizeof(tbuf), "%d %b %Y", localtime(&when));
+            strftime(tbuf, sizeof(tbuf), "[%d %b %Y] ", localtime(&when));
           }
         } else {
           strftime(tbuf, sizeof(tbuf), LOG_TIME_FORMAT, localtime(&when));
         }
       }
 
-        /* Message or Notice lines, these require a bit of parsing */
+      /* Message or Notice lines, these require a bit of parsing */
       if ((event == IRC_LOG_NOTICE) || (event == IRC_LOG_MSG) || (event == IRC_LOG_ACTION)) {
-          /* Do filtering */
+        /* Do filtering */
         if (from) {
           char *comp, *ptr;
 
-            /* We just check the nickname, so strip off anything after the ! */
+          /* We just check the nickname, so strip off anything after the ! */
           comp = x_strdup(src);
           if ((ptr = strchr(comp, '!')))
             *ptr = 0;
@@ -988,15 +988,15 @@ static int _irclog_recall(struct ircproxy *p, struct logfile *log,
       
         /* Send the line */
       if (event == IRC_LOG_MSG) {
-        net_send(p->client_sock, ":%s PRIVMSG %s :[%s] %s\r\n", frm, to, tbuf, msg);
+        net_send(p->client_sock, ":%s PRIVMSG %s :%s%s\r\n", frm, to, tbuf, msg);
       } else if (event == IRC_LOG_ACTION) {
-        net_send(p->client_sock, ":%s PRIVMSG %s :\001ACTION [%s] %s\001\r\n", frm, to, tbuf, msg);
+        net_send(p->client_sock, ":%s PRIVMSG %s :\001ACTION %s%s\001\r\n", frm, to, tbuf, msg);
       } else if (event == IRC_LOG_CTCP) {
-        net_send(p->client_sock, ":%s PRIVMSG %s :\001%s [%s]%s%s\001\r\n", src, to, eventtext, tbuf, (strlen(msg) ? " " : ""), msg);
+        net_send(p->client_sock, ":%s PRIVMSG %s :\001%s %s%s%s\001\r\n", src, to, eventtext, tbuf, (strlen(msg) ? " " : ""), msg);
       } else if (event == IRC_LOG_NOTICE) {
         ircclient_send_notice(p, "%s", msg);
       } else {
-        net_send(p->client_sock, ":%s PRIVMSG %s :[%s] %s\r\n", src, to, tbuf, msg);
+        net_send(p->client_sock, ":%s PRIVMSG %s :%s%s\r\n", src, to, tbuf, msg);
       }
 
       free(ll);
