@@ -325,8 +325,8 @@ irclog_open(IRCProxy *p, const char *to)
 	}
 
 	/* Try to remove world and group read/write */
-	if (chmod(log->filename, 0600))
-		syscall_fail("chmod", log->filename, 0);
+	if (fchmod((int)log->file, 0600))
+		syscall_fail("fchmod", log->filename, 0);
   
 	log->open = log->made = 1;
 	log->nlines = 0;
@@ -542,8 +542,8 @@ static int _logfile_write(struct logfile *log, const char *format, ...) {
     }
 
     /* Make sure it's got the right permissions */
-    if (chmod(log->filename, 0600))
-      syscall_fail("chmod", log->filename, 0);
+    if (fchmod((int) out, 0600))
+      syscall_fail("fchmod", log->filename, 0);
 
     /* Eat from the start */
     while ((log->nlines >= log->maxlines) && (l = _log_read(log->file))) {
