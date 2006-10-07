@@ -224,7 +224,7 @@ static char *help_kill[] = {
   0
 };
 
-/* help kill */
+/* help notify */
 static char *help_notify[] = {   
   "/DIRCPROXY NOTIFY <num>",
   "send a notice to the user listed in the",
@@ -237,8 +237,20 @@ static char *help_notify[] = {
   "/DIRCPROXY NOTIFY <nickname>",
   "send a notice to the user with the nickname specified",
   0
-}
-;
+};
 
+/* help get */
+static char *help_get[] = {
+   "/DIRCPROXY GET <config name>",
+   "get the value of the parameters specified by name",
+   0
+};
+
+/* help set */
+static char *help_set[] = {
+   "/DIRCPROXY SET <name> <config value>",
+   "set the value of the parameters specified by name",
+   0
+};
 
 #endif /* __DIRCPROXY_HELP_H */

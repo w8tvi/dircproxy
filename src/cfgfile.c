@@ -144,7 +144,9 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
   def->allow_users = DEFAULT_ALLOW_USERS;
   def->allow_kill = DEFAULT_ALLOW_KILL;
   def->allow_notify = DEFAULT_ALLOW_NOTIFY;
-   
+  
+  def->allow_dynamic = DEFAULT_ALLOW_DYNAMIC;
+     
   while (valid) {
     char buff[512], *buf;
 
