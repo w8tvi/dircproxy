@@ -29,10 +29,6 @@ static int _irc_toupper(int);
 /* IRC version of tolower */
 static int _irc_tolower(int c) {
   switch (c) {
-/*    case '[':
-      return '{';
-    case ']':
-      return '}'; */
     case '\\':
       return '|';
     default:
@@ -43,10 +39,6 @@ static int _irc_tolower(int c) {
 /* IRC version of tolower */
 static int _irc_toupper(int c) {
   switch (c) {
-/*    case '{':
-      return '[';
-    case '}':
-      return ']'; */
     case '|':
       return '\\';
     default:
