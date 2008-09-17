@@ -77,15 +77,16 @@ More Information
 ================
 
 The dircproxy home page is at:
-  http://dircproxy.securiweb.net/
+  http://code.google.com/p/dircproxy/
 
 Please submit bug reports at:
-  http://dircproxy.securiweb.net/newticket
+  http://code.google.com/p/dircproxy/issues/list
 
-Also join us on the #dircproxy IRC channel on irc.openprojects.net.
+Also join us on the #dircproxy IRC channel on irc.freenode.net.
 
 dircproxy is distributed according to the GNU General Public License.
 See the file COPYING for details.
 
 Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
 Copyright (C) 2004 Francois Harvey and Mike Taylor.  
+Copyright (C) 2008 Noel Shrum (noel.w8tvi@gmail.com)
