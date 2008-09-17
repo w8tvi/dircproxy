@@ -1,0 +1,45 @@
+#summary Checklist for creating a release
+
+*_Note:_* List is for old site, needs updating for google code host.
+
+= Release checklist =
+
+ #  Perform a `make maintainer-clean` and remove any litter
+ #  Check it compiles and runs --enable-debug
+ #  Perform a `make maintainer-clean` and remove any litter
+ #  Check it compiles and runs without any flags
+ #  Fix any bugs/warnings, commit them, and return to 1
+ #  Perform a `make maintainer-clean` and remove any litter
+ #  Run `cvs2cl --gmt --prune -U AUTHORS.map -l '-b'` to create new !ChangeLog.  If this is a non-head branch replace the "-l 'b'" with "-F BRANCH-x_x".
+ #  `rm !ChangeLog.bak`
+ #  `cvs diff source:trunk/ChangeLog > changes.txt`
+ #  Edit changes.txt and undiffify it
+ #  Read changes.txt and write summary.txt from it
+ #  Write release.txt including summary.txt after an "-----Official Summary-----" marker and blank line.
+ #  Edit the NEWS file, add in new version and any config/use changes
+ #  Adjust the Features list in the README file if necessary.  This will also require the adjustment of the website's index.html.in file.
+ #  Any changes to INSTALL?  Do them and adjust website's install.html file.
+ #  Do a general `cvs commit -m "Version x.x.x released."`
+ #  do a `cvs tag RELEASE-x_x_x`
+ #  do an `autogen.sh` without any flags
+ #  make dist
+ #  `gpg --armor --comment 'See http://dircproxy.securiweb.net/DircproxyDownload for more information' --detach-sign DISTFILE`
+ #  `md5sum DISTFILE > DISTFILE.md5`
+ #  scp dist file, md5 file and asc file to tetris:~ftp/pub/dircproxy/unstable
+ #  Remove 'src' directory from website and replace with new version
+ #  Add new news item title "dircproxy x.x.x released" containing release.txt
+ #  Add new version to bugzilla's dircproxy product
+ #  Run build-site.pl to make the site carry the latest information.
+ #  Check the site front page, news page and download page.
+ #  Announce new version on freshmeat using summary.txt
+ #  E-mail dircproxy-announce list with release.txt making sure to sign the e-mail.
+ #  E-Mail lester@mazpe.net with any significant changes that could affect packaging (new files etc), making sure to sign the e-mail.
+ #  Update and upload the new Debian package to master
+ #  Edit source:trunk/configure.ac & source:trunk/contrib/dircproxy.spec and increment the version number, commit with message "SVN version now x.x.x"
+
+----------
+'''To remove litter:'''
+{{{
+for A in . conf contrib crypt doc getopt src; do \
+		(cd $A; rm -rf `cat .cvsignore`; rm -rf *~); done
+}}}
