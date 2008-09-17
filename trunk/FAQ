@@ -95,48 +95,45 @@ Answers
 
      The dircproxy home page is at:
 
-         http://dircproxy.securiweb.net/
+         http://code.google.com/p/dircproxy/
 
      New releases along with other news are announced there.
 
  1.3  Are there any mailing lists?
 
-      Not yet, the last one was lost when the maintenership changed
+      Yes.
+      You can find the links to them on hope page.
+      http://code.google.com/p/dircproxy/
 
  1.4  Is there a dircproxy IRC channel?
 
      Yes, on the freenode IRC network (irc.freenode.net)
      called #dircproxy.
 
-     I can usually be found with the nickname Utopiste.
-
  1.5  How do I report bugs?
 
-     Bug tracking is done using our Trac bug tracking system at:
+     Bug tracking is done using the bug tracking system at:
 
-         http://dircproxy.securiweb.net/ | NewTicket
+     http://code.google.com/p/dircproxy/issues/list
 
  1.6  Is there an anonymous SVN server?
 
      Yes.  This can be used to retrieve any release, including the
      current developmental release.  For more information see:
 
-     http://dircproxy.securiweb.net/wiki/GetTheLatestSourceCode
+     http://code.google.com/p/dircproxy/wiki/GetTheLatestSourceCode
     
-     or use subversion to checkout :
-     svn checkout http://dircproxy.securiweb.net/svn/trunk dircproxy
-
  1.7  How do I add a question to the FAQ?
 
-     E-mail me at <fharvey at securiweb dot net> and I'll see if its suitable
-     for inclusion.
-
+      Just go to http://code.google.com/p/dircproxy/wiki/dircproxyfaq
+      and add your question to the wiki page.  We will add it to this
+      copy of the FAq if think it needs to be.
 
  2.1  How do I compile and install dircproxy?
 
      Read the INSTALL file in the dircproxy distribution, or see:
 
-     http://dircproxy.securiweb.net/wiki/DircproxyInstallation
+     http://code.google.com/p/dircproxy/wiki/DircproxyInstallation
 
  2.2  I get "couldn't find your xxx() function" from configure
 
@@ -232,10 +229,8 @@ Answers
 
  2.6  Is dircproxy supported on Windows 2000/XP/2003?
 
-     No, it is not supported and never will be supported.  Get a real
-     operating system(tm) :o)
-
-     I got it working using cygwin on windows 2000. 
+     No, it is not supported and most likely never will be.
+     There are reports of it being used under cygwin on windows 2000. 
 
 
  3.1  What are configuration classes?
@@ -408,15 +403,11 @@ Answers
      No.  dircproxy was never written to connect to an IRC server without
      seeing an IRC client first.
 
-  3.15 Does dircproxy support user scripts to extend it?
+ 3.15 Does dircproxy support user scripts to extend it?
 
      No.  dircproxy is intended purely as an IRC proxy.  Scripting
      support would make it too much like a bot, if you want that
      kind of thing then a bot would serve you much better.
-
-     Go download eggdrop, and get yourself K-Lined from your IRC
-     server. :o)
-     
 
  4.1  Why does dircproxy by default log channels while I'm attached?
 
@@ -597,3 +588,4 @@ Answers
 
 Copyright (C) 2000, 2001, 2002, 2003 Scott James Remnant <scott@netsplit.com>.
 Copyright (C) 2004, 2005 Francois Harvey <fharvey at securiweb dot net>
+Copyright (C) 2008 Noel Shrum <noel dot w8tvi at gmail dot com>
