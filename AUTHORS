@@ -1,7 +1,8 @@
 Authors and Acknowledgments
 ----------------------------
 
-dircproxy is currently maintained by Francois Harvey <fharvey at securiweb dot net>
+dircproxy is currently maintained by Francois Harvey <fharvey at securiweb dot net>, and 
+Noel Shrum <noel dot w8tvi at gmail dot com>.
 
 dircproxy was originally written by Scott James Remnant <scott at netsplit dot com>,
 with the occasional patch from the odd random individual.
@@ -21,3 +22,4 @@ want to be credited for it, then just nag me to add you to this file.
 
 Copyright (C) 2004,2005,2006 Francois Harvey <fharvey at securiweb dot net>
 Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
+Copyright (C) 2008 Noel Shrum (noel.w8tvi@gmail.com)
