@@ -1155,7 +1155,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       
         if (!strcmp(cmsg.cmd, "ACTION")) {
           irclog_log(p, IRC_LOG_ACTION, logdest, msg.src.orig,
-                     "%s", cmsg.paramstarts[0]);
+                     "%s", (cmsg.paramstarts != NULL) ?  cmsg.paramstarts[0]: "none");
 
         } else if (!strcmp(cmsg.cmd, "DCC")
                    && p->conn_class->dcc_proxy_incoming) {
