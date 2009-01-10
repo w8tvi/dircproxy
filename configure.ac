@@ -1,10 +1,10 @@
 # Process this file with autoconf to produce a configure script.
 # $Id: configure.ac,v 1.9 2003/12/31 23:16:25 fharvey Exp $
 
-AC_INIT([dircproxy], [1.2.0], [http://dircproxy.securiweb.net/])
+AC_INIT([dircproxy], [1.2.0], [http://dircproxy.googlecode.com/])
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
-AC_COPYRIGHT([Copyright (C) 2004,2005 Francois Harvey <fharvey at securiweb dot net>.])
+AC_COPYRIGHT([Copyright (C) 2009 Noel Shrum & Francois Harvey.])
 AC_CONFIG_SRCDIR([src/dircproxy.h])
 AM_CONFIG_HEADER([config.h])
 

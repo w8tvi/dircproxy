@@ -1,6 +1,11 @@
 /* dircproxy
- * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
- * Copyright (C) 2005 Francois Harvey <fharvey at securiweb dot net>
+ * Copyright (C) 2000-2003 Scott James Remnant <scott at netsplit dot com>
+ * 
+ * Copyright (C) 2004-2008 Francois Harvey <contact at francoisharvey dot ca>
+ * 
+ * Copyright (C) 2008-2009 Noel Shrum <noel dot w8tvi at gmail dot com>
+ *                         Francois Harvey <contact at francoisharvey dot ca>
+ * 
  *
  * irc_server.c
  *  - Handling of servers connected to the proxy
@@ -1469,7 +1474,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
                   && (p->client_status != IRC_CLIENT_ACTIVE)) {
           ircserver_send_command(p, "NOTICE", "%s :\001VERSION %s %s - %s\001",
                                  msg.src.name, PACKAGE, VERSION,
-                                 "http://dircproxy.securiweb.net/");
+                                 "http://dircproxy.googlecode.com/");
 
         } else if (!strcmp(cmsg.cmd, "USERINFO")
                   && p->conn_class->ctcp_replies
