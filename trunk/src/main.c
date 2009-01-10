@@ -1,6 +1,11 @@
 /* dircproxy
- * Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
- * Copyright (C) 2004, 2005, 2006 Francois Harvey <fharvey + dircproxy at securiweb dot net>
+ * Copyright (C) 2000-2003 Scott James Remnant <scott at netsplit dot com>
+ * 
+ * Copyright (C) 2004-2008 Francois Harvey <contact at francoisharvey dot ca>
+ * 
+ * Copyright (C) 2008-2009 Noel Shrum <noel dot w8tvi at gmail dot com>
+ *                         Francois Harvey <contact at francoisharvey dot ca>
+ * 
  *
  * main.c
  *  - Program main loop
@@ -503,7 +508,8 @@ static int _print_usage(void) {
 
 /* Print the version number to stderr */
 static int _print_version(void) {
-  fprintf(stderr, "%s %s - (C) 2006 Francois Harvey - http://dircproxy.securiweb.net/", PACKAGE, VERSION);
+  fprintf(stderr, "%s %s - (C) 2009 Noel Shrum & Francois Harvey - http://dircproxy.googlecode.com/", PACKAGE, VERSION);
+   
 #ifdef SSL
   fprintf(stderr, " - SSL");
 #endif /* SSL */
@@ -517,7 +523,7 @@ static int _print_version(void) {
 /* Print the help to stderr */
 static int _print_help(void) {
   fprintf(stderr, "%s %s.  Detachable IRC proxy.\n", PACKAGE, VERSION);
-  fprintf(stderr, "(C) 2006 Francois Harvey - http://dircproxy.securiweb.net/\n\n");
+  fprintf(stderr, "(C) 2009 Noel Shrum & Francois Harvey - http://dircproxy.googlecode.com/\n\n");
   fprintf(stderr, "Usage: %s [OPTION]...\n\n", progname);
   fprintf(stderr, "If a long option shows an argument as mandatory, then "
                   "it is mandatory\nfor the equivalent short option also.  "

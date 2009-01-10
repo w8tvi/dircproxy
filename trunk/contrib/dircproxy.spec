@@ -7,8 +7,8 @@ Version: %{version}
 Release: 1
 Copyright: GPL
 Group: Applications/Internet
-URL: http://dircproxy.securiweb.net/
-Source: http://www.securiweb.net.net/pub/oss/dircproxy/%{branch}/dircproxy-%{version}.tar.gz
+URL: http://dircproxy.googlecode.com/
+Source: http://dircproxy.googlecode.com/files/dircproxy-%{version}.tar.gz
 BuildRoot: /var/tmp/%{name}-root
 Packager: Hollis Blanchard <hollis@yellowdoglinux.com>
 

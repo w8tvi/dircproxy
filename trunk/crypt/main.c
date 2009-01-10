@@ -1,5 +1,11 @@
 /* dircproxy-crypt
- * Copyright (C) 2005 Francois Harvey <fharvey at securiweb dot net >
+ * Copyright (C) 2000-2003 Scott James Remnant <scott at netsplit dot com>
+ * 
+ * Copyright (C) 2004-2008 Francois Harvey <contact at francoisharvey dot ca>
+ * 
+ * Copyright (C) 2008-2009 Noel Shrum <noel dot w8tvi at gmail dot com>
+ *                         Francois Harvey <contact at francoisharvey dot ca>
+ * 
  *
  * main.c
  *  - Encrypt a password taken from stdin or the command line

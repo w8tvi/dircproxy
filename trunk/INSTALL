@@ -131,7 +131,7 @@ useful ones are documented here.
 	help fix a bug you've found.  Not recommended for normal use.
 
 '--enable-ssl'
-	Enable SSL support.		    
+	Enable SSL support (not working yet - on the 1.3.x roadmap)		    
  
 
 If compilation fails for any reason, you can pass shell variables
@@ -146,5 +146,11 @@ Or on systems that have the 'env' program, you can do it like this:
      env CPPFLAGS=-I/usr/local/include LDFLAGS=-s ./configure
 
 
-Copyright (C) 2000,2001,2002,2003 Scott James Remnant <scott@netsplit.com>.
-Copyright (C) 2004,2005 Francois Harvey <fharvey at securiweb dot net>
+
+Copyright (C) 2000-2003 Scott James Remnant <scott at netsplit dot com>
+
+Copyright (C) 2004-2008 Francois Harvey <contact at francoisharvey dot ca>
+
+Copyright (C) 2008-2009 Noel Shrum <noel dot w8tvi at gmail dot com>
+                        Francois Harvey <contact at francoisharvey dot ca>
+			
