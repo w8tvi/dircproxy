@@ -137,7 +137,7 @@
 #     within a certain time period. 
 #
 #     For this you specify a number of bytes, then optionally a time period
-#     in seconds seperated by a colon.  If the time period is ommitted then
+#     in seconds separated by a colon.  If the time period is omitted then
 #     per second is assmued.
 #
 #     server_throttle 10        # 10 bytes per second
@@ -406,7 +406,7 @@
 #log_timeoffset 0
 
 # log_events
-#     Events you want dircproxy to log for you.  This is a comma seperated
+#     Events you want dircproxy to log for you.  This is a comma separated
 #     list of event names, prefixed with '+' to add the event to the list or
 #     '-' to remove an event.  You can also specify 'all' to log all events
 #     (the default) or 'none' to not log anything.
@@ -661,7 +661,7 @@
 #     This is for when you're behind a firewall that only allows certain
 #     ports through, or when doing DCC-via-ssh.
 #
-#     It is a comma seperated list of port numbers or ranges of ports,
+#     It is a comma separated list of port numbers or ranges of ports,
 #     for example '57100-57199,57400,57500,57600-57800'
 #
 #     any = Use any port given to us by the kernel.
@@ -947,7 +947,7 @@
 
 # You can specify multiple servers, they are iterated if one fails or
 # disconnects you.  You can also specify specific ports and
-# optional passwords for a server, seperating the port and password with
+# optional passwords for a server, separating the port and password with
 # a ':'.  To use a default port, and a specific password, separate it
 # from the server with a '::'.  (These passwords are *not* encrypted!)
 #
@@ -959,11 +959,11 @@
 # 
 # You can also specify an initial channel set to be joined using the
 # 'join' keyword.  Note that the list of channels MUST be surrounded
-# by quotes (to distinguish from a comment) and seperated by commas.
+# by quotes (to distinguish from a comment) and separated by commas.
 #     join "#foo"
 #     join "#foo,bar"
 #
-# Channel keywords should be seperated by the channel name with a space
+# Channel keywords should be separated by the channel name with a space
 # as you'd expect.
 #     join "#foo key,#bar,#baz key2"
 #

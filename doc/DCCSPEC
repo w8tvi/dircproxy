@@ -28,7 +28,7 @@ chat connections while still in an IRC oriented protocol.
         DCC uses direct TCP connections between the clients
 taking part to carry data. There is no flood control, so
 packets can be sent at full speed, and there is no
-dependance on server links (or load imposed on them). In
+dependence on server links (or load imposed on them). In
 addition, since only the initial handshake for DCC conections
 is passed through the IRC network, it is impossible for
 Operators with cracked servers to spy on DCC messages.
@@ -47,7 +47,7 @@ DCC. This command takes the form:
         DCC type argument address port
 
 type    - The connection type
-argument - The connectin type dependant argument
+argument - The connectin type dependent argument
 address - the host address of the initiator as an integer.
 port    - the port or the socket on which the initiator expects
           to receive the connection.

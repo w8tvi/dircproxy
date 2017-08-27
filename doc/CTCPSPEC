@@ -268,7 +268,7 @@ and after CTCP dequoting:
         :actom PRIVMSG victim :Hi there!\nHow are you? \K?
 
 How this is displayed differs from client to client, but it suggested
-that a line break should occour between the words "there" and "How".
+that a line break should occur between the words "there" and "How".
 
 - --- Example 2 ---------------------------------------------------------------
 --
@@ -413,7 +413,7 @@ action message looks like the following:
 
 \001ACTION barfs on the floor.\001
 
-Clients that recieve such a message should format them to indicate the
+Clients that receive such a message should format them to indicate the
 user who did this is performing an "action". For example, if the user
 "actor" sent the above message to the channel "#twilight_zone", other
 users clients might display the message as:
@@ -494,7 +494,7 @@ and the reply
         \001VERSION #:#:#\001
 
 where the first # denotes the name of the client, the second # denotes
-the version of the client, the third # the enviroment the client is
+the version of the client, the third # the environment the client is
 running in.
 
 Using
@@ -503,7 +503,7 @@ Using
 
 the client name is a string of type X-N-CLN saying things like "Kiwi"
 or "ircII", the version saying things like "5.2" or "2.1.5c", the
-enviroment saying things like "GNU Emacs 18.57.19 under SunOS 4.1.1 on
+environment saying things like "GNU Emacs 18.57.19 under SunOS 4.1.1 on
 Sun SLC" or "Compiled with gcc -ansi under Ultrix 4.0 on VAX-11/730".
 
 
@@ -620,7 +620,7 @@ message inside a notice:
 
 \001PING timestamp\001
 
-The querying client can then subtract the recieved timestamp from the
+The querying client can then subtract the received timestamp from the
 current time to obtain the delay between clients over the IRC network.
 
 TIME
@@ -632,7 +632,7 @@ has the form:
 
 \001TIME\001
 
-On reciept of such a query in a privmsg, clients should reply with a
+On receipt of such a query in a privmsg, clients should reply with a
 notice of the form:
 
 \001TIME :human-readable-time-string\001
@@ -759,7 +759,7 @@ while still in an IRC-oriented protocol.
 
         DCC uses direct TCP connections between the clients taking
 part to carry data. There is no flood control, so packets can be sent
-at full speed, and there is no dependance on server links (or load
+at full speed, and there is no dependence on server links (or load
 imposed on them). In addition, since only the initial handshake for
 DCC conections is passed through the IRC network, it makes it harder
 for operators with cracked servers to spy on personal messages.
@@ -779,7 +779,7 @@ DCC. This command takes the form:
         DCC type argument address port [size]
 
 type     - The connection type.
-argument - The connectin type dependant argument.
+argument - The connectin type dependent argument.
 address  - The host address of the initiator as an integer.
 port     - The port or the socket on which the initiator expects
            to receive the connection.

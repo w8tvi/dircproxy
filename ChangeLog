@@ -90,7 +90,7 @@
 	* src/: cfgfile.c, dircproxy.h, irc_log.c, irc_net.h: Collapsed the
 	three *_log_timestamp and *_log_relativetime options into a single
 	log_timestamp and log_relativetime option.  I can't see any reason
-	why these would be customised seperately, and I need to make the
+	why these would be customised separately, and I need to make the
 	log config file easier!
 
 2002-08-17 19:40  Scott James Remnant <scott@netsplit.com>
@@ -98,7 +98,7 @@
 	* conf/dircproxyrc, doc/dircproxy.1, src/cfgfile.c,
 	src/dircproxy.h, src/help.h, src/irc_client.c, src/irc_log.c,
 	src/irc_log.h, src/irc_net.c, src/irc_net.h, src/irc_server.c:
-	Merged the code to seperate the private message log into a
+	Merged the code to separate the private message log into a
 	different file.
 
 2002-08-17 19:39  Scott James Remnant <scott@netsplit.com>
@@ -242,7 +242,7 @@
 2002-02-05 10:01  Scott James Remnant <scott@netsplit.com>
 
 	* contrib/: Makefile.am, privmsg-log.pl: Added an other_log_program
-	script to log private messages to seperate files (fixes a FAQ)
+	script to log private messages to separate files (fixes a FAQ)
 
 2002-02-05 10:00  Scott James Remnant <scott@netsplit.com>
 
@@ -635,7 +635,7 @@
 
 2000-12-06 15:15  Scott James Remnant <scott@netsplit.com>
 
-	* src/irc_client.c: if JUMP is done without paramters, pick the
+	* src/irc_client.c: if JUMP is done without parameters, pick the
 	next server in the list.
 	
 	* Always match IP address as well as hostname with 'from'
@@ -1070,7 +1070,7 @@
 
 2000-11-01 15:04  Scott James Remnant <scott@netsplit.com>
 
-	* src/: Makefile.am, main.c: Intergrated DCC chat stuff so its all
+	* src/: Makefile.am, main.c: Integrated DCC chat stuff so its all
 	cleaned up.  Still need to actually do it though :o)
 
 2000-11-01 15:03  Scott James Remnant <scott@netsplit.com>
@@ -1299,7 +1299,7 @@
 2000-10-16 10:45  Scott James Remnant <scott@netsplit.com>
 
 	* src/irc_prot.c: Make sure that IRC_USER is only set if there's
-	definitly a nickname, username and hostname
+	definitely a nickname, username and hostname
 
 2000-10-16 10:45  Scott James Remnant <scott@netsplit.com>
 
@@ -1513,7 +1513,7 @@
 2000-10-12 16:02  Scott James Remnant <scott@netsplit.com>
 
 	* src/: irc_client.c, irc_net.c, irc_server.c: Changes to
-	accomodate the new DNS system
+	accommodate the new DNS system
 
 2000-10-12 16:02  Scott James Remnant <scott@netsplit.com>
 
@@ -1522,7 +1522,7 @@
 
 2000-10-12 16:01  Scott James Remnant <scott@netsplit.com>
 
-	* src/irc_net.h: To accomodate two-stage DNS lookups we need an
+	* src/irc_net.h: To accommodate two-stage DNS lookups we need an
 	extra server status that indicates the server is connected (so
 	don't check for connection) but we haven't yet been introduced to
 	it.
@@ -1554,13 +1554,13 @@
 2000-10-11 16:05  Scott James Remnant <scott@netsplit.com>
 
 	* src/irc_client.c: Made /DIRCPROXY QUIT and DETACH just use every
-	paramter joined together rather than the last one (removing the
+	parameter joined together rather than the last one (removing the
 	need for quoting!)
 
 2000-10-11 16:02  Scott James Remnant <scott@netsplit.com>
 
 	* src/: irc_prot.c, irc_prot.h: Also record where in the msg.orig
-	string a paramter started, so we can just copy the whole lot to
+	string a parameter started, so we can just copy the whole lot to
 	things like quit messages etc.
 
 2000-10-11 15:48  Scott James Remnant <scott@netsplit.com>
@@ -1602,7 +1602,7 @@
 		will notice things like disconnects finally (yay!)     
 	Cleaned up quit messages to make them a bit more amusing       
 	Made sure ERRORs are sent for any non-user-requested client	   
-	    disconnection   Cleaned up motd stuff and moved to seperate
+	    disconnection   Cleaned up motd stuff and moved to separate
 	function etc.  Looks		    a lot nicer and works nicer now
 	too.	Debug code added so you can see what dircproxy sends extra
 	to that 	     which it proxies	     Spaced out irc_net.h
@@ -1887,7 +1887,7 @@
 
 2000-08-31 15:34  Scott James Remnant <scott@netsplit.com>
 
-	* src/irc_client.c: Seperated the code to detach a user from
+	* src/irc_client.c: Separated the code to detach a user from
 	ircclient_data()
 	
 	Fixed the 416/461 swapped numeric typo.
@@ -2129,7 +2129,7 @@
 
 2000-08-25 09:49  Scott James Remnant <scott@netsplit.com>
 
-	* src/irc_server.c: Added the code to seperate the server password
+	* src/irc_server.c: Added the code to separate the server password
 	from the server string, and send it to the server when we connect.
 
 2000-08-25 09:47  Scott James Remnant <scott@netsplit.com>
@@ -2676,7 +2676,7 @@
 	* src/irc_net.h: New 'inactive' variable for channels.	This is set
 	to 1 when we are removed from the channel while a client isn't
 	connected.  All the time this is one we attempt to rejoin the
-	channel every few seconds until the join is successfull or the
+	channel every few seconds until the join is successful or the
 	client comes back.
 
 2000-05-24 20:17  Scott James Remnant <scott@netsplit.com>

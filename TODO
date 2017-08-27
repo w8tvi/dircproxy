@@ -4,7 +4,7 @@ Roadmap Post-1.2.0
   1.2.x - fixe bug, listen user complain, add small feature (2005-2006)
   
   
-  1.3.x - (need a little explaination)  (2006-) 
+  1.3.x - (need a little explanation)  (2006-) 
   dircproxy is, hum, a large chunk of cryptic C code, with no dependency
   but full of file/hack that doesn't do a thing about IRC. 
   

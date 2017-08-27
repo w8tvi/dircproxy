@@ -31,8 +31,8 @@
 /* Configuration values that aren't in the config file */
 
 /* OLD_RFC1459_PARAM_SPACE
- * RFC1459 says parameters are seperated by one or more spaces,
- * however RFC2812 says they are seperated by a single space (thus
+ * RFC1459 says parameters are separated by one or more spaces,
+ * however RFC2812 says they are separated by a single space (thus
  * allowing empty parameters).  Define this to use the old RFC1459
  * behaviour IF (and only IF) you have problems.
  */
@@ -315,7 +315,7 @@
 #define DEFAULT_NICK_KEEP 1
 
 /* DEFAULT_CTCP_REPLIES
- * Whether to reply to ctcp messages while client is detatched
+ * Whether to reply to ctcp messages while client is detached
  * 1 = Yes
  * 0 = No
  */

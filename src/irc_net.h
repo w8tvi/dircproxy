@@ -146,7 +146,7 @@ typedef struct ircconnclass {
   
    /* EXPERIMENTAL
     * allow dynamic enable GET and SET command to get and set configuration
-    * option in runtime. usefull if you want to put some configuration option
+    * option in runtime. useful if you want to put some configuration option
     * inside your irc client. 
     */
   int allow_dynamic;

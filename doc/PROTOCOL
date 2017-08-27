@@ -37,7 +37,7 @@ dircproxy always sends "0" as the second parameter and "*" as the
 third to any server it connects to.
 
 
-Modern servers send four numerics upon connection, 001 thru 004.
+Modern servers send four numerics upon connection, 001 through 004.
 These provide information about the server.  These were not defined
 in RFC1459 but are defined in RFC2812.
 
