@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# Logs private messages to seperate files.
+# Logs private messages to separate files.
 #
 # To use, set the following in dircproxyrc:
 #   other_log_program "/path/to/privmsg-log.pl"

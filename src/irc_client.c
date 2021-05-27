@@ -964,7 +964,7 @@ int ircclient_change_nick(struct ircproxy *p, const char *newnick) {
   }
 }
 
-/* Nickname has now definitly been changed */
+/* Nickname has now definitely been changed */
 int ircclient_nick_changed(struct ircproxy *p, const char *newnick) {
   if (p->nickname)
     debug("nickname WAS '%s'", p->nickname);
@@ -1797,7 +1797,7 @@ void _ircclient_handle_kill(struct ircproxy *p, struct ircmessage msg) {
     } else if (proxy) {
       if (IS_SERVER_READY(proxy)) {
         ircserver_send_command(proxy, "QUIT",
-                               ":Killed by adminstrator - %s %s",
+                               ":Killed by administrator - %s %s",
                                PACKAGE, VERSION);
       }
       if (IS_CLIENT_READY(proxy)) {

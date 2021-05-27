@@ -777,7 +777,7 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
    message causing the collision was a nickname change, then the
    original (old) nick must be removed as well.
 
-   If the server recieves an identical NICK from a client which is
+   If the server receives an identical NICK from a client which is
    directly connected, it may issue an ERR_NICKCOLLISION to the local
    client, drop the NICK command, and not generate any kills.
 
@@ -989,7 +989,7 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
    This command is also available operators to help keep a network of
    IRC servers connected in an orderly fashion.  Operators may also
    issue an SQUIT message for a remote server connection.  In this case,
-   the SQUIT must be parsed by each server inbetween the operator and
+   the SQUIT must be parsed by each server between the operator and
    the remote server, updating the view of the network held by each
    server as explained below.
 
@@ -2622,7 +2622,7 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
                   channel.
 
         483     ERR_CANTKILLSERVER
-                        ":You cant kill a server!"
+                        ":You can't kill a server!"
 
                 - Any attempts to use the KILL command on a server
                   are to be refused and this error returned directly
@@ -2652,7 +2652,7 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
                   the a mode flag sent was not recognized.
 
         502     ERR_USERSDONTMATCH
-                        ":Cant change mode for other users"
+                        ":Can't change mode for other users"
 
                 - Error sent to any user trying to view or change the
                   user mode for a user other than themselves.
@@ -3484,9 +3484,9 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
 
 8.13 Channel membership
 
-   The current server allows any registered local user to join upto 10
+   The current server allows any registered local user to join up to 10
    different channels.  There is no limit imposed on non-local users so
-   that the server remains (reasonably) consistant with all others on a
+   that the server remains (reasonably) consistent with all others on a
    channel membership basis
 
 9. Current problems

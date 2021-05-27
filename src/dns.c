@@ -178,7 +178,7 @@ static int _dns_startrequest(void *boundto, dns_fun_t function, void *data,
     /* Do the lookup */
     result = _dns_lookup(name, ip);
     if (result.success) {
-      /* Succeded, write to our parent and die */
+      /* Succeeded, write to our parent and die */
       write(p[1], (void *)&result, sizeof(struct dnsresult));
       exit(0);
     } else {

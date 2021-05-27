@@ -207,7 +207,7 @@ throttle the connection to the server to prevent too much being sent
 within a certain time period.
 
 For this you specify a number of bytes, then optionally a time period
-in seconds seperated by a colon.  If the time period is ommitted then
+in seconds separated by a colon.  If the time period is omitted then
 per second is assmued.
 
  server_throttle 10        # 10 bytes per second
@@ -457,7 +457,7 @@ log file timestamps so they\fR're in the right time zone for you.
 
 .TP
 .B log_events
-Events you want \fBdircproxy\fR to log for you.  This is a comma seperated
+Events you want \fBdircproxy\fR to log for you.  This is a comma separated
 list of event names, prefixed with '\fB+\fR' to add the event to the
 list or '\fB-\fR' to remove an event.  You can also specify '\fBall\fR'
 to log all events (the default) or '\fBnone\fR' to not log anything.
@@ -712,7 +712,7 @@ Ports that \fBdircproxy\fR can use to listen for DCC connections on.
 This is for when you're behind a firewall that only allows certain
 ports through, or when doing DCC-via-ssh.
 
-It is a comma seperated list of port numbers or ranges of ports,
+It is a comma separated list of port numbers or ranges of ports,
 for example '57100-57199,57400,57500,57600-57800'
 
  any = Use any port given to us by the kernel.
@@ -979,8 +979,8 @@ used.
 .TP
 .B join
 Channels to join when you first connect.  Multiple channels can be given,
-either by seperating the names with a comma, or by specifying multiple
-'\fBjoin\fR' lines.  You may also include the channel key by seperating it
+either by separating the names with a comma, or by specifying multiple
+'\fBjoin\fR' lines.  You may also include the channel key by separating it
 from the channel name with a space.
 
 Note: You \fImust\fR surround the list of channels with quotes to

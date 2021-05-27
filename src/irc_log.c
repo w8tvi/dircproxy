@@ -77,7 +77,7 @@
 #define IS_SERVER_LOG(_p, _log)  ((_log) == &((_p)->server_log))
 #define IS_PRIVATE_LOG(_p, _log) ((_log) == &((_p)->private_log))
 
-// MacOSX dont add PACKAGE_NAME to config.h
+// MacOSX don't add PACKAGE_NAME to config.h
 #ifndef PACKAGE_NAME
 # define PACKAGE_NAME "dircproxy"
 #endif 

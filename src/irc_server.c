@@ -1182,7 +1182,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 	     
 	     id = malloc(strlen(msg.src.name)+strlen(cmsg.params[2])+2);
 	     sprintf(id, "%s:%s", msg.src.name, cmsg.params[2]);
-	     debug("Recieved ACCEPT message with id %s", id);
+	     debug("Received ACCEPT message with id %s", id);
 	     
 	     for (currptr = dcc_resume_list; currptr; currptr = currptr->next) {
 		if (!strcmp(currptr->id, id)) {
